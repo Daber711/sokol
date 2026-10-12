@@ -144,28 +144,45 @@ function toast(t){const el=$('#toast');el.textContent=t;el.classList.add('on');c
 const DEFM={self:{n:'Наливной пол',k:1.6,bag:25,price:'',min:3},rem:{n:'Ремонтная смесь / ремсостав',k:1.9,bag:25,price:''},glue:{n:'Клей для плитки',k:1.4,bag:25,price:'',max:10},grind:{price:'',max:10}};
 let S=null;
 function load(){try{S=JSON.parse(localStorage.getItem(KEY)||'null')}catch(e){}if(!S)S={items:[],cur:null,view:'list',mat:{}};S.items=S.items||[];S.mat=S.mat||{};
-  for(const k in DEFM)S.mat[k]={...DEFM[k],...(S.mat[k]||{})}}
+  for(const k in DEFM)S.mat[k]={...DEFM[k],...(S.mat[k]||{})}
+  // первая версия хранила ряды от двери вверх — переворачиваем под план (сверху вниз)
+  for(const it of S.items)if(it.type==='floor'&&!it.v){const ny=Math.max(2,+it.ny||3);const np={};for(const [k,v] of Object.entries(it.pts||{})){const [i,j]=k.split(',').map(Number);np[i+','+(ny-1-j)]=v}it.pts=np;it.v=2;it.shape=it.shape||'rect';it.walls=it.walls||[]}}
 let st;function save(){clearTimeout(st);st=setTimeout(saveNow,200)}
 function saveNow(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){toast('Не сохранилось')}}
 window.addEventListener('pagehide',saveNow);
-function newFloor(){return{id:uid(),type:'floor',name:'Санузел',L:2000,W:1700,nx:4,ny:3,ref:'',tile:10,glue:5,hydro:1,offset:0,tol:2,pts:{},date:new Date().toISOString().slice(0,10)}}
+function newFloor(){return{id:uid(),type:'floor',v:2,shape:'rect',walls:[],door:0,name:'Санузел',L:2000,W:1700,nx:4,ny:3,ref:'',tile:10,glue:5,hydro:1,offset:0,tol:2,pts:{},date:new Date().toISOString().slice(0,10)}}
 const cur=()=>S.items.find(x=>x.id===S.cur);
 
-// ---------- расчёт ----------
-// точка сетки: координаты (мм) от левой стены и от стены с дверью
-function grid(it){const L=Math.max(300,n0(it.L)),W=Math.max(300,n0(it.W)),nx=Math.max(2,+it.nx||3),ny=Math.max(2,+it.ny||3);
-  const m=Math.min(150,L/(2*nx),W/(2*ny));const xs=[],ys=[];for(let i=0;i<nx;i++)xs.push(m+(L-2*m)*i/(nx-1));for(let j=0;j<ny;j++)ys.push(m+(W-2*m)*j/(ny-1));return{L,W,nx,ny,xs,ys}}
+// ---------- геометрия: как в «Смете» и «Раскладке» (стрелка + длина) ----------
+const DIRS=[[1,0,'→'],[1,1,'↘'],[0,1,'↓'],[-1,1,'↙'],[-1,0,'←'],[-1,-1,'↖'],[0,-1,'↑'],[1,-1,'↗']];
+function dirVec(w){if(+w.dir===8){const a=n0(w.ang)*Math.PI/180;return[Math.cos(a),Math.sin(a)]}const [dx,dy]=DIRS[(+w.dir)%8];const k=(dx&&dy)?Math.SQRT1_2:1;return[dx*k,dy*k]}
+// контур в координатах плана (x вправо, y вниз); у прямоугольника дверь — нижняя стена
+function room(it){if(it.shape!=='free'){const L=Math.max(300,n0(it.L)),W=Math.max(300,n0(it.W));return{pts:[[0,0],[L,0],[L,W],[0,W]],closed:true,path:[[0,0],[L,0],[L,W],[0,W],[0,0]],gap:[0,0]}}
+  const path=[[0,0]];let x=0,y=0;for(const w of it.walls||[]){const [dx,dy]=dirVec(w);const l=n0(w.len);x+=dx*l;y+=dy*l;path.push([x,y])}
+  const closed=Math.hypot(x,y)<5&&(it.walls||[]).length>=3;return{pts:closed?path.slice(0,-1):[],closed,path,gap:[-x,-y]}}
+function pip(P,x,y){let c=false;for(let i=0,j=P.length-1;i<P.length;j=i++){const [xi,yi]=P[i],[xj,yj]=P[j];if(((yi>y)!==(yj>y))&&(x<(xj-xi)*(y-yi)/(yj-yi)+xi))c=!c}return c}
+function segDist(P,x,y){let m=1e18;for(let i=0;i<P.length;i++){const [ax,ay]=P[i],[bx,by]=P[(i+1)%P.length];const dx=bx-ax,dy=by-ay;const t=Math.max(0,Math.min(1,((x-ax)*dx+(y-ay)*dy)/(dx*dx+dy*dy||1)));m=Math.min(m,Math.hypot(ax+t*dx-x,ay+t*dy-y))}return m}
+const polyArea=P=>{let s=0;for(let i=0;i<P.length;i++){const a=P[i],b=P[(i+1)%P.length];s+=a[0]*b[1]-b[0]*a[1]}return Math.abs(s)/2};
+// стена с дверью: у прямоугольника — нижняя (3-я), у сложной — выбранная
+const doorWall=it=>it.shape==='free'?Math.max(0,Math.min((it.walls||[]).length-1,+it.door||0)):2;
+// сетка точек по габариту помещения; точки снаружи — не меряются
+function grid(it){const R=room(it);const P=R.pts;const nx=Math.max(2,+it.nx||3),ny=Math.max(2,+it.ny||3);
+  if(P.length<3)return{R,P,nx,ny,xs:[],ys:[],x0:0,y0:0,L:1,W:1,inside:()=>false,ok:false};
+  const xsA=P.map(q=>q[0]),ysA=P.map(q=>q[1]);const x0=Math.min(...xsA),y0=Math.min(...ysA),L=Math.max(...xsA)-x0,W=Math.max(...ysA)-y0;
+  const m=Math.min(150,L/(2*nx),W/(2*ny));const xs=[],ys=[];for(let i=0;i<nx;i++)xs.push(x0+m+(L-2*m)*i/(nx-1));for(let j=0;j<ny;j++)ys.push(y0+m+(W-2*m)*j/(ny-1));
+  const inside=(i,j)=>{const x=xs[i],y=ys[j];return pip(P,x,y)&&segDist(P,x,y)>=Math.min(60,m*0.6)};
+  return{R,P,nx,ny,xs,ys,x0,y0,L,W,inside,ok:true}}
 // толщина пирога: насколько основание должно быть ниже паркета
 const cake=it=>n0(it.tile)+n0(it.glue)+n0(it.hydro)-n0(it.offset);
 // d > 0 — основание ниже нужного (долить), d < 0 — выше (стесать)
 function analyze(it){const G=grid(it);const tgt=n0(it.ref)+cake(it);const tol=Math.max(0,n0(it.tol));const P=[];
-  for(let j=0;j<G.ny;j++)for(let i=0;i<G.nx;i++){const v=num(it.pts[i+','+j]);if(isFinite(v))P.push({i,j,x:G.xs[i],y:G.ys[j],d:v-tgt})}
-  if(!isFinite(num(it.ref))||P.length<2)return{G,tgt,P,ready:false};
-  // поле отклонений: обратные расстояния по всем точкам, мелкая сетка 40×40
+  if(G.ok)for(let j=0;j<G.ny;j++)for(let i=0;i<G.nx;i++){if(!G.inside(i,j))continue;const v=num(it.pts[i+','+j]);if(isFinite(v))P.push({i,j,x:G.xs[i],y:G.ys[j],d:v-tgt})}
+  if(!G.ok||!isFinite(num(it.ref))||P.length<2)return{G,tgt,P,ready:false};
+  // поле отклонений: обратные расстояния по всем точкам, мелкая сетка 40×40 по габариту, только внутри помещения
   const N=40,cw=G.L/N,ch=G.W/N;const cells=[];
-  for(let b=0;b<N;b++)for(let a=0;a<N;a++){const x=(a+.5)*cw,y=(b+.5)*ch;let s=0,w=0,hit=null;
-    for(const p of P){const r2=(p.x-x)**2+(p.y-y)**2;if(r2<1){hit=p.d;break}const ww=1/r2;s+=ww*p.d;w+=ww}cells.push({a,b,d:hit!==null?hit:s/w})}
-  const cA=cw*ch/1e6;const A=G.L*G.W/1e6;
+  for(let b=0;b<N;b++)for(let a=0;a<N;a++){const x=G.x0+(a+.5)*cw,y=G.y0+(b+.5)*ch;if(!pip(G.P,x,y))continue;let s=0,w=0,hit=null;
+    for(const p of P){const r2=(p.x-x)**2+(p.y-y)**2;if(r2<1){hit=p.d;break}const ww=1/r2;s+=ww*p.d;w+=ww}cells.push({a,b,x,y,d:hit!==null?hit:s/w})}
+  const A=polyArea(G.P)/1e6;const cA=cells.length?A/cells.length:0;
   const M=S.mat;const E=Math.max(0,n0(M.glue.max)-n0(it.glue));// сколько ещё возьмёт клей сверх обычного слоя
   const st={A,lowMax:Math.max(0,...P.map(p=>p.d)),highMax:Math.max(0,...P.map(p=>-p.d)),
     fillV:cells.reduce((s,c)=>s+Math.max(0,c.d)*cA,0),// м²·мм = литры
@@ -212,43 +229,68 @@ function renderList(){hdr('Расчёты');
   let h=`<h2>Выравнивание пола под плитку</h2><div class="small mute" style="margin:0 4px 8px">Отбиваете лазером уровень чистового пола соседней комнаты (паркет), меряете стяжку по сетке — калькулятор покажет, где долить, где стесать, и что выгоднее: клей, ремсостав или наливной пол.</div>`;
   const fl=S.items.filter(x=>x.type==='floor');
   h+=fl.map(it=>{const R=analyze(it);return`<button class="item" data-act="open" data-id="${it.id}"><div class="row" style="justify-content:space-between"><span class="t">${esc(it.name||'Без названия')}</span><span class="small mute">${esc(it.date||'')}</span></div>
-    <div class="small mute">${fq(n0(it.L)/1000,2)} × ${fq(n0(it.W)/1000,2)} м · точек ${R.P.length} из ${R.G.nx*R.G.ny}${R.ready&&R.best?` · <b style="color:var(--acc2)">${esc(R.best.n)}</b>`:''}</div></button>`}).join('')||'<div class="empty">Замеров пока нет</div>';
+    <div class="small mute">${R.G.ok?fq(polyArea(R.G.P)/1e6,2)+' м²':'контур не замкнут'} · точек ${R.P.length}${R.ready&&R.best?` · <b style="color:var(--acc2)">${esc(R.best.n)}</b>`:''}</div></button>`}).join('')||'<div class="empty">Замеров пока нет</div>';
   h+=`<button class="btn wide" data-act="newfloor">+ Новый замер пола</button>`;
   $('#main').innerHTML=h}
 function fld(k,l,v,ph,extra=''){return`<label class="f">${l}<input data-k="${k}" inputmode="decimal" value="${isSet(v)?esc(String(v)):''}" placeholder="${ph}" ${extra}></label>`}
+function planSvg(it,G,opts={}){const R=G.R;const path=R.path;if(path.length<2)return'';const xs=path.map(q=>q[0]),ys=path.map(q=>q[1]);
+  const x0=Math.min(...xs),y0=Math.min(...ys),w=Math.max(Math.max(...xs)-x0,1),h=Math.max(Math.max(...ys)-y0,1);const W=320,pad=26;const sc=Math.min((W-2*pad)/w,(220-2*pad)/h);const H=h*sc+2*pad;
+  const T=q=>[((q[0]-x0)*sc+pad).toFixed(1),((q[1]-y0)*sc+pad).toFixed(1)];
+  let s=`<svg viewBox="0 0 ${W} ${H.toFixed(0)}" style="width:100%;max-height:260px;display:block">`;
+  if(R.closed)s+=`<polygon points="${R.pts.map(q=>T(q).join(',')).join(' ')}" fill="var(--soft2)"/>`;
+  s+=`<polyline points="${path.map(q=>T(q).join(',')).join(' ')}" fill="none" stroke="var(--ink)" stroke-width="3" stroke-linejoin="round"/>`;
+  if(!R.closed&&path.length>1){const a=T(path[path.length-1]),b=T(path[0]);s+=`<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="var(--bad)" stroke-width="2" stroke-dasharray="6 5"/>`}
+  const dw=doorWall(it);
+  for(let k=0;k<path.length-1;k++){const a=T(path[k]),b=T(path[k+1]);const mx=(+a[0]+ +b[0])/2,my=(+a[1]+ +b[1])/2;
+    if(k===dw&&R.closed){const ax=+a[0]+(+b[0]-a[0])*.3,ay=+a[1]+(+b[1]-a[1])*.3,bx=+a[0]+(+b[0]-a[0])*.7,by=+a[1]+(+b[1]-a[1])*.7;s+=`<line x1="${ax}" y1="${ay}" x2="${bx}" y2="${by}" stroke="var(--acc)" stroke-width="7"/>`}
+    s+=`<g data-act="doorw" data-k="${k}"><circle cx="${mx}" cy="${my}" r="10" fill="${k===dw?'var(--acc)':'var(--card)'}" stroke="var(--acc)"/><text x="${mx}" y="${my+4}" font-size="11" font-weight="700" text-anchor="middle" fill="${k===dw?'#fff':'var(--acc)'}">${k+1}</text></g>`}
+  s+=`<circle cx="${T(path[0])[0]}" cy="${T(path[0])[1]}" r="4" fill="var(--acc)"/></svg>`;return s}
+function raskItems(){try{const d=JSON.parse(localStorage.getItem('raskladka_v1')||'null');return(d&&d.items||[]).filter(x=>x.shape==='free'?(x.walls||[]).length>=3:n0(x.rw)>0)}catch(e){return[]}}
 function renderFloor(){const it=cur();hdr(it.name||'Замер пола',true,`<button data-act="del" title="Удалить" style="font-size:17px">🗑</button>`);
-  const G=grid(it);
+  const G=grid(it);const free=it.shape==='free';const rk=raskItems();
   let h=`<div class="card"><label class="f">Название<input data-k="name" value="${esc(it.name)}"></label>
-   <div class="grid2" style="margin-top:8px">${fld('L','Длина — по стене с дверью, мм',it.L,'2000')}${fld('W','Ширина — от двери вглубь, мм',it.W,'1700')}</div>
-   <div class="small mute" style="margin:10px 0 4px">Точек по длине</div><div class="chips">${[2,3,4,5,6,7,8].map(v=>`<button data-set="nx" data-v="${v}" class="${+it.nx===v?'on':''}">${v}</button>`).join('')}</div>
-   <div class="small mute" style="margin:10px 0 4px">Точек по ширине</div><div class="chips">${[2,3,4,5,6,7,8].map(v=>`<button data-set="ny" data-v="${v}" class="${+it.ny===v?'on':''}">${v}</button>`).join('')}</div>
-   <div class="small mute" style="margin-top:6px">Шаг сетки ≈ ${fq((G.xs[1]-G.xs[0])/10,0)} × ${fq((G.ys[1]-G.ys[0])/10,0)} см. Чем больше ям и бугров — тем гуще сетка.</div></div>
+   <div class="chips" style="margin-top:10px"><button data-shape="rect" class="${free?'':'on'}">Прямоугольник</button><button data-shape="free" class="${free?'on':''}">Сложная форма</button></div>
+   ${free?`<div class="small mute" style="margin:10px 0 6px">Идите вдоль стен от оранжевой точки: стрелка — куда идёт стена, дальше длина в мм. Как в «Смете» и «Раскладке».</div>
+   ${(it.walls||[]).map((w,k)=>`<div class="row" style="gap:6px;margin-bottom:6px"><span class="small mute" style="width:18px;flex:none">${k+1}</span><select data-w="${k}" data-f="dir" style="width:62px;flex:none;font-size:18px;padding:6px 4px">${DIRS.map((d,j)=>`<option value="${j}" ${+w.dir===j?'selected':''}>${d[2]}</option>`).join('')}${+w.dir===8?'<option value="8" selected>∠</option>':''}</select><input data-w="${k}" data-f="len" inputmode="decimal" value="${isSet(w.len)?esc(String(w.len)):''}" placeholder="длина, мм"><button class="x" data-act="delw" data-k="${k}">✕</button></div>`).join('')}
+   <div class="chips">${[0,2,4,6,1,3,5,7].map(j=>`<button data-act="addw" data-d="${j}" style="font-size:17px;min-width:44px">+${DIRS[j][2]}</button>`).join('')}</div>
+   <div id="plan" style="margin-top:8px">${planSvg(it,G)}</div>
+   ${G.R.closed?`<div class="small mute">Нажмите на номер стены, где дверь (паркет), — она станет оранжевой. Сейчас: стена ${doorWall(it)+1}.</div>`:(it.walls||[]).length?`<div class="small" style="color:var(--bad);margin:4px 0">Контур не замкнут: не хватает ${Math.round(Math.abs(G.R.gap[0]))} мм по горизонтали и ${Math.round(Math.abs(G.R.gap[1]))} мм по вертикали.</div><button class="btn sm sec" data-act="closew">Замкнуть контур</button>`:''}`
+   :`<div class="grid2" style="margin-top:8px">${fld('L','Длина — по стене с дверью, мм',it.L,'2000')}${fld('W','Ширина — от двери вглубь, мм',it.W,'1700')}</div>`}
+   ${rk.length?`<div class="row" style="gap:8px;margin-top:10px"><select id="rkimp" style="flex:1"><option value="">Взять форму из «Раскладки»…</option>${rk.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('')}</select><button class="btn sm sec" data-act="rkimp">Взять</button></div>`:''}
+   <div class="small mute" style="margin:12px 0 4px">Точек по длине (слева направо)</div><div class="chips">${[2,3,4,5,6,7,8,10].map(v=>`<button data-set="nx" data-v="${v}" class="${+it.nx===v?'on':''}">${v}</button>`).join('')}</div>
+   <div class="small mute" style="margin:10px 0 4px">Точек по ширине (сверху вниз)</div><div class="chips">${[2,3,4,5,6,7,8,10].map(v=>`<button data-set="ny" data-v="${v}" class="${+it.ny===v?'on':''}">${v}</button>`).join('')}</div>
+   ${G.ok?`<div class="small mute" style="margin-top:6px">Шаг сетки ≈ ${fq((G.xs[1]-G.xs[0])/10,0)} × ${fq((G.ys[1]-G.ys[0])/10,0)} см. Чем больше ям и бугров — тем гуще сетка.</div>`:''}</div>
   <div class="card"><h3>Уровень — от паркета</h3>
    ${fld('ref','От лазерной линии до паркета (чистовой пол рядом), мм',it.ref,'например 1000')}
    <div class="grid3" style="margin-top:8px">${fld('tile','Плитка, мм',it.tile,'10')}${fld('glue','Клей обычный слой, мм',it.glue,'5')}${fld('hydro','Гидроизоляция, мм',it.hydro,'1')}</div>
    <div class="grid2" style="margin-top:8px">${fld('offset','Плитка выше паркета на, мм (0 — в одну плоскость)',it.offset,'0')}${fld('tol','Допуск, ± мм',it.tol,'2')}</div>
    <div class="target" id="tgt"></div></div>
-  <div class="card"><h3>Замеры: от лазерной линии вниз до стяжки, мм</h3><div class="small mute">Меряйте в каждой точке сетки. Рамка: <span style="color:var(--lo);font-weight:700">синяя — долить</span>, <span style="color:var(--hi);font-weight:700">оранжевая — стесать</span>, <span style="color:var(--ok);font-weight:700">зелёная — в допуске</span>.</div>
-   <div class="wall">дальняя стена</div>
-   <div class="mgrid" style="grid-template-columns:repeat(${G.nx},1fr)">${[...Array(G.ny).keys()].reverse().map(j=>[...Array(G.nx).keys()].map(i=>`<div class="cell" data-c="${i},${j}"><input data-pt="${i},${j}" inputmode="decimal" value="${isSet(it.pts[i+','+j])?esc(String(it.pts[i+','+j])):''}"><span class="d"></span></div>`).join('')).join('')}</div>
-   <div class="door"></div><div class="wall">стена с дверью (паркет)</div>
-   <div class="small mute" style="margin-top:4px">Точки — в ${fq(Math.min(150,G.L/(2*G.nx),G.W/(2*G.ny))/10,0)} см от стен, дальше равномерно. Слева направо — как стоите в дверях лицом в санузел.</div></div>
+  <div class="card" id="mcard">${measHtml(it,G)}</div>
   <div id="res"></div>
   <details class="card"><summary><b>Материалы и цены</b> <span class="small mute">— для сравнения вариантов</span></summary><div style="margin-top:8px">${matHtml()}</div></details>`;
   $('#main').innerHTML=h;refresh()}
+function measHtml(it,G){if(!G.ok)return`<h3>Замеры</h3><div class="small mute">Сначала замкните контур помещения.</div>`;const free=it.shape==='free';const n=[...Array(G.ny).keys()].reduce((a,j)=>a+[...Array(G.nx).keys()].filter(i=>G.inside(i,j)).length,0);
+  return`<h3>Замеры: от лазерной линии вниз до стяжки, мм</h3><div class="small mute">Точек: ${n}. Рамка: <span style="color:var(--lo);font-weight:700">синяя — долить</span>, <span style="color:var(--hi);font-weight:700">оранжевая — стесать</span>, <span style="color:var(--ok);font-weight:700">зелёная — в допуске</span>.</div>
+   ${free?'<div class="wall">как на плане сверху</div>':'<div class="wall">дальняя стена</div>'}
+   <div class="mgrid" style="grid-template-columns:repeat(${G.nx},1fr)">${[...Array(G.ny).keys()].map(j=>[...Array(G.nx).keys()].map(i=>G.inside(i,j)?`<div class="cell" data-c="${i},${j}"><input data-pt="${i},${j}" inputmode="decimal" value="${isSet(it.pts[i+','+j])?esc(String(it.pts[i+','+j])):''}"><span class="d"></span></div>`:`<div class="cell" style="border-style:dashed;opacity:.35;background:transparent"></div>`).join('')).join('')}</div>
+   ${free?`<div class="small mute" style="margin-top:6px">Пустые клетки — вне помещения. Дверь — на стене ${doorWall(it)+1} (оранжевая на плане).</div>`:'<div class="door"></div><div class="wall">стена с дверью (паркет)</div>'}
+   <div class="small mute" style="margin-top:4px">Точки — в ${fq(Math.min(150,G.L/(2*G.nx),G.W/(2*G.ny))/10,0)} см от стен, дальше равномерно. Слева направо — как стоите в дверях лицом в санузел${free?' (если дверь снизу на плане)':''}.</div>`}
 function matHtml(){const M=S.mat;const f=(g,k,l,ph)=>`<label class="f">${l}<input data-m="${g}.${k}" inputmode="decimal" value="${isSet(M[g][k])?esc(String(M[g][k])):''}" placeholder="${ph}"></label>`;
   return`<b class="small">Наливной пол</b><div class="grid2" style="margin:4px 0 10px">${f('self','k','Расход, кг/м² на 1 мм','1,6')}${f('self','min','Мин. слой, мм','3')}${f('self','bag','Мешок, кг','25')}${f('self','price','Цена мешка, ₽','')}</div>
   <b class="small">Ремсостав</b><div class="grid2" style="margin:4px 0 10px">${f('rem','k','Расход, кг/м² на 1 мм','1,9')}${f('rem','bag','Мешок, кг','25')}${f('rem','price','Цена мешка, ₽','')}</div>
   <b class="small">Клей</b><div class="grid2" style="margin:4px 0 10px">${f('glue','k','Расход, кг/м² на 1 мм','1,4')}${f('glue','max','Макс. слой клея, мм','10')}${f('glue','bag','Мешок, кг','25')}${f('glue','price','Цена мешка, ₽','')}</div>
   <b class="small">Шлифовка бугров</b><div class="grid2" style="margin:4px 0">${f('grind','max','Стёсывать максимум, мм','10')}${f('grind','price','Ваша цена за м², ₽','')}</div>
   <div class="small mute">Макс. слой клея смотрите на мешке: обычно 10 мм, у клеев для керамогранита бывает до 15–20. Цены можно не вписывать — тогда варианты идут по простоте работы.</div>`}
-function heat(R){const {G,cells,N}=R;const W=320,H=Math.max(120,Math.min(320,W*G.W/G.L));const sx=W/G.L,sy=H/G.W;const tol=R.tol;
+function heat(R,it){const {G,cells,N}=R;const W=320,sc=Math.min(W/G.L,320/G.W);const H=G.W*sc;const Wd=G.L*sc;const ox=(W-Wd)/2;const tol=R.tol;
   const col=d=>{const t=Math.min(1,Math.abs(d)/12);if(Math.abs(d)<=tol)return`rgba(47,158,68,${.25+.2*t})`;return d>0?`rgba(28,126,214,${.25+.6*t})`:`rgba(217,72,15,${.25+.6*t})`};
-  let s=`<svg viewBox="0 0 ${W} ${H+18}" style="width:100%;display:block;border-radius:10px">`;
-  for(const c of cells)s+=`<rect x="${(c.a*G.L/N*sx).toFixed(2)}" y="${(H-(c.b+1)*G.W/N*sy).toFixed(2)}" width="${(G.L/N*sx+.6).toFixed(2)}" height="${(G.W/N*sy+.6).toFixed(2)}" fill="${col(c.d)}"/>`;
-  s+=`<rect x="0" y="0" width="${W}" height="${H}" fill="none" stroke="var(--ink)" stroke-width="2"/>`;
-  for(const p of R.P){const x=p.x*sx,y=H-p.y*sy;const t=Math.abs(p.d)<=tol?'ок':(p.d>0?'+':'−')+fq(Math.abs(p.d),0);s+=`<circle cx="${x}" cy="${y}" r="3" fill="var(--ink)"/><text x="${x}" y="${y-6}" font-size="11" font-weight="700" text-anchor="middle" fill="var(--ink)" stroke="var(--card)" stroke-width="3" paint-order="stroke">${t}</text>`}
-  s+=`<rect x="${W*0.3}" y="${H-3}" width="${W*0.4}" height="6" fill="var(--acc)"/><text x="${W/2}" y="${H+15}" font-size="10.5" text-anchor="middle" fill="var(--mute)">дверь, паркет</text></svg>`;return s}
+  const T=(x,y)=>[ox+(x-G.x0)*sc,(y-G.y0)*sc];const cw=G.L/N*sc,ch=G.W/N*sc;
+  let s=`<svg viewBox="0 -4 ${W} ${H+24}" style="width:100%;display:block;border-radius:10px"><defs><clipPath id="rc"><polygon points="${G.P.map(q=>T(q[0],q[1]).join(',')).join(' ')}"/></clipPath></defs><g clip-path="url(#rc)">`;
+  for(const c of cells){const [x,y]=T(c.x,c.y);s+=`<rect x="${(x-cw/2).toFixed(2)}" y="${(y-ch/2).toFixed(2)}" width="${(cw+.6).toFixed(2)}" height="${(ch+.6).toFixed(2)}" fill="${col(c.d)}"/>`}
+  s+=`</g><polygon points="${G.P.map(q=>T(q[0],q[1]).join(',')).join(' ')}" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linejoin="round"/>`;
+  const dw=doorWall(it);const a=G.P[dw],b=G.P[(dw+1)%G.P.length];if(a&&b){const A=T(a[0]+(b[0]-a[0])*.3,a[1]+(b[1]-a[1])*.3),B=T(a[0]+(b[0]-a[0])*.7,a[1]+(b[1]-a[1])*.7);s+=`<line x1="${A[0]}" y1="${A[1]}" x2="${B[0]}" y2="${B[1]}" stroke="var(--acc)" stroke-width="6"/>`;
+    const M=T((a[0]+b[0])/2,(a[1]+b[1])/2);s+=`<text x="${M[0]}" y="${Math.min(H+16,Math.max(10,M[1]+(M[1]>H/2?15:-7)))}" font-size="10.5" text-anchor="middle" fill="var(--mute)">дверь, паркет</text>`}
+  for(const p of R.P){const [x,y]=T(p.x,p.y);const t=Math.abs(p.d)<=tol?'ок':(p.d>0?'+':'−')+fq(Math.abs(p.d),0);s+=`<circle cx="${x}" cy="${y}" r="3" fill="var(--ink)"/><text x="${x}" y="${y-6}" font-size="11" font-weight="700" text-anchor="middle" fill="var(--ink)" stroke="var(--card)" stroke-width="3" paint-order="stroke">${t}</text>`}
+  return s+'</svg>'}
 function refresh(){const it=cur();if(!it)return;const R=analyze(it);const tg=$('#tgt');
   if(tg)tg.innerHTML=`<div class="small">Основание (стяжка) должно быть<br><b style="font-size:15px;color:var(--ink)">на ${fq(cake(it))} мм ниже паркета</b></div><div style="text-align:right"><span class="small mute">от лазера до стяжки</span><br><b>${isFinite(num(it.ref))?fq(R.tgt,0)+' мм':'—'}</b></div>`;
   // ячейки
@@ -258,7 +300,7 @@ function refresh(){const it=cur();if(!it)return;const R=analyze(it);const tg=$('
   const res=$('#res');if(!res)return;
   if(!R.ready){res.innerHTML=`<div class="card small mute">${isFinite(num(it.ref))?'Впишите хотя бы 2 замера — появится карта и варианты.':'Впишите, сколько от лазерной линии до паркета, — от него считается нужный уровень.'}</div>`;return}
   const s=R.st;
-  let h=`<h2>Карта пола</h2><div class="card">${heat(R)}<div class="small mute" style="margin-top:6px"><span class="leg" style="background:rgba(28,126,214,.7)"></span>ниже — долить <span class="leg" style="background:rgba(217,72,15,.7);margin-left:8px"></span>выше — стесать <span class="leg" style="background:rgba(47,158,68,.45);margin-left:8px"></span>в допуске ±${fq(R.tol)} мм</div></div>
+  let h=`<h2>Карта пола</h2><div class="card">${heat(R,it)}<div class="small mute" style="margin-top:6px"><span class="leg" style="background:rgba(28,126,214,.7)"></span>ниже — долить <span class="leg" style="background:rgba(217,72,15,.7);margin-left:8px"></span>выше — стесать <span class="leg" style="background:rgba(47,158,68,.45);margin-left:8px"></span>в допуске ±${fq(R.tol)} мм</div></div>
   <div class="kpi"><div><span>Самая глубокая яма</span><b style="color:var(--lo)">${s.lowMax>R.tol?fq(s.lowMax)+' мм':'нет'}</b></div><div><span>Самый высокий бугор</span><b style="color:var(--hi)">${s.highMax>R.tol?fq(s.highMax)+' мм':'нет'}</b></div>
    <div><span>Долить (объём)</span><b>${fq(s.fillV,1)} л</b></div><div><span>Стесать</span><b>${s.grindA>0?fq(s.grindA,2)+' м²':'—'}</b></div></div>`;
   h+=`<h2>Что выгоднее</h2><div class="card">`;
@@ -271,16 +313,28 @@ function refresh(){const it=cur();if(!it)return;const R=analyze(it);const tg=$('
   res.innerHTML=h}
 
 // ---------- события ----------
-document.addEventListener('click',e=>{const b=e.target.closest('[data-act],[data-set]');if(!b)return;
-  if(b.dataset.set){const it=cur();it[b.dataset.set]=+b.dataset.v;save();renderFloor();return}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-act],[data-set],[data-shape]');if(!b)return;const it0=cur();
+  if(b.dataset.set){it0[b.dataset.set]=+b.dataset.v;save();renderFloor();return}
+  if(b.dataset.shape){it0.shape=b.dataset.shape;if(it0.shape==='free'&&!(it0.walls||[]).length){const L=n0(it0.L)||2000,W=n0(it0.W)||1700;it0.walls=[{len:L,dir:0},{len:W,dir:2},{len:L,dir:4},{len:W,dir:6}];it0.door=2}save();renderFloor();return}
   const a=b.dataset.act;
   if(a==='newfloor'){const it=newFloor();it.name='Санузел '+(S.items.filter(x=>x.type==='floor').length+1);S.items.unshift(it);S.cur=it.id;S.view='floor';save();render();scrollTo(0,0)}
   else if(a==='open'){S.cur=b.dataset.id;S.view='floor';save();render();scrollTo(0,0)}
   else if(a==='back'){S.view='list';save();render()}
+  else if(a==='addw'){it0.walls=it0.walls||[];it0.walls.push({len:'',dir:+b.dataset.d});save();renderFloor();const i=document.querySelector(`[data-w="${it0.walls.length-1}"][data-f="len"]`);if(i)i.focus()}
+  else if(a==='delw'){const k=+b.dataset.k;it0.walls.splice(k,1);if(+it0.door>=it0.walls.length)it0.door=0;save();renderFloor()}
+  else if(a==='doorw'){it0.door=+b.dataset.k;save();renderFloor()}
+  else if(a==='closew'){const R=room(it0);const [gx,gy]=R.gap.map(v=>Math.round(v));
+    if(gx&&gy&&Math.abs(Math.abs(gx)-Math.abs(gy))<3)it0.walls.push({len:Math.round(Math.hypot(gx,gy)),dir:DIRS.findIndex(d=>d[0]===Math.sign(gx)&&d[1]===Math.sign(gy))});
+    else if(gx&&gy){it0.walls.push({len:Math.round(Math.hypot(gx,gy)),dir:8,ang:Math.round(Math.atan2(gy,gx)*1800/Math.PI)/10})}
+    else{if(gx)it0.walls.push({len:Math.abs(gx),dir:gx>0?0:4});if(gy)it0.walls.push({len:Math.abs(gy),dir:gy>0?2:6})}save();renderFloor();toast('Контур замкнут')}
+  else if(a==='rkimp'){const id=$('#rkimp').value;const x=raskItems().find(q=>q.id===id);if(!x){toast('Выберите помещение');return}
+    const dk=x.doors&&x.doors[0]?+x.doors[0].wall:null;if(x.shape==='free'){it0.shape='free';it0.walls=x.walls.map(w=>({len:n0(w.len),dir:+w.dir||0,...(+w.dir===8?{ang:w.ang}:{})}));it0.door=dk??0}else if(dk!==null&&dk!==2){it0.shape='free';it0.walls=[{len:n0(x.rw),dir:0},{len:n0(x.rh),dir:2},{len:n0(x.rw),dir:4},{len:n0(x.rh),dir:6}];it0.door=dk}else{it0.shape='rect';it0.L=n0(x.rw);it0.W=n0(x.rh)}
+    if(!isSet(it0.name)||/^Санузел \d+$/.test(it0.name))it0.name=x.name;it0.pts={};save();renderFloor();toast(dk!==null?`Форма взята из «Раскладки», дверь — стена ${doorWall(it0)+1}`:'Форма взята из «Раскладки». Отметьте стену с дверью.')}
   else if(a==='del'){if(confirm('Удалить замер?')){S.items=S.items.filter(x=>x.id!==S.cur);S.view='list';save();render()}}});
 document.addEventListener('input',e=>{const el=e.target,d=el.dataset;const it=cur();
-  if(d.k&&it){it[d.k]=el.value;save();if(d.k==='name'){$('#hdr h1').textContent=el.value;return}if(d.k==='L'||d.k==='W'){clearTimeout(el._t);el._t=setTimeout(refresh,300);return}refresh()}
+  if(d.k&&it){it[d.k]=el.value;save();if(d.k==='name'){$('#hdr h1').textContent=el.value;return}if(d.k==='L'||d.k==='W'){clearTimeout(el._t);el._t=setTimeout(()=>{const mc=$('#mcard');if(mc)mc.innerHTML=measHtml(it,grid(it));refresh()},300);return}refresh()}
   else if(d.pt&&it){it.pts[d.pt]=el.value;save();refresh()}
+  else if(d.w!==undefined&&it){const w=it.walls[+d.w];w[d.f]=d.f==='dir'?+el.value:el.value;save();clearTimeout(window._wt);window._wt=setTimeout(()=>{const G=grid(it);const pl=$('#plan');if(pl)pl.innerHTML=planSvg(it,G);const mc=$('#mcard');if(mc)mc.innerHTML=measHtml(it,G);refresh()},350)}
   else if(d.m){const [g,k]=d.m.split('.');S.mat[g][k]=el.value;save();refresh()}});
 // Enter / «Далее» в замере — к следующей точке
 document.addEventListener('keydown',e=>{if(e.key!=='Enter'||!e.target.dataset.pt)return;e.preventDefault();const all=[...document.querySelectorAll('[data-pt]')];const i=all.indexOf(e.target);if(all[i+1])all[i+1].focus();else e.target.blur()});
