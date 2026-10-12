@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="ru"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Плитка">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#EEF0EE">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>Плитка · учёт</title>
+<style>
+html,body{margin:0}
+
+/* Layout: one-screen phone app — sticky header, scrolling panel, bottom tab bar. Progress drawn as a 20-tile wall that fills up. */
+:root{
+  --bg:#EEF0EE; --surface:#FFFFFF; --grout:#D5DAD6; --ink:#17201C; --muted:#5F6B66;
+  --accent:#1F5C8C; --accent-ink:#FFFFFF; --tile:#2E7AB5; --tile-empty:#E3E7E4;
+  --good:#1E7B4A; --bad:#B23B2E; --line:#DCE1DD;
+  --display:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --body:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#101614; --surface:#18201D; --grout:#2A3430; --ink:#E8EEEA; --muted:#97A39E;
+  --accent:#5BA3DB; --accent-ink:#0B1520; --tile:#4C9AD3; --tile-empty:#232D29;
+  --good:#5BC28A; --bad:#EE7A6C; --line:#27312D; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#101614; --surface:#18201D; --grout:#2A3430; --ink:#E8EEEA; --muted:#97A39E;
+  --accent:#5BA3DB; --accent-ink:#0B1520; --tile:#4C9AD3; --tile-empty:#232D29;
+  --good:#5BC28A; --bad:#EE7A6C; --line:#27312D; color-scheme:dark}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font:16px/1.4 var(--body);-webkit-tap-highlight-color:transparent}
+*{box-sizing:border-box}
+.app{max-width:560px;margin:0 auto;padding-inline:16px;padding-block:12px 96px}
+header{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding-block:6px 14px}
+h1{font:700 20px/1.1 var(--display);margin:0;letter-spacing:-.01em}
+.sync{font-size:12px;color:var(--muted)}
+h2{font:600 15px/1.2 var(--display);margin:0;letter-spacing:.01em}
+.num{font-variant-numeric:tabular-nums}
+.card{background:var(--surface);border-radius:14px;padding:16px;display:grid;gap:12px}
+.stack{display:grid;gap:12px}
+.monthbar{display:flex;align-items:center;justify-content:space-between}
+.iconbtn{border:0;background:transparent;color:var(--ink);font-size:22px;width:44px;height:44px;border-radius:10px;cursor:pointer}
+.iconbtn:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.big{font:700 34px/1 var(--display);letter-spacing:-.02em}
+.sub{color:var(--muted);font-size:14px}
+.wall{display:grid;grid-template-columns:repeat(10,1fr);gap:3px;background:var(--grout);padding:3px;border-radius:6px}
+.wall i{aspect-ratio:1;background:var(--tile-empty);border-radius:2px;display:block;position:relative;overflow:hidden}
+.wall i.on{background:var(--tile)}
+.wall i.part::after{content:"";position:absolute;inset:0;width:var(--p);background:var(--tile)}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{display:grid;gap:2px}
+.stat b{font-size:18px;font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.good{color:var(--good)} .bad{color:var(--bad)}
+.addbtn{position:fixed;right:16px;bottom:calc(76px + env(safe-area-inset-bottom,0px));width:60px;height:60px;border-radius:16px;border:0;background:var(--accent);color:var(--accent-ink);font-size:32px;box-shadow:0 6px 18px rgba(0,0,0,.25);cursor:pointer}
+nav{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(4,1fr);padding-bottom:env(safe-area-inset-bottom,0px);z-index:5}
+nav button{border:0;background:transparent;color:var(--muted);font:600 12px var(--body);padding:10px 4px 12px;display:grid;justify-items:center;gap:4px;cursor:pointer}
+nav button svg{width:22px;height:22px}
+nav button[aria-selected="true"]{color:var(--accent)}
+.list{display:grid;gap:0;background:var(--surface);border-radius:14px;overflow:hidden}
+.dayhead{display:flex;justify-content:space-between;padding:10px 16px;font-size:13px;color:var(--muted);background:var(--bg);font-weight:600}
+.row{display:grid;grid-template-columns:1fr auto;gap:2px 12px;padding:12px 16px;border-top:1px solid var(--line);align-items:center;cursor:pointer}
+.row .t{font-weight:600;min-width:0}
+.row .m{font-size:13px;color:var(--muted);grid-column:1}
+.row .s{grid-row:1/3;grid-column:2;font-weight:700;font-variant-numeric:tabular-nums}
+.empty{padding:28px 16px;text-align:center;color:var(--muted);background:var(--surface);border-radius:14px}
+label{display:grid;gap:6px;font-size:13px;color:var(--muted);font-weight:600}
+input,select{font:16px var(--body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px;width:100%;min-width:0}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--bg);border-radius:10px;padding:3px}
+.seg button{border:0;background:transparent;padding:10px;border-radius:8px;font:600 14px var(--body);color:var(--muted);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink)}
+.btn{border:0;border-radius:12px;padding:14px;font:700 16px var(--body);cursor:pointer;background:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:var(--bg);color:var(--ink)}
+.btn.danger{background:var(--bad);color:#fff}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sheet{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center;z-index:10}
+.sheet .panel{background:var(--surface);width:100%;max-width:560px;border-radius:18px 18px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px));display:grid;gap:14px;max-height:92%;overflow:auto}
+.total{display:flex;justify-content:space-between;align-items:baseline;font-weight:700}
+.total b{font:700 22px var(--display)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+td,th{padding:8px 4px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.rate{display:grid;grid-template-columns:1fr 64px 96px;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.rate input{padding:8px}
+.rate .n{font-size:14px;min-width:0}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(150px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;z-index:20}
+textarea.copy{width:100%;height:160px;font:13px var(--body);background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px}
+@media (prefers-reduced-motion:no-preference){.wall i{transition:background .3s}}
+
+:root{padding-top:env(safe-area-inset-top,0px)}
+</style>
+</head><body>
+<div class="app">
+  <header><h1>Плитка · учёт</h1><span class="sync">работает без интернета</span></header>
+  <main id="view"></main>
+</div>
+<button class="addbtn" id="add" aria-label="Добавить работу">+</button>
+<nav role="tablist" style="grid-template-columns:repeat(3,1fr)">
+  <button data-tab="today" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="8" height="8"/><rect x="13" y="3" width="8" height="8"/><rect x="3" y="13" width="8" height="8"/><rect x="13" y="13" width="8" height="8" fill="currentColor"/></svg>План</button>
+  <button data-tab="log"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Журнал</button>
+  <button data-tab="est"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h9l3 3v15H6z"/><path d="M9 11h6M9 15h6"/></svg>Смета</button>
+</nav>
+<div id="layer"></div>
+<script>
+const S={entries:[],settings:{goal:200000},tab:"today",month:null,estObj:"",discount:0};
+const $=s=>document.querySelector(s);
+const rub=n=>Math.round(n).toLocaleString("ru-RU")+" ₽";
+const sgn=n=>(n>0?"+":n<0?"−":"")+Math.abs(Math.round(n)).toLocaleString("ru-RU")+" ₽";
+const iso=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+const todayIso=()=>iso(new Date());
+const MONTHS=["январь","февраль","март","апрель","май","июнь","июль","август","сентябрь","октябрь","ноябрь","декабрь"];
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmtDay=s=>new Date(s+"T00:00").toLocaleDateString("ru-RU",{weekday:"short",day:"numeric",month:"long"});
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const num=v=>parseFloat(String(v).replace(",",".").replace(/\s/g,""))||0;
+const title=e=>e.work||e.note||"Без названия";
+
+function load(){try{const d=JSON.parse(localStorage.getItem("plitka")||"null");if(d){S.entries=d.entries||[];S.settings={...S.settings,...(d.settings||{})}}}catch(e){}}
+function save(){try{localStorage.setItem("plitka",JSON.stringify({entries:S.entries,settings:S.settings}))}catch(e){toast("Не сохранилось")}}
+
+function monthKey(){return S.month||todayIso().slice(0,7)}
+function viewToday(){
+  const k=monthKey(),[y,m]=k.split("-").map(Number),days=new Date(y,m,0).getDate();
+  const goal=+S.settings.goal||0, earned=S.entries.filter(e=>e.date&&e.date.startsWith(k)).reduce((s,e)=>s+(+e.sum||0),0);
+  const left=Math.max(goal-earned,0), norm=goal/days, t=todayIso(), curK=t.slice(0,7);
+  const passed=k<curK?days:k>curK?0:+t.slice(8), should=norm*passed, diff=earned-should;
+  const remDays=k<curK?0:k>curK?days:days-passed+1, need=remDays>0?left/remDays:0;
+  const todaySum=S.entries.filter(e=>e.date===t).reduce((s,e)=>s+(+e.sum||0),0);
+  const per=goal/20;let tiles="";
+  for(let i=0;i<20;i++){const f=per?Math.min(Math.max((earned-i*per)/per,0),1):0;tiles+=f>=1?'<i class="on"></i>':f>0?`<i class="part" style="--p:${(f*100).toFixed(0)}%"></i>`:"<i></i>"}
+  return `<div class="stack">
+  <div class="card">
+    <div class="monthbar"><button class="iconbtn" data-mon="-1" aria-label="Прошлый месяц">‹</button><h2>${MONTHS[m-1]} ${y}</h2><button class="iconbtn" data-mon="1" aria-label="Следующий месяц">›</button></div>
+    <div><div class="big num">${rub(earned)}</div><div class="sub">заработано из ${rub(goal)} · осталось <b class="num">${rub(left)}</b></div></div>
+    <div class="wall">${tiles}</div>
+    <div class="sub">Одна плитка — ${rub(per)}</div>
+  </div>
+  <div class="card stats">
+    <div class="stat"><span>Норма в день</span><b>${rub(norm)}</b></div>
+    <div class="stat"><span>Сегодня</span><b>${rub(todaySum)}</b></div>
+    <div class="stat"><span>По норме к сегодня</span><b>${rub(should)}</b></div>
+    <div class="stat"><span>${diff>=0?"Опережение":"Отставание"}</span><b class="${diff>=0?"good":"bad"}">${sgn(diff)}</b></div>
+    <div class="stat" style="grid-column:1/-1"><span>Нужно в день до конца месяца</span><b>${rub(need)}</b></div>
+  </div>
+  <div class="card"><label for="goal">Цель на месяц, ₽<input id="goal" inputmode="numeric" value="${goal}"></label></div>
+  <div class="card"><h2>Резервная копия</h2><div class="sub">Записи хранятся только в этом телефоне. Раз в неделю копируй резервную копию и отправляй себе в Telegram «Избранное». При смене телефона вставишь её обратно.</div>
+  <div class="two"><button class="btn ghost" id="bk-copy">Скопировать копию</button><button class="btn ghost" id="bk-restore">Восстановить</button></div></div>
+  </div>`;
+}
+function viewLog(){
+  if(!S.entries.length)return `<div class="empty">Пока пусто. Нажми «+», впиши объект, работу и сумму.</div>`;
+  const by={};S.entries.forEach(e=>{(by[e.date]=by[e.date]||[]).push(e)});
+  return `<div class="list">`+Object.keys(by).sort().reverse().map(d=>{
+    const it=by[d],tot=it.reduce((s,e)=>s+(+e.sum||0),0);
+    return `<div class="dayhead"><span>${fmtDay(d)}</span><span class="num">${rub(tot)}</span></div>`+it.map(e=>`<div class="row" data-entry="${esc(e.id)}"><span class="t">${esc(title(e))}</span><span class="m">${esc(e.object||"без объекта")}</span><span class="s">${rub(e.sum)}</span></div>`).join("");
+  }).join("")+`</div>`;
+}
+function objects(){return [...new Set(S.entries.filter(e=>e.object).map(e=>e.object))]}
+function estimate(){
+  const list=S.entries.filter(e=>e.object===S.estObj).sort((a,b)=>a.date<b.date?-1:1);
+  const total=list.reduce((s,e)=>s+(+e.sum||0),0),adj=total*(+S.discount||0)/100;
+  return {list,total,adj,pay:total+adj};
+}
+function viewEst(){
+  const objs=objects();if(!objs.includes(S.estObj))S.estObj=objs[0]||"";
+  if(!objs.length)return `<div class="empty">Смета соберётся сама из журнала. Добавь первую работу с названием объекта.</div>`;
+  const E=estimate();
+  return `<div class="stack"><div class="card">
+    <label for="estobj">Объект<select id="estobj">${objs.map(o=>`<option ${o===S.estObj?"selected":""}>${esc(o)}</option>`).join("")}</select></label>
+    <label for="disc">Скидка (−) или наценка (+), %<input id="disc" inputmode="decimal" value="${S.discount}"></label></div>
+    <div class="card"><div style="overflow-x:auto"><table><thead><tr><th>Работа</th><th class="r">Цена</th></tr></thead><tbody>
+    ${E.list.map(e=>`<tr><td>${esc(title(e))}<div class="sub">${new Date(e.date+"T00:00").toLocaleDateString("ru-RU")}</div></td><td class="r">${rub(e.sum)}</td></tr>`).join("")}
+    </tbody></table></div>
+    <div class="total"><span>Итого по работам</span><span class="num">${rub(E.total)}</span></div>
+    ${E.adj?`<div class="total"><span>${E.adj<0?"Скидка":"Наценка"} ${Math.abs(S.discount)}%</span><span class="num">${sgn(E.adj)}</span></div>`:""}
+    <div class="total"><span>К оплате</span><b class="num">${rub(E.pay)}</b></div>
+    <button class="btn" id="copyest">Скопировать смету текстом</button>
+    <div class="sub">Вставь в WhatsApp или Telegram и отправь клиенту.</div></div></div>`;
+}
+function estText(){
+  const E=estimate();let t=`Смета: ${S.estObj}\n\n`;
+  E.list.forEach((e,i)=>{t+=`${i+1}. ${title(e)} — ${rub(e.sum)}\n`});
+  t+=`\nИтого по работам: ${rub(E.total)}`;
+  if(E.adj)t+=`\n${E.adj<0?"Скидка":"Наценка"} ${Math.abs(S.discount)}%: ${sgn(E.adj)}`;
+  return t+`\nК оплате: ${rub(E.pay)}`;
+}
+function render(){
+  $("#view").innerHTML={today:viewToday,log:viewLog,est:viewEst}[S.tab]();
+  document.querySelectorAll("nav button").forEach(b=>b.setAttribute("aria-selected",b.dataset.tab===S.tab));
+}
+function openSheet(html,bind){$("#layer").innerHTML=`<div class="sheet"><div class="panel">${html}</div></div>`;const sh=$("#layer .sheet");sh.addEventListener("click",e=>{if(e.target===sh)closeSheet()});bind&&bind(sh)}
+function closeSheet(){$("#layer").innerHTML=""}
+function toast(t){const d=document.createElement("div");d.className="toast";d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),1800)}
+function copyText(t,okMsg,ttl){const fb=()=>openSheet(`<h2>${ttl}</h2><textarea class="copy" id="ct" readonly>${esc(t)}</textarea><div class="sub">Выдели весь текст и скопируй.</div><button class="btn ghost" id="ctc">Закрыть</button>`,()=>{$("#ct").select();$("#ctc").onclick=closeSheet});try{navigator.clipboard.writeText(t).then(()=>toast(okMsg),fb)}catch(e){fb()}}
+
+function editSheet(id){
+  const e=id?S.entries.find(x=>x.id===id):null;
+  const last=S.entries.slice(-1)[0];
+  openSheet(`<h2>${e?"Запись":"Новая работа"}</h2>
+  <label for="f-date">Дата<input type="date" id="f-date" value="${e?e.date:todayIso()}"></label>
+  <label for="f-obj">Объект<input id="f-obj" list="objlist" value="${esc(e?e.object:(last?last.object:""))}" placeholder="Например: Дом, 2 санузла"></label>
+  <datalist id="objlist">${objects().map(o=>`<option value="${esc(o)}">`).join("")}</datalist>
+  <label for="f-work">Работа<input id="f-work" value="${esc(e?title(e):"")}" placeholder="Например: укладка стен, санузел 2 этаж"></label>
+  <label for="f-sum">Сумма, ₽<input id="f-sum" inputmode="decimal" value="${e?e.sum:""}" placeholder="0"></label>
+  <div class="two"><button class="btn ghost" id="f-cancel">${e?"Удалить":"Отмена"}</button><button class="btn" id="f-save">Сохранить</button></div>`,()=>{
+    const del=$("#f-cancel");
+    del.onclick=function(){if(!e){closeSheet();return}if(this.dataset.sure){S.entries=S.entries.filter(x=>x.id!==id);save();closeSheet();render();toast("Удалено")}else{this.dataset.sure=1;this.textContent="Точно удалить?";this.className="btn danger"}};
+    $("#f-save").onclick=()=>{
+      const rec={id:e?e.id:uid(),date:$("#f-date").value||todayIso(),object:$("#f-obj").value.trim(),work:$("#f-work").value.trim(),sum:num($("#f-sum").value)};
+      if(!rec.work){toast("Впиши работу");return} if(!rec.sum){toast("Впиши сумму");return}
+      if(e)S.entries[S.entries.findIndex(x=>x.id===id)]=rec;else S.entries.push(rec);
+      save();closeSheet();render();toast("Сохранено");
+    };
+    if(!e)setTimeout(()=>$("#f-work").focus(),50);
+  });
+}
+document.querySelector("nav").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;S.tab=b.dataset.tab;render();window.scrollTo(0,0)});
+$("#add").onclick=()=>editSheet(null);
+$("#view").addEventListener("click",e=>{
+  const m=e.target.closest("[data-mon]");if(m){const [y,mo]=monthKey().split("-").map(Number);S.month=iso(new Date(y,mo-1+ +m.dataset.mon,1)).slice(0,7);render();return}
+  const r=e.target.closest("[data-entry]");if(r){editSheet(r.dataset.entry);return}
+  if(e.target.id==="copyest")copyText(estText(),"Смета скопирована","Смета текстом");
+  if(e.target.id==="bk-copy")copyText(JSON.stringify({entries:S.entries,settings:S.settings}),"Копия скопирована","Резервная копия");
+  if(e.target.id==="bk-restore")openSheet(`<h2>Восстановить</h2><div class="sub">Вставь текст резервной копии. Текущие записи заменятся.</div><textarea class="copy" id="rt"></textarea><div class="two"><button class="btn ghost" id="rc">Отмена</button><button class="btn" id="rs">Восстановить</button></div>`,()=>{$("#rc").onclick=closeSheet;$("#rs").onclick=()=>{try{const d=JSON.parse($("#rt").value);if(!Array.isArray(d.entries))throw 0;S.entries=d.entries;S.settings={...S.settings,...(d.settings||{})};save();closeSheet();render();toast("Восстановлено")}catch(err){toast("Не похоже на копию")}}});
+});
+$("#view").addEventListener("change",e=>{
+  const t=e.target;
+  if(t.id==="goal"){const v=num(t.value);if(v>0){S.settings.goal=v;save();render()}}
+  if(t.id==="estobj"){S.estObj=t.value;render()}
+  if(t.id==="disc"){S.discount=num(t.value);render()}
+});
+load();render();
+if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{})}
+try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
+</script>
+</body></html>

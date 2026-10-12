@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Мастер плитки">
+<meta name="theme-color" content="#f2f3f5" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#0d1012" media="(prefers-color-scheme: dark)">
+<title>Мастер плитки</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<style>
+:root{--bar:#f2f3f5;--barink:#14181c;--mute:#69727a;--acc:#d0592f;--bg:#f2f3f5;--card:#fff;--line:#e5e7ea;--t:#14181c;--soft:#fcefe9;--line2:rgba(16,24,40,.07)}
+@media (prefers-color-scheme:dark){:root{--bar:#0d1012;--barink:#eef1f3;--mute:#98a1a8;--acc:#f07a4d;--bg:#0d1012;--card:#171b1f;--line:#262c31;--t:#eef1f3;--soft:#2c1d16;--line2:#22282d}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bar);font:16px/1.4 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased;overflow:hidden}
+#app{display:flex;flex-direction:column;height:100vh;height:100dvh;padding-bottom:env(safe-area-inset-bottom)}
+#bar{flex:none;display:flex;align-items:center;gap:2px;padding:calc(6px + env(safe-area-inset-top)) 8px 6px;background:var(--bar);border-bottom:1px solid var(--line2)}
+#bar button{flex:1;min-width:0;border:0;background:transparent;color:var(--mute);border-radius:14px;padding:4px 2px 5px;display:flex;flex-direction:column;align-items:center;gap:2px;font:inherit;font-size:11.5px;font-weight:600;cursor:pointer;transition:color .15s}
+#bar button b{font-size:18px;font-weight:500;line-height:1;width:44px;height:30px;display:grid;place-items:center;border-radius:999px;transition:background .15s,color .15s}
+#bar button.on{color:var(--barink)}
+#bar button.on b{background:var(--acc);color:#fff;box-shadow:0 4px 12px -4px rgba(208,89,47,.6)}
+#bar .more{flex:none;width:56px}
+#frames{flex:1;position:relative;background:var(--bg)}
+#frames iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:none;background:var(--bg)}
+#frames iframe.on{display:block}
+#menu{position:fixed;inset:0;z-index:50;background:rgba(10,12,14,.45);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);display:none;align-items:flex-start;justify-content:center;padding:calc(70px + env(safe-area-inset-top)) 14px 14px}
+#menu.on{display:flex}
+#menu .box{background:var(--card);color:var(--t);border-radius:22px;padding:18px;width:100%;max-width:440px;box-shadow:0 20px 50px -12px rgba(0,0,0,.35)}
+#menu h3{margin:0 0 8px;font-size:20px;letter-spacing:-.02em}
+#menu p{margin:8px 0;font-size:14px;color:var(--mute)}
+#menu button.b{display:block;width:100%;border:0;border-radius:14px;padding:14px;margin-top:10px;font:inherit;font-weight:650;background:var(--acc);color:#fff;cursor:pointer;box-shadow:0 6px 16px -6px rgba(208,89,47,.55)}
+#menu button.b.sec{background:var(--soft);color:var(--acc);box-shadow:none}
+#menu button.b.ghost{background:transparent;border:1px solid var(--line);color:var(--t);font-weight:500;box-shadow:none}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:40px;background:#14181c;color:#fff;padding:11px 18px;border-radius:999px;z-index:99;font-size:14px;font-weight:500;opacity:0;transition:opacity .2s;pointer-events:none;box-shadow:0 10px 30px -8px rgba(0,0,0,.4)}
+.toast.on{opacity:1}
+</style>
+</head>
+<body>
+<div id="app">
+  <nav id="bar"></nav>
+  <div id="frames"></div>
+</div>
+<div id="menu"><div class="box">
+  <h3>Мастер плитки</h3>
+  <p>Все данные хранятся в этом телефоне. Время от времени сохраняйте общую копию — в ней сметы, планы и раскладки сразу. Если «Мастер» залит на тот же сайт, где был «Учёт», записи учёта подхватятся сами.</p>
+  <button class="b" data-m="export">Сохранить копию всего</button>
+  <button class="b sec" data-m="import">Загрузить копию</button>
+  <p style="margin-top:12px">Перенос со старых отдельных сайтов: в старой «Смете» и «Планёрке» нажмите «Сохранить копию» (раздел «Ещё»), потом здесь — «Загрузить копию» и выберите тот файл.</p>
+  <button class="b ghost" data-m="close">Закрыть</button>
+  <input type="file" id="imp" accept=".json,application/json" hidden>
+</div></div>
+<div class="toast" id="toast"></div>
+<script>
+const APPS=[
+  {id:'uchet',n:'Учёт',i:'✎',src:'uchet.html',key:'plitka'},
+  {id:'smeta',n:'Смета',i:'₽',src:'smeta.html',key:'smeta_plitka_v1'},
+  {id:'plan',n:'Планёрка',i:'☑',src:'planerka.html',key:'planerka_v1'},
+  {id:'rask',n:'Раскладка',i:'▦',src:'raskladka.html',key:'raskladka_v1'},
+];
+const LAST='master_last_app';
+const $=s=>document.querySelector(s);
+function toast(t){const el=$('#toast');el.textContent=t;el.classList.add('on');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('on'),2000)}
+let cur=null;try{cur=localStorage.getItem(LAST)}catch(e){}
+if(!APPS.some(a=>a.id===cur))cur=APPS[0].id;
+$('#bar').innerHTML=APPS.map(a=>`<button data-app="${a.id}"><b>${a.i}</b>${a.n}</button>`).join('')+`<button class="more" data-app="_menu"><b>⋯</b>Ещё</button>`;
+function open(id){cur=id;try{localStorage.setItem(LAST,id)}catch(e){}
+  for(const a of APPS){let f=document.getElementById('f-'+a.id);
+    if(a.id===id&&!f){f=document.createElement('iframe');f.id='f-'+a.id;f.src=a.src;f.title=a.n;f.setAttribute('allow','web-share; clipboard-write; fullscreen');$('#frames').appendChild(f)}
+    if(f)f.classList.toggle('on',a.id===id)}
+  document.querySelectorAll('#bar [data-app]').forEach(b=>b.classList.toggle('on',b.dataset.app===id))}
+$('#bar').addEventListener('click',e=>{const b=e.target.closest('[data-app]');if(!b)return;if(b.dataset.app==='_menu'){$('#menu').classList.add('on');return}open(b.dataset.app)});
+// общая копия
+async function exportAll(){const data={master:1,date:new Date().toISOString(),apps:{}};
+  for(const a of APPS){if(!a.key)continue;try{const v=localStorage.getItem(a.key);if(v)data.apps[a.key]=JSON.parse(v)}catch(e){}}
+  const blob=new Blob([JSON.stringify(data)],{type:'application/json'});const d=new Date();const name=`master-kopiya-${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}.json`;
+  const f=new File([blob],name,{type:'application/json'});
+  try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:'Копия «Мастер плитки»'});return}}catch(e){if(e.name==='AbortError')return}
+  const u=URL.createObjectURL(blob);const l=document.createElement('a');l.href=u;l.download=name;document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(u),3000)}
+function importFile(file){const r=new FileReader();r.onload=()=>{let o;try{o=JSON.parse(r.result)}catch(e){toast('Это не файл копии');return}
+  let done=[];
+  if(o&&o.master&&o.apps){if(!confirm('Заменить данные приложений данными из копии?'))return;for(const [k,v] of Object.entries(o.apps)){try{localStorage.setItem(k,JSON.stringify(v));done.push(k)}catch(e){}}}
+  else if(o&&Array.isArray(o.entries)){if(!confirm('Это копия «Учёта». Заменить записи учёта?'))return;localStorage.setItem('plitka',JSON.stringify(o));done.push('uchet')}
+  else if(o&&Array.isArray(o.jobs)){if(!confirm('Это копия «Сметы». Заменить данные сметы?'))return;localStorage.setItem('smeta_plitka_v1',JSON.stringify(o));done.push('smeta')}
+  else if(o&&Array.isArray(o.works)&&Array.isArray(o.plans)){if(!confirm('Это копия «Планёрки». Заменить данные планёрки?'))return;localStorage.setItem('planerka_v1',JSON.stringify(o));done.push('plan')}
+  else if(o&&Array.isArray(o.items)){if(!confirm('Это копия «Раскладки». Заменить данные раскладки?'))return;localStorage.setItem('raskladka_v1',JSON.stringify(o));done.push('rask')}
+  else{toast('Не узнал формат копии');return}
+  // перезагрузить открытые приложения
+  document.querySelectorAll('#frames iframe').forEach(f=>{try{f.contentWindow.location.reload()}catch(e){}});
+  $('#menu').classList.remove('on');toast('Копия загружена')};r.readAsText(file)}
+$('#menu').addEventListener('click',e=>{const b=e.target.closest('[data-m]');if(e.target.id==='menu'){$('#menu').classList.remove('on');return}if(!b)return;
+  const m=b.dataset.m;if(m==='close')$('#menu').classList.remove('on');else if(m==='export')exportAll();else if(m==='import')$('#imp').click()});
+$('#imp').addEventListener('change',e=>{if(e.target.files[0])importFile(e.target.files[0]);e.target.value=''});
+window.addEventListener('message',e=>{if(e.origin!==location.origin)return;const d=e.data;if(!d||d.type!=='toRask'||!d.item)return;
+  const f=document.getElementById('f-rask');
+  if(f&&f.contentWindow&&f.contentWindow.addRoomItem){open('rask');f.contentWindow.addRoomItem(d.item)}
+  else{if(f)f.remove();try{const k='raskladka_v1';const R=JSON.parse(localStorage.getItem(k)||'null')||{items:[]};R.items=R.items||[];R.items.unshift({...d.item,walls:d.item.walls||[]});R.cur=d.item.id;R.view='edit';R.tab='room';localStorage.setItem(k,JSON.stringify(R))}catch(_){}
+    open('rask');toast('Помещение перенесено в «Раскладку»')}});
+open(cur);
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{})}
+</script>
+</body>
+</html>

@@ -1,0 +1,1430 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Раскладка">
+<meta name="theme-color" content="#f2f3f5" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#0d1012" media="(prefers-color-scheme: dark)">
+<title>Раскладка плитки</title>
+<style>
+[hidden]{display:none!important}
+:root{--bg:#f3f1ec;--card:#fff;--ink:#1d2328;--mute:#6b7378;--line:#e2ded6;--acc:#c4572e;--acc2:#1f6f5c;--bad:#b42318;--soft:#f8efe9;--soft2:#e8f3ef;--head:#1f2a33;--inp:#fbfaf7;
+  --grout:#9aa0a3;--tile:#f4efe6;--cut:#f6c9a8;--narrow:#ef8f87;--sel:#4b8bd6}
+@media (prefers-color-scheme:dark){:root{--bg:#14181b;--card:#1d2328;--ink:#eef0f1;--mute:#9aa3a8;--line:#2e363c;--acc:#e0784f;--acc2:#4fbf9f;--bad:#f07167;--soft:#2a211d;--soft2:#17302a;--head:#0f1316;--inp:#252c32;
+  --grout:#5c6368;--tile:#d9d2c5;--cut:#e3a77d;--narrow:#e06c63}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+body{padding-bottom:calc(20px + env(safe-area-inset-bottom))}
+button{font:inherit;color:inherit;cursor:pointer}
+input,select{font:inherit;color:var(--ink);background:var(--inp);border:1px solid var(--line);border-radius:10px;padding:9px 10px;width:100%;min-width:0}
+input:focus,select:focus{outline:2px solid var(--acc);outline-offset:-1px}
+header{position:sticky;top:0;z-index:20;background:var(--head);color:#fff;padding:calc(10px + env(safe-area-inset-top)) 14px 10px;display:flex;align-items:center;gap:10px}
+header h1{font-size:18px;margin:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+header button{background:none;border:0;color:#fff;font-size:22px;padding:0 6px}
+.tabs{overflow-x:auto;scrollbar-width:none;position:sticky;top:calc(47px + env(safe-area-inset-top));z-index:19;background:var(--head);display:flex;gap:4px;padding:0 10px 8px}
+.tabs button{flex:1 0 auto;white-space:nowrap;padding-left:12px!important;padding-right:12px!important;background:rgba(255,255,255,.08);border:0;color:#cfd6da;border-radius:999px;padding:7px 6px;font-size:14px}
+.tabs button.on{background:var(--acc);color:#fff}
+main{padding:12px;max-width:760px;margin:0 auto}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px}
+.row{display:flex;gap:8px;align-items:center}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+label.f{display:block;font-size:12px;color:var(--mute)}label.f input,label.f select{margin-top:3px}
+.mute{color:var(--mute)}.small{font-size:12.5px}
+.btn{border:0;border-radius:11px;padding:11px 14px;background:var(--acc);color:#fff;font-weight:600}
+.btn.sec{background:var(--soft);color:var(--acc)}.btn.ghost{background:var(--card);border:1px solid var(--line);color:var(--ink);font-weight:500}
+.btn.wide{width:100%}.btn.sm{padding:7px 11px;font-size:13.5px}
+.x{background:none;border:0;color:var(--mute);font-size:18px;padding:4px 8px;flex:none}
+h2{font-size:16px;margin:16px 4px 8px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:7px 12px;font-size:14px}
+.chips button.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.pat{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pat button{border:1px solid var(--line);background:var(--card);border-radius:12px;padding:8px 4px;font-size:13px;display:flex;flex-direction:column;align-items:center;gap:4px}
+.pat button.on{border-color:var(--acc);box-shadow:0 0 0 2px var(--acc) inset}
+.pat svg{width:56px;height:40px}
+.item{display:block;width:100%;text-align:left;border:1px solid var(--line);background:var(--card);border-radius:14px;padding:13px;margin-bottom:10px}
+.item .t{font-weight:700;font-size:16px}
+#stage{position:relative;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;touch-action:none;user-select:none}
+#stage svg{display:block;width:100%;height:56vh}
+.tools{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.tools button{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:8px 10px;font-size:14px;min-width:42px}
+.tools button.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.info{min-height:20px;font-size:13.5px;margin:4px 2px 8px}
+.kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+.kpi div{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:9px;text-align:center}
+.kpi span{display:block;font-size:11.5px;color:var(--mute)}.kpi b{font-size:20px}
+.vars{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.vars::-webkit-scrollbar{display:none}
+.var{flex:none;width:150px;border:1px solid var(--line);background:var(--card);border-radius:12px;padding:6px;text-align:left}
+.var.on{border-color:var(--acc);box-shadow:0 0 0 2px var(--acc) inset}
+.var svg{width:100%;height:90px;display:block;background:var(--bg);border-radius:8px}
+.var b{display:block;font-size:13px;margin-top:4px}.var span{font-size:11.5px;color:var(--mute)}
+table.cuts{width:100%;border-collapse:collapse;font-size:14px}
+table.cuts td{padding:6px 4px;border-bottom:1px solid var(--line)}table.cuts td.n{text-align:right;font-variant-numeric:tabular-nums}
+.leg{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:4px;border:1px solid rgba(0,0,0,.15)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:40px;background:var(--ink);color:var(--bg);padding:9px 14px;border-radius:10px;z-index:99;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.on{opacity:1}
+.empty{text-align:center;color:var(--mute);padding:26px 10px}
+.cutsh{font-weight:700;font-size:14px;margin:12px 0 4px;color:var(--acc)}
+.cutlen{font-size:17px}
+table.cuts td.n{white-space:nowrap}
+table.cuts td.cnt{padding-left:10px;font-size:15px}
+details.bins{margin-top:10px;border:1px solid var(--line);border-radius:12px;padding:8px 10px}
+details.bins summary{font-weight:600;font-size:14.5px;cursor:pointer}
+.bin{display:flex;gap:2px;align-items:center;margin:6px 0;font-size:11.5px}
+.bin .pc{background:var(--soft2);border:1px solid var(--acc2);border-radius:4px;text-align:center;padding:3px 0;min-width:26px;overflow:hidden;white-space:nowrap;font-variant-numeric:tabular-nums}
+.bin .pc.rest{background:var(--bg);border-color:var(--line);color:var(--mute)}
+.fwarn{color:var(--bad);margin-top:8px;font-size:14px}
+/*THEME-START — современный стиль «Мастер плитки»*/
+:root{--bg:#f2f3f5;--card:#fff;--ink:#14181c;--mute:#69727a;--line:#e5e7ea;--line2:rgba(16,24,40,.07);
+  --acc:#d0592f;--acc2:#0f7a63;--bad:#c42b1c;--warn:#b7791f;--soft:#fcefe9;--soft2:#e5f4ee;--inp:#f6f7f8;
+  --head:rgba(242,243,245,.86);--headink:#14181c;--sh:0 1px 2px rgba(16,24,40,.05),0 2px 8px rgba(16,24,40,.06);--ring:rgba(208,89,47,.2)}
+@media (prefers-color-scheme:dark){:root{--bg:#0d1012;--card:#171b1f;--ink:#eef1f3;--mute:#98a1a8;--line:#262c31;--line2:#22282d;
+  --acc:#f07a4d;--acc2:#44c29b;--bad:#ff7a6e;--warn:#e8ae55;--soft:#2c1d16;--soft2:#11291f;--inp:#1e2328;
+  --head:rgba(13,16,18,.86);--headink:#eef1f3;--sh:0 1px 2px rgba(0,0,0,.3);--ring:rgba(240,122,77,.25)}}
+html,body{font:16px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,Inter,Arial,sans-serif;-webkit-font-smoothing:antialiased;letter-spacing:-.005em}
+input,select,textarea{font-size:16px!important;padding:11px 12px;border-radius:12px;border:1px solid var(--line);background:var(--inp);min-height:46px;transition:border-color .15s,box-shadow .15s}
+input[type=checkbox]{min-height:0;accent-color:var(--acc)}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px var(--ring);background:var(--card)}
+input::placeholder{color:#a3aab0}
+label.f{font-size:13px;font-weight:500;color:var(--mute)}
+label.f input,label.f select{margin-top:5px}
+header{background:var(--head)!important;color:var(--headink)!important;-webkit-backdrop-filter:saturate(180%) blur(16px);backdrop-filter:saturate(180%) blur(16px);
+  padding:calc(10px + env(safe-area-inset-top)) 14px 10px!important;min-height:calc(58px + env(safe-area-inset-top));border-bottom:1px solid var(--line2)}
+header h1{font-size:21px!important;font-weight:750;letter-spacing:-.02em}
+header button,header .back{color:var(--ink)!important;background:var(--card)!important;border:1px solid var(--line2)!important;border-radius:12px!important;min-width:38px;height:38px;padding:0 8px!important;font-size:18px!important;display:inline-grid;place-items:center;box-shadow:var(--sh)}
+.tabs{background:var(--head)!important;-webkit-backdrop-filter:saturate(180%) blur(16px);backdrop-filter:saturate(180%) blur(16px);top:calc(58px + env(safe-area-inset-top))!important;padding:8px 12px 10px!important;gap:6px!important;border-bottom:1px solid var(--line2)}
+.tabs button{background:var(--card)!important;color:var(--mute)!important;font-weight:600;font-size:14.5px!important;padding:8px 15px!important;border:1px solid var(--line2)!important;box-shadow:var(--sh)}
+.tabs button.on{background:var(--ink)!important;color:var(--bg)!important;border-color:var(--ink)!important}
+main{padding:14px 14px 100px}
+.card,.job,.plan,.item,details.cat,details.w,.kpi div,#stage{border:1px solid var(--line2)!important;box-shadow:var(--sh);border-radius:18px!important}
+.card{padding:16px}
+.job,.plan,.item{padding:16px;transition:transform .1s}
+.job:active,.plan:active,.item:active{transform:scale(.99)}
+.job .t,.plan .t,.item .t{font-size:17px;letter-spacing:-.01em}
+h2{font-size:19px;font-weight:750;letter-spacing:-.02em;margin:24px 4px 10px}
+h3{font-size:16px;font-weight:700}
+.small{font-size:13.5px}
+.btn{border-radius:14px;padding:13px 16px;font-weight:650;letter-spacing:-.005em;transition:transform .08s,filter .15s}
+.btn:not(.sec):not(.ghost){background:var(--acc);box-shadow:0 6px 16px -6px rgba(208,89,47,.55)}
+.btn:active{transform:scale(.98)}
+.btn.sec{background:var(--soft);color:var(--acc)}
+.btn.ghost{background:var(--card);border:1px solid var(--line)}
+.btn.sm{padding:9px 13px;font-size:14px;border-radius:12px}
+.x{border-radius:10px}
+.chips{gap:8px}
+.chips button,.pick,.tools button{border:1px solid var(--line)!important;background:var(--card);border-radius:999px;padding:8px 14px;font-size:14.5px;font-weight:500;box-shadow:var(--sh)}
+.tools button{border-radius:12px}
+.chips button.on,.pick.on,.tools button.on{background:var(--acc)!important;border-color:var(--acc)!important;color:#fff}
+.chip{border-color:var(--line2)!important;box-shadow:var(--sh);font-weight:500;padding:6px 4px 6px 13px}
+details.cat>summary,details.w>summary{padding:15px 16px;font-size:16px}
+details.sub>summary{padding:13px 16px}
+.it{padding:13px 16px}
+.it .nm{font-size:15.5px;font-weight:500}
+.it .meta{font-size:13px}
+.tool{padding:14px 16px}
+.tool .bx{border-radius:8px}
+.kpi div{padding:12px}
+.kpi b{font-size:20px;letter-spacing:-.02em}
+nav.bot{background:var(--head)!important;-webkit-backdrop-filter:saturate(180%) blur(16px);backdrop-filter:saturate(180%) blur(16px);border-top:1px solid var(--line2)!important}
+nav.bot button{font-size:11.5px;font-weight:600;padding:8px 0 7px}
+nav.bot button b{font-size:20px;width:46px;height:28px;display:grid;place-items:center;border-radius:999px;transition:background .15s}
+nav.bot button.on b{background:var(--soft)}
+.bar{left:10px!important;right:10px!important;bottom:calc(66px + env(safe-area-inset-bottom))!important;border-radius:16px;background:#14181c!important;color:#fff;padding:10px 16px!important;box-shadow:0 10px 30px -8px rgba(0,0,0,.45)}
+@media (prefers-color-scheme:dark){.bar{background:#262c31!important}}
+.toast{border-radius:999px!important;padding:11px 18px!important;font-weight:500;box-shadow:0 10px 30px -8px rgba(0,0,0,.4)}
+.sep{background:var(--line2)}
+.var,.pat button{border-radius:14px}
+table.doc{font-size:14px}
+.empty{padding:40px 16px}
+/*THEME-END*/
+</style>
+</head>
+<body>
+<header id="hdr"></header>
+<div class="tabs" id="tabs" hidden></div>
+<main id="main"></main>
+<div class="toast" id="toast"></div>
+<script>
+// ================== данные ==================
+const KEY='raskladka_v1';
+let S;
+function load(){try{S=JSON.parse(localStorage.getItem(KEY)||'null')}catch(e){S=null}if(!S)S={items:[],cur:null,view:'list',tab:'room'};S.items=S.items||[]}
+let st;function save(){clearTimeout(st);st=setTimeout(saveNow,250)}
+function saveNow(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+window.addEventListener('pagehide',saveNow);document.addEventListener('visibilitychange',()=>{if(document.hidden)saveNow()});
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const num=v=>{if(typeof v==='number')return v;const s=String(v??'').replace(/\s/g,'').replace(',','.');return s===''?NaN:parseFloat(s)};
+const n0=v=>{v=num(v);return isFinite(v)?v:0};
+const isSet=v=>isFinite(num(v));
+const fq=(v,d=2)=>{const r=Math.round(n0(v)*10**d)/10**d;return r.toLocaleString('ru-RU',{maximumFractionDigits:d})};
+const uid=()=>Math.random().toString(36).slice(2,9);
+function toast(t){const el=$('#toast');el.textContent=t;el.classList.add('on');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('on'),1800)}
+const cur=()=>S.items.find(x=>x.id===S.cur);
+function newItem(){return{id:uid(),name:'Санузел, пол',shape:'rect',rw:2500,rh:1800,walls:[],tile:{a:600,b:300,j:2},swap:false,pat:'grid',ox:0,oy:0,reserve:10,perBox:'',dims:true}}
+
+// ================== геометрия ==================
+const DIRS=[[1,0,'→'],[1,1,'↘'],[0,1,'↓'],[-1,1,'↙'],[-1,0,'←'],[-1,-1,'↖'],[0,-1,'↑'],[1,-1,'↗']];
+// направление стены: 8 стрелок или свой угол (dir=8, ang в градусах: 0 → вправо, 90 ↓ вниз, по часовой)
+function dirVec(w){if(+w.dir===8){const a=n0(w.ang)*Math.PI/180;return[Math.cos(a),Math.sin(a)]}const [dx,dy]=DIRS[(+w.dir)%8];const k=(dx&&dy)?Math.SQRT1_2:1;return[dx*k,dy*k]}
+// внутренние углы помещения
+function cornerAngles(P){const n=P.length;const sg=polyArea(P)>0?1:-1;const out=[];
+  for(let i=0;i<n;i++){const a=P[(i-1+n)%n],b=P[i],c=P[(i+1)%n];const e1=[b[0]-a[0],b[1]-a[1]],e2=[c[0]-b[0],c[1]-b[1]];
+    const turn=Math.atan2(e1[0]*e2[1]-e1[1]*e2[0],e1[0]*e2[0]+e1[1]*e2[1])*180/Math.PI;out.push({i,deg:180-sg*turn,w1:(i-1+n)%n+1,w2:i+1})}
+  return out}
+function roomPoly(it){
+  if(it.shape!=='free'){const w=n0(it.rw),h=n0(it.rh);return{pts:w>0&&h>0?[[0,0],[w,0],[w,h],[0,h]]:[],closed:true,path:[[0,0],[w,0],[w,h],[0,h],[0,0]]}}
+  const pts=[[0,0]];let x=0,y=0;
+  for(const w of it.walls){const [dx,dy]=dirVec(w);const l=n0(w.len);x+=dx*l;y+=dy*l;pts.push([x,y])}
+  const closed=Math.hypot(x,y)<5&&it.walls.length>=3;
+  return{pts:closed?pts.slice(0,-1):(pts.length>2?pts:[]),closed,path:pts,gap:[-x,-y]};
+}
+function polyArea(P){let s=0;for(let i=0;i<P.length;i++){const a=P[i],b=P[(i+1)%P.length];s+=a[0]*b[1]-b[0]*a[1]}return s/2}
+function bbox(P){let x0=1e18,y0=1e18,x1=-1e18,y1=-1e18;for(const [x,y] of P){if(x<x0)x0=x;if(y<y0)y0=y;if(x>x1)x1=x;if(y>y1)y1=y}return[x0,y0,x1,y1]}
+// отсечение многоугольника прямоугольником (Сазерленд–Ходжман)
+function clipRect(P,x0,y0,x1,y1){
+  let out=P;
+  const pass=(inside,inter)=>{const inp=out;out=[];if(!inp.length)return;let s=inp[inp.length-1];
+    for(const e of inp){const ei=inside(e),si=inside(s);if(ei){if(!si)out.push(inter(s,e));out.push(e)}else if(si)out.push(inter(s,e));s=e}};
+  const ix=(X)=>(s,e)=>{const t=(X-s[0])/(e[0]-s[0]);return[X,s[1]+t*(e[1]-s[1])]};
+  const iy=(Y)=>(s,e)=>{const t=(Y-s[1])/(e[1]-s[1]);return[s[0]+t*(e[0]-s[0]),Y]};
+  pass(p=>p[0]>=x0,ix(x0));pass(p=>p[0]<=x1,ix(x1));pass(p=>p[1]>=y0,iy(y0));pass(p=>p[1]<=y1,iy(y1));
+  return out;
+}
+// узор: решётка T1,T2 + плитки мотива (в системе узора), угол поворота
+function pattern(it){
+  let a=n0(it.tile.a)||600,b=n0(it.tile.b)||600;const j=Math.max(0,n0(it.tile.j));
+  if(it.swap){[a,b]=[b,a]}
+  const p=it.pat;
+  if(p==='herr'||p==='herr0'){const L=Math.max(a,b),W=Math.min(a,b);
+    return{T1:[W+j,W+j],T2:[L+j,-(L+j)],motif:[[0,0,L,W,0],[L+j,W-L,W,L,1]],ang:p==='herr'?45:0,L,W}}
+  const T1=[a+j,0];let T2=[0,b+j];
+  if(p==='half')T2=[(a+j)/2,b+j];if(p==='third')T2=[(a+j)/3,b+j];
+  return{T1,T2,motif:[[0,0,a,b,0]],ang:p==='diag'?45:0,L:a,W:b};
+}
+const rot=(p,ang)=>{const c=Math.cos(ang),s=Math.sin(ang);return[p[0]*c-p[1]*s,p[0]*s+p[1]*c]};
+// раскладка: список плиток (целые / подрезки) для смещения o
+// контур, сдвинутый внутрь на g мм (зазор от стен)
+function inset(P,g){const n=P.length;if(n<3||!(g>0))return P;const sg=polyArea(P)>0?1:-1;
+  const N=P.map((a,i)=>{const b=P[(i+1)%n];const dx=b[0]-a[0],dy=b[1]-a[1],L=Math.hypot(dx,dy)||1;return[sg*-dy/L,sg*dx/L]});
+  return P.map((a,i)=>{const k=(i-1+n)%n;const n1=N[k],n2=N[i];const a1=P[k];const c1=n1[0]*a1[0]+n1[1]*a1[1]+g,c2=n2[0]*a[0]+n2[1]*a[1]+g;
+    const det=n1[0]*n2[1]-n1[1]*n2[0];if(Math.abs(det)<1e-9)return[a[0]+n2[0]*g,a[1]+n2[1]*g];
+    return[(c1*n2[1]-n1[1]*c2)/det,(n1[0]*c2-c1*n2[0])/det]})}
+const gapOf=it=>it.gapOn?Math.max(0,n0(isSet(it.gap)?it.gap:5)):0;
+function layout(it,P,pat,ox,oy,keep){
+  P=tileArea(it,P);
+  const ang=pat.ang*Math.PI/180;
+  const Q=P.map(q=>rot([q[0]-ox,q[1]-oy],-ang));
+  const [bx0,by0,bx1,by1]=bbox(Q);
+  const [t1x,t1y]=pat.T1,[t2x,t2y]=pat.T2;const det=t1x*t2y-t1y*t2x;
+  const m=Math.max(pat.L,pat.W)*1.5+10;
+  let smin=1e9,smax=-1e9,tmin=1e9,tmax=-1e9;
+  for(const [cx,cy] of [[bx0-m,by0-m],[bx1+m,by0-m],[bx0-m,by1+m],[bx1+m,by1+m]]){const s=(cx*t2y-cy*t2x)/det,t=(t1x*cy-t1y*cx)/det;smin=Math.min(smin,s);smax=Math.max(smax,s);tmin=Math.min(tmin,t);tmax=Math.max(tmax,t)}
+  const FO=(it.fobjs||[]).filter(o=>FOBJ[o.type]);
+  const CQ=FO.filter(o=>!FOBJ[o.type].hole).map(o=>fobjGeom(it,o)).filter(Boolean).map(g=>g.poly.map(q=>rot([q[0]-ox,q[1]-oy],-ang)));
+  const HQ=FO.filter(o=>FOBJ[o.type].hole).map(o=>({o,g:fobjGeom(it,o)})).filter(x=>x.g).map(({o,g})=>({o,p:rot([g.pt[0]-ox,g.pt[1]-oy],-ang)}));
+  const tiles=[];let full=0,cuts=0,narrow=0,minPiece=1e9,hol=0;
+  for(let s=Math.floor(smin);s<=Math.ceil(smax);s++)for(let t=Math.floor(tmin);t<=Math.ceil(tmax);t++){
+    const bx=s*t1x+t*t2x,by=s*t1y+t*t2y;
+    for(const [mx,my,w,h,vert] of pat.motif){
+      const x0=bx+mx,y0=by+my,x1=x0+w,y1=y0+h;
+      if(x1<bx0||x0>bx1||y1<by0||y0>by1)continue;
+      const piece=clipRect(Q,x0,y0,x1,y1);if(piece.length<3)continue;
+      let ar=Math.abs(polyArea(piece));let notched=false;
+      for(const C of CQ){const pc=clipRect(C,x0,y0,x1,y1);if(pc.length>2){const ov=Math.abs(polyArea(pc));if(ov>0.5){ar-=ov;notched=true}}}
+      if(ar<1)continue;
+      const hs=[];for(const hq of HQ)if(hq.p[0]>=x0&&hq.p[0]<=x1&&hq.p[1]>=y0&&hq.p[1]<=y1){const dx=hq.p[0]-x0,dy=hq.p[1]-y0;const ex=Math.min(dx,w-dx),ey=Math.min(dy,h-dy);hs.push({o:hq.o,a:vert?ey:ex,b:vert?ex:ey})}
+      if(hs.length)hol++;
+      const isFull=ar>=w*h*0.999;
+      if(isFull){full++;if(keep)tiles.push({full:true,x0,y0,w,h,vert,holes:hs});continue}
+      const [px0,py0,px1,py1]=bbox(piece);const pw=px1-px0,ph=py1-py0;
+      const thr=s=>Math.max(40,s*0.25);
+      const nar=(pw<w-0.5&&pw<thr(w))||(ph<h-0.5&&ph<thr(h));
+      cuts++;if(nar)narrow++;
+      const lenDim=vert?ph:pw,widDim=vert?pw:ph;
+      const cutMin=Math.min(pw<w-0.5?pw:1e9,ph<h-0.5?ph:1e9);if(cutMin<minPiece)minPiece=cutMin;
+      if(keep)tiles.push({full:false,piece,x0,y0,w,h,vert,len:lenDim,wid:widDim,rect:ar>=pw*ph*0.985&&!notched,nar,area:ar,holes:hs});
+    }
+  }
+  return{tiles,full,cuts,narrow,hol,minPiece:minPiece===1e9?0:minPiece,ang};
+}
+// поиск вариантов раскладки
+function variants(it){
+  const R=roomPoly(it);if(R.pts.length<3)return[];
+  const P=R.pts,pat=pattern(it),ang=pat.ang*Math.PI/180;const PI0=inset(P,gapOf(it));
+  const [x0,y0,x1,y1]=bbox(PI0);const cx=(x0+x1)/2,cy=(y0+y1)/2;
+  const area=Math.abs(polyArea(P));const per=Math.abs(pat.T1[0]*pat.T2[1]-pat.T1[1]*pat.T2[0])/pat.motif.length;
+  const N=area/per>1500?8:area/per>500?12:18;
+  let best={nar:null,cuts:null};const all=[];
+  for(let u=0;u<N;u++)for(let v=0;v<N;v++){
+    const d=rot([u/N*pat.T1[0]+v/N*pat.T2[0],u/N*pat.T1[1]+v/N*pat.T2[1]],ang);
+    const o=[PI0[0][0]+d[0],PI0[0][1]+d[1]];const r=layout(it,P,pat,o[0],o[1],false);r.o=o;all.push(r)}
+  const by=(f)=>all.slice().sort(f)[0];
+  const A=by((a,b)=>a.narrow-b.narrow||b.minPiece-a.minPiece||a.cuts-b.cuts);
+  const B=by((a,b)=>a.cuts-b.cuts||a.narrow-b.narrow||b.minPiece-a.minPiece);
+  const m0=pat.motif[0];
+  const cT=rot([m0[0]+m0[2]/2,m0[1]+m0[3]/2],ang);const C=[cx-cT[0],cy-cT[1]];
+  const j=n0(it.tile.j);const cJ=rot([-j/2,-j/2],ang);const D=[cx-cJ[0],cy-cJ[1]];
+  const E=[PI0[0][0],PI0[0][1]];
+  const mk=(name,hint,o)=>{const r=layout(it,P,pat,o[0],o[1],false);return{name,hint,o,full:r.full,cuts:r.cuts,narrow:r.narrow,minPiece:r.minPiece}};
+  const list=[mk('Без узких подрезок','подрезки как можно крупнее',A.o),mk('Меньше всего подрезок','максимум целых',B.o),mk('Плитка по центру','симметрично',C),mk('Шов по центру','симметрично',D),mk('Целая от начала','от оранжевой точки',E)];
+  const out=[];for(const v of list){if(!out.some(x=>Math.abs(x.o[0]-v.o[0])<1&&Math.abs(x.o[1]-v.o[1])<1))out.push(v)}
+  return out;
+}
+
+// ================== рисование ==================
+const tp=(p,o,ang)=>{const r=rot(p,ang);return[r[0]+o[0],r[1]+o[1]]};
+const ptsStr=a=>a.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+function tilesSvg(it,L,o,opts={}){
+  const ang=L.ang;let g='';
+  for(const t of L.tiles){
+    if(t.full){const c=[[t.x0,t.y0],[t.x0+t.w,t.y0],[t.x0+t.w,t.y0+t.h],[t.x0,t.y0+t.h]].map(p=>tp(p,o,ang));g+=`<polygon points="${ptsStr(c)}" fill="var(--tile)" data-ti="${L.tiles.indexOf(t)}"/>`}
+    else{const c=t.piece.map(p=>tp(p,o,ang));g+=`<polygon points="${ptsStr(c)}" fill="${t.nar?'var(--narrow)':'var(--cut)'}" data-ti="${L.tiles.indexOf(t)}"/>`}
+  }
+  if(opts.labels){const fs=opts.fs;
+    for(const t of L.tiles){if(t.full)continue;const c=t.piece.map(p=>tp(p,o,ang));const [x0,y0,x1,y1]=bbox(c);const minDim=Math.min(x1-x0,y1-y0);
+      if(!t.rect)continue;const txt=labelOf(t);const tw=txt.length*fs*0.55;
+      if(minDim<fs*1.1||Math.max(x1-x0,y1-y0)<tw)continue;
+      let cx=0,cy=0;for(const p of c){cx+=p[0];cy+=p[1]}cx/=c.length;cy/=c.length;
+      g+=`<text x="${cx.toFixed(1)}" y="${(cy+fs*0.35).toFixed(1)}" font-size="${fs.toFixed(1)}" text-anchor="middle" fill="#3a2a20" style="pointer-events:none">${txt}</text>`}}
+  return g;
+}
+function labelOf(t){
+  const cl=t.len<(t.vert?t.h:t.w)-0.5, cw=t.wid<(t.vert?t.w:t.h)-0.5;
+  if(cl&&cw)return`${Math.round(t.len)}×${Math.round(t.wid)}`;return String(Math.round(cl?t.len:t.wid));
+}
+function outlineSvg(R,sw){return`<polygon points="${ptsStr(R.pts)}" fill="none" stroke="var(--ink)" stroke-width="${sw}" stroke-linejoin="round"/>`}
+
+// ================== как начать: первая плитка и контрольные линии ==================
+// луч из точки p в направлении d до стен; возвращает {t, wall}
+function rayHit(P,p,d){
+  let best=null;
+  for(let i=0;i<P.length;i++){const a=P[i],b=P[(i+1)%P.length];const ex=b[0]-a[0],ey=b[1]-a[1];
+    const den=d[0]*ey-d[1]*ex;if(Math.abs(den)<1e-9)continue;
+    const t=((a[0]-p[0])*ey-(a[1]-p[1])*ex)/den, u=((a[0]-p[0])*d[1]-(a[1]-p[1])*d[0])/den;
+    if(t>-0.5&&u>=-1e-6&&u<=1+1e-6&&(!best||t<best.t))best={t:Math.max(0,t),wall:i+1,u,d,pt:[p[0]+d[0]*Math.max(0,t),p[1]+d[1]*Math.max(0,t)]}}
+  return best;
+}
+function startInfo(it,R,L){
+  const P=R.pts,o=[n0(it.ox),n0(it.oy)],ang=L.ang;
+  const fulls=L.tiles.filter(t=>t.full);if(!fulls.length)return null;
+  const corners=t=>[[t.x0,t.y0],[t.x0+t.w,t.y0],[t.x0+t.w,t.y0+t.h],[t.x0,t.y0+t.h]].map(p=>tp(p,o,ang));
+  const target=it.startPick||P[0];
+  let tile=null,bd=1e18;
+  for(const t of fulls){const c=corners(t);const cc=it.startPick?[(c[0][0]+c[2][0])/2,(c[0][1]+c[2][1])/2]:null;
+    const dd=cc?Math.hypot(cc[0]-target[0],cc[1]-target[1]):Math.min(...c.map(q=>Math.hypot(q[0]-target[0],q[1]-target[1])));if(dd<bd){bd=dd;tile=t}}
+  const c=corners(tile);
+  let v=c[0],vd=1e18;for(const q of c){const dd=Math.hypot(q[0]-P[0][0],q[1]-P[0][1]);if(dd<vd){vd=dd;v=q}}
+  const H=[rayHit(P,v,[-1,0]),rayHit(P,v,[1,0])].filter(Boolean).sort((a,b)=>a.t-b.t)[0];
+  const V=[rayHit(P,v,[0,-1]),rayHit(P,v,[0,1])].filter(Boolean).sort((a,b)=>a.t-b.t)[0];
+  const dirName=(h)=>h.d[0]<0?'слева':h.d[0]>0?'справа':h.d[1]<0?'сверху':'снизу';
+  // направления краёв плитки
+  const u=rot([1,0],ang),w=rot([0,1],ang);
+  const lines=[u,w].map(d=>{
+    const axis=Math.abs(d[0])<1e-6||Math.abs(d[1])<1e-6;
+    if(axis){const horiz=Math.abs(d[1])<1e-6;const h=horiz?V:H;return{d,axis:true,horiz,h}}
+    const a=rayHit(P,v,d),b=rayHit(P,v,[-d[0],-d[1]]);
+    const desc=x=>{if(!x)return null;const A=P[x.wall-1],B=P[x.wall%P.length];const fromA=Math.hypot(x.pt[0]-A[0],x.pt[1]-A[1]),fromB=Math.hypot(x.pt[0]-B[0],x.pt[1]-B[1]);
+      const prev=x.wall===1?P.length:x.wall-1,next=x.wall===P.length?1:x.wall+1;
+      return fromA<=fromB?{wall:x.wall,dist:fromA,corner:prev,pt:x.pt}:{wall:x.wall,dist:fromB,corner:next,pt:x.pt}};
+    return{d,axis:false,hits:[desc(a),desc(b)].filter(Boolean)}});
+  // все 4 угла: расстояние до тех же стен (по горизонтали и вертикали)
+  const ctr=[(c[0][0]+c[2][0])/2,(c[0][1]+c[2][1])/2];
+  const cname=q=>{const dx=q[0]-ctr[0],dy=q[1]-ctr[1];if(Math.abs(dx)>2*Math.abs(dy))return dx<0?'левый':'правый';if(Math.abs(dy)>2*Math.abs(dx))return dy<0?'верхний':'нижний';return(dy<0?'верхний ':'нижний ')+(dx<0?'левый':'правый')};
+  const cs=c.map(q=>({q,name:cname(q),h:H?rayHit(P,q,H.d):null,vv:V?rayHit(P,q,V.d):null,ref:q===v}));
+  return{tile,c,v,H,V,dirName,lines,cs,idx:L.tiles.indexOf(tile)};
+}
+function startSvg(si,P,sc){
+  if(!si)return'';const B='var(--sel)';let s='';
+  s+=`<polygon points="${ptsStr(si.c)}" fill="rgba(75,139,214,.25)" stroke="${B}" stroke-width="${3/sc}"/>`;
+  const cx=(si.c[0][0]+si.c[2][0])/2,cy=(si.c[0][1]+si.c[2][1])/2;
+  s+=`<text x="${cx}" y="${cy+6/sc}" font-size="${16/sc}" text-anchor="middle" font-weight="800" fill="${B}" style="pointer-events:none">1</text>`;
+  // контрольные линии (обрезаны контуром комнаты)
+  s+=`<g clip-path="url(#rc)" style="pointer-events:none">`;
+  for(const ln of si.lines){const L=1e5;s+=`<line x1="${si.v[0]-ln.d[0]*L}" y1="${si.v[1]-ln.d[1]*L}" x2="${si.v[0]+ln.d[0]*L}" y2="${si.v[1]+ln.d[1]*L}" stroke="${B}" stroke-width="${1.5/sc}" stroke-dasharray="${8/sc} ${5/sc}"/>`}
+  s+=`</g>`;
+  // размерные линии до стен
+  for(const cc of si.cs){for(const h of [cc.h,cc.vv]){if(!h)continue;const horiz=Math.abs(h.pt[1]-cc.q[1])<0.5;
+      s+=`<line x1="${cc.q[0]}" y1="${cc.q[1]}" x2="${h.pt[0]}" y2="${h.pt[1]}" stroke="#d11" stroke-width="${1.5/sc}" stroke-dasharray="${cc.ref?'none':(4/sc)+' '+(3/sc)}"/>`;
+      if(h.t<0.5)continue;const mx=(cc.q[0]+h.pt[0])/2,my=(cc.q[1]+h.pt[1])/2;const txt=String(Math.round(h.t));const bw=(txt.length*6.5+8)/sc;
+      s+=`<rect x="${mx-bw/2}" y="${my-8/sc}" width="${bw}" height="${15/sc}" rx="${3/sc}" fill="#fff" stroke="#d11" stroke-width="${1/sc}"/><text x="${mx}" y="${my+3.5/sc}" font-size="${10.5/sc}" text-anchor="middle" fill="#d11" font-weight="700">${txt}</text>`}
+    s+=`<circle cx="${cc.q[0]}" cy="${cc.q[1]}" r="${(cc.ref?5:3.5)/sc}" fill="#d11"/>`}
+  for(const ln of si.lines)if(!ln.axis)for(const h of ln.hits)s+=`<circle cx="${h.pt[0]}" cy="${h.pt[1]}" r="${5/sc}" fill="${B}"/>`;
+  return s;
+}
+function wallNums(P,sc){let s='';const n=P.length;const cw=polyArea(P)>0;
+  for(let i=0;i<n;i++){const a=P[i],b=P[(i+1)%n];const dx=b[0]-a[0],dy=b[1]-a[1],L=Math.hypot(dx,dy);if(L<1)continue;let nx=dy/L,ny=-dx/L;if(!cw){nx=-nx;ny=-ny}
+    const mx=(a[0]+b[0])/2+nx*13/sc,my=(a[1]+b[1])/2+ny*13/sc;
+    s+=`<circle cx="${mx}" cy="${my}" r="${9/sc}" fill="var(--acc)"/><text x="${mx}" y="${my+4/sc}" font-size="${11/sc}" text-anchor="middle" fill="#fff" font-weight="700" style="pointer-events:none">${i+1}</text>`}
+  return s}
+function startHtml(it,si){
+  if(!si)return'<div class="small mute">В помещении нет ни одной целой плитки.</div>';
+  const pat=pattern(it);const j=n0(it.tile.j);
+  const hw=si.H?`стены ${si.H.wall} (${si.dirName(si.H)})`:'',vw=si.V?`стены ${si.V.wall} (${si.dirName(si.V)})`:'';
+  let h=`<div style="font-size:14.5px;line-height:1.5"><b>1. Первая плитка</b> — синяя, с цифрой 1. Отмерьте от стен все четыре угла — так плитка встанет ровно, даже если стены кривые:</div>
+  <table class="cuts" style="margin:6px 0 4px"><tr><td class="small mute">Угол</td><td class="n small mute">до ${hw}</td><td class="n small mute">до ${vw}</td></tr>
+  ${si.cs.map(cc=>`<tr><td>${cc.name}</td><td class="n"><b>${cc.h&&cc.h.wall===si.H.wall?Math.round(cc.h.t):cc.h?Math.round(cc.h.t)+' (ст.'+cc.h.wall+')':'—'}</b></td><td class="n"><b>${cc.vv&&cc.vv.wall===si.V.wall?Math.round(cc.vv.t):cc.vv?Math.round(cc.vv.t)+' (ст.'+cc.vv.wall+')':'—'}</b></td></tr>`).join('')}</table>
+  ${gapOf(it)?`<div class="small" style="color:var(--acc2)">Зазор ${gapOf(it)} мм от стен уже учтён в размерах.</div>`:''}<div style="font-size:14.5px;line-height:1.5">`;
+  h+=`<div style="height:6px"></div><b>2. Контрольные линии</b> (отбить шнуром по краям первой плитки, синий пунктир):<br>`;
+  si.lines.forEach((ln,k)=>{
+    const side=k===0?`вдоль длинной стороны (${pat.L} мм)`:`вдоль короткой стороны (${pat.W} мм)`;
+    if(ln.axis){h+=`• ${ln.horiz?'Горизонтальная':'Вертикальная'} линия ${side}: ${ln.h?`<b>${Math.round(ln.h.t)} мм</b> от стены <b>${ln.h.wall}</b>, параллельно ей`:''}<br>`}
+    else{h+=`• Линия под 45° ${side}: ${ln.hits.map(x=>`на стене <b>${x.wall}</b> — <b>${Math.round(x.dist)} мм</b> от угла со стеной ${x.corner}`).join('; ')}<br>`}
+  });
+  if(it.pat==='grid'||it.pat==='diag')h+=`<div style="height:6px"></div><b>3. Дальше</b> швы идут с шагом <b>${fq(pat.L+j,1)} мм</b> и <b>${fq(pat.W+j,1)} мм</b> (плитка + шов).`;
+  else if(it.pat==='half'||it.pat==='third')h+=`<div style="height:6px"></div><b>3. Дальше</b> ряды с шагом <b>${fq(pat.W+j,1)} мм</b>, каждый следующий ряд сдвинут на <b>${fq((pat.L+j)/(it.pat==='half'?2:3),1)} мм</b>.`;
+  else h+=`<div style="height:6px"></div><b>3. Дальше</b> ёлочку ведите от первой плитки вдоль контрольной линии — по ней идёт «хребет» ёлочки.`;
+  h+=`</div><div class="row" style="gap:8px;margin-top:10px"><button class="btn sm ghost" data-act="startreset">Первая плитка — от угла</button></div>
+  <div class="small mute" style="margin-top:6px">Чтобы начать с другой плитки — нажмите на любую целую плитку на схеме.</div>`;
+  return h;
+}
+function startText(it,si){if(!si)return'';const pat=pattern(it);let t=`\nКАК НАЧАТЬ:${gapOf(it)?` (зазор от стен ${gapOf(it)} мм учтён)`:''}\nПервая плитка, углы (до стены ${si.H?si.H.wall:'-'} / до стены ${si.V?si.V.wall:'-'}):\n`;
+  for(const cc of si.cs)t+=`- ${cc.name}: ${cc.h?Math.round(cc.h.t):'—'} / ${cc.vv?Math.round(cc.vv.t):'—'} мм\n`;
+  t+='Контрольные линии:\n';si.lines.forEach((ln,k)=>{if(ln.axis)t+=`- ${ln.horiz?'горизонтальная':'вертикальная'}: ${ln.h?Math.round(ln.h.t)+' мм от стены '+ln.h.wall:''}\n`;else t+=`- под 45°: ${ln.hits.map(x=>`стена ${x.wall}, ${Math.round(x.dist)} мм от угла со стеной ${x.corner}`).join('; ')}\n`});return t}
+
+// ================== двери ==================
+function edgeInfo(P,i){const n=P.length,a=P[i],b=P[(i+1)%n];const dx=b[0]-a[0],dy=b[1]-a[1],L=Math.hypot(dx,dy)||1;const sg=polyArea(P)>0?1:-1;
+  return{a,b,L,u:[dx/L,dy/L],nin:[sg*-dy/L,sg*dx/L]}}
+function doorGeo(P,d){if(d.wall<0||d.wall>=P.length)return null;const e=edgeInfo(P,d.wall);const w=Math.min(e.L,Math.max(1,n0(d.w)||800));const off=Math.max(0,Math.min(e.L-w,n0(d.off)));
+  const A=[e.a[0]+e.u[0]*off,e.a[1]+e.u[1]*off],B=[A[0]+e.u[0]*w,A[1]+e.u[1]*w];return{...e,A,B,w,off}}
+// площадь укладки: помещение + заход плитки под двери, затем зазор от стен
+function tileArea(it,P){const g=gapOf(it);const ds=(it.doors||[]).filter(d=>d.into&&n0(d.cm)>0);
+  let Q=P;if(ds.length&&P.length>2){Q=[];for(let i=0;i<P.length;i++){Q.push(P[i]);
+    const on=ds.map(d=>({d,G:doorGeo(P,d)})).filter(x=>x.G&&x.d.wall===i).sort((x,y)=>x.G.off-y.G.off);
+    for(const {d,G} of on){const dep=n0(d.cm)*10+g;const o=[-G.nin[0]*dep,-G.nin[1]*dep];Q.push(G.A,[G.A[0]+o[0],G.A[1]+o[1]],[G.B[0]+o[0],G.B[1]+o[1]],G.B)}}}
+  return g?inset(Q,g):Q}
+function doorsSvg(it,P,sc){let s='';for(const d of (it.doors||[])){const G=doorGeo(P,d);if(!G)continue;
+  const n=G.nin;const sw=Math.max(2.5/sc,1);
+  s+=`<line x1="${G.A[0]}" y1="${G.A[1]}" x2="${G.B[0]}" y2="${G.B[1]}" stroke="var(--card)" stroke-width="${sw*2.6}"/>`;
+  const out=[-n[0]*40,-n[1]*40];for(const q of [G.A,G.B])s+=`<line x1="${q[0]+out[0]}" y1="${q[1]+out[1]}" x2="${q[0]-out[0]*0.2}" y2="${q[1]-out[1]*0.2}" stroke="var(--ink)" stroke-width="${sw*1.6}"/>`;
+  // полотно и дуга открывания (внутрь помещения)
+  const L=[G.A[0]+n[0]*G.w,G.A[1]+n[1]*G.w];
+  s+=`<line x1="${G.A[0]}" y1="${G.A[1]}" x2="${L[0]}" y2="${L[1]}" stroke="#8a6a3a" stroke-width="${sw}"/><path d="M ${L[0]} ${L[1]} A ${G.w} ${G.w} 0 0 ${(G.u[0]*n[1]-G.u[1]*n[0])>0?0:1} ${G.B[0]} ${G.B[1]}" fill="none" stroke="#8a6a3a" stroke-width="${sw*0.6}" stroke-dasharray="${6/sc} ${4/sc}"/>`;
+  const fs=Math.min(12/sc,G.w/5);const mx=(G.A[0]+G.B[0])/2+n[0]*(fs*1.4),my=(G.A[1]+G.B[1])/2+n[1]*(fs*1.4);
+  s+=`<text x="${mx}" y="${my+fs*0.35}" font-size="${fs}" text-anchor="middle" fill="#8a6a3a" font-weight="700" stroke="var(--card)" stroke-width="${3/sc}" paint-order="stroke" style="pointer-events:none">${Math.round(G.w)}${d.into&&n0(d.cm)>0?` +${fq(d.cm,1)}см`:''}</text>`}
+  return s}
+function doorsHtml(it){const ds=it.doors||[];if(!ds.length)return'';const nW=roomPoly(it).pts.length;
+  return`<div style="margin-top:12px"><b>Двери</b><div class="small mute">Расстояние — от угла до края проёма. Номера стен — на плане (оранжевые цифры на вкладке «Пол»).</div>`+ds.map(d=>{const f=(k,l,ph)=>`<label class="f">${l}<input data-door="${d.id}" data-f="${k}" inputmode="decimal" value="${isSet(d[k])?String(d[k]).replace('.',','):''}" placeholder="${ph}"></label>`;
+    return`<div style="border-top:1px solid var(--line);padding:8px 0"><div class="row" style="justify-content:space-between"><b>🚪 Дверь на стене ${d.wall+1}</b><button class="x" data-act="deldoor" data-id="${d.id}">✕</button></div>
+    <div class="grid2">${f('off',`От угла со стеной ${nW?((d.wall-1+nW)%nW)+1:'—'}, мм`,'0')}${f('w','Ширина проёма, мм','800')}</div>
+    <div class="row" style="margin-top:8px;gap:8px;align-items:center"><label class="row" style="gap:8px;font-size:14.5px;flex:1"><input type="checkbox" data-door="${d.id}" data-f="into" ${d.into?'checked':''} style="width:22px;height:22px"> Завести плитку под дверь</label>
+    <input data-door="${d.id}" data-f="cm" inputmode="decimal" value="${isSet(d.cm)?String(d.cm).replace('.',','):'2'}" style="width:62px;flex:none;text-align:center" ${d.into?'':'disabled'}><span class="small mute">см</span></div></div>`}).join('')+'</div>'}
+
+// ================== экраны ==================
+function hdr(t,back){$('#hdr').innerHTML=(back?`<button data-act="back">‹</button>`:'')+`<h1>${esc(t)}</h1>`+(back?`<button data-act="dup" style="font-size:15px" title="Копия">⧉</button><button data-act="del" style="font-size:17px" title="Удалить">🗑</button>`:'')}
+function render(){
+  if(S.view==='edit'&&!cur())S.view='list';
+  $('#tabs').hidden=S.view!=='edit';
+  if(S.view==='list')return renderList();
+  const it=cur();hdr(it.name||'Раскладка',true);
+  $('#tabs').innerHTML=[['room','Помещение'],['tile','Плитка'],['lay','Пол'],['walls','Стены'],['frame','Каркас']].map(([k,t])=>`<button data-tab="${k}" class="${S.tab===k?'on':''}">${t}</button>`).join('');
+  ({room:renderRoom,tile:renderTile,lay:renderLay,walls:renderWalls,frame:renderFrame})[S.tab]();
+}
+function renderList(){
+  hdr('Раскладка плитки');
+  let h=`<button class="btn wide" data-act="new">+ Новая раскладка</button><div style="height:12px"></div>`;
+  if(!S.items.length)h+=`<div class="empty">Создайте раскладку: нарисуйте помещение, задайте плитку и узор — приложение посчитает целые плитки и подрезки и предложит варианты.</div>`;
+  for(const it of S.items){const R=roomPoly(it);const ar=R.pts.length>2?Math.abs(polyArea(R.pts))/1e6:0;
+    h+=`<button class="item" data-act="open" data-id="${it.id}"><div class="t">${esc(it.name||'Без названия')}</div><div class="small mute">${fq(ar)} м² · плитка ${n0(it.tile.a)}×${n0(it.tile.b)}, шов ${fq(it.tile.j,1)} · ${PATS.find(p=>p[0]===it.pat)?.[1]||''}</div></button>`}
+  $('#main').innerHTML=h;
+}
+// ----- помещение
+function fld(k,label,v,ph=''){return`<label class="f">${label}<input data-k="${k}" inputmode="decimal" value="${isSet(v)?String(v).replace('.',','):''}" placeholder="${ph}"></label>`}
+// центр помещения: пунктир по середине габарита + расстояния до стен
+function pip(p,P){let c=false;for(let i=0,j=P.length-1;i<P.length;j=i++){const a=P[i],b=P[j];if((a[1]>p[1])!==(b[1]>p[1])&&p[0]<(b[0]-a[0])*(p[1]-a[1])/(b[1]-a[1])+a[0])c=!c}return c}
+function centerSvg(P,sc,id){if(P.length<3)return'';const [x0,y0,x1,y1]=bbox(P);const cx=(x0+x1)/2,cy=(y0+y1)/2;const C='#8e44ad';
+  let s=`<defs><clipPath id="${id}"><polygon points="${ptsStr(P)}"/></clipPath></defs><g clip-path="url(#${id})" style="pointer-events:none">
+  <line x1="${cx}" y1="${y0-1}" x2="${cx}" y2="${y1+1}" stroke="${C}" stroke-width="${2.2/sc}" stroke-dasharray="${14/sc} ${5/sc} ${3/sc} ${5/sc}"/>
+  <line x1="${x0-1}" y1="${cy}" x2="${x1+1}" y2="${cy}" stroke="${C}" stroke-width="${2.2/sc}" stroke-dasharray="${14/sc} ${5/sc} ${3/sc} ${5/sc}"/></g>`;
+  if(pip([cx,cy],P)){for(const d of [[-1,0],[1,0],[0,-1],[0,1]]){const h=rayHit(P,[cx,cy],d);if(!h||h.t<1)continue;const k=Math.min(0.5,90/sc/h.t+0.15);const lx=cx+d[0]*h.t*k,ly=cy+d[1]*h.t*k;
+      const txt=String(Math.round(h.t));const bw=(txt.length*6.5+8)/sc;
+      s+=`<g style="pointer-events:none"><rect x="${lx-bw/2}" y="${ly-8/sc}" width="${bw}" height="${15/sc}" rx="${3/sc}" fill="#fff" stroke="${C}" stroke-width="${1/sc}"/><text x="${lx}" y="${ly+3.5/sc}" font-size="${10.5/sc}" text-anchor="middle" fill="${C}" font-weight="700">${txt}</text></g>`}}
+  s+=`<circle cx="${cx}" cy="${cy}" r="${4.5/sc}" fill="${C}" style="pointer-events:none"/>`;return s}
+function planSvg(it){
+  const R=roomPoly(it);const P=R.path;if(P.length<2)return'';
+  const [x0,y0,x1,y1]=bbox(P);const w=Math.max(x1-x0,1),h=Math.max(y1-y0,1);const pad=Math.max(w,h)*0.12;
+  let s=`<svg viewBox="${x0-pad} ${y0-pad} ${w+2*pad} ${h+2*pad}" style="width:100%;max-height:260px;display:block">`;
+  const sw=Math.max(w,h)/150;
+  if(R.closed)s+=`<polygon points="${ptsStr(R.pts)}" fill="var(--soft2)"/>`;
+  s+=`<polyline points="${ptsStr(P)}" fill="none" stroke="var(--ink)" stroke-width="${sw}" stroke-linejoin="round"/>`;
+  if(!R.closed&&it.shape==='free'&&P.length>1){const a=P[P.length-1];s+=`<line x1="${a[0]}" y1="${a[1]}" x2="0" y2="0" stroke="var(--bad)" stroke-width="${sw*0.7}" stroke-dasharray="${sw*3} ${sw*2}"/>`}
+  s+=`<circle cx="${P[0][0]}" cy="${P[0][1]}" r="${sw*2}" fill="var(--acc)"/>`;
+  if(it.shape==='free'){const fs=Math.max(w,h)/22;
+    it.walls.forEach((wl,k)=>{const a=P[k],b=P[k+1];if(!b)return;const mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2;s+=`<text x="${mx}" y="${my-fs*0.4}" font-size="${fs}" text-anchor="middle" fill="var(--acc)" font-weight="700">${k+1}</text>`})}
+  if(R.closed)s+=doorsSvg(it,R.pts,330/(w+2*pad));
+  if(it.center&&R.closed)s+=centerSvg(R.pts,330/(w+2*pad),'cp');
+  return s+'</svg>';
+}
+function renderRoom(){
+  const it=cur();const R=roomPoly(it);
+  let h=`<div class="card"><label class="f">Название<input data-k="name" value="${esc(it.name)}"></label></div>
+  <div class="card"><div class="chips"><button data-act="shape" data-v="rect" class="${it.shape!=='free'?'on':''}">Прямоугольник</button><button data-act="shape" data-v="free" class="${it.shape==='free'?'on':''}">Сложная форма</button></div><div style="height:10px"></div>`;
+  if(it.shape!=='free')h+=`<div class="grid2">${fld('rw','Длина, мм',it.rw,'2500')}${fld('rh','Ширина, мм',it.rh,'1800')}</div><p class="small mute">Для стены: длина стены × высота облицовки.</p><div class="small mute" style="margin:4px 0">Поставить дверь:</div><div class="chips">${[1,2,3,4].map(n=>`<button data-act="adddoor" data-k="${n-1}">🚪 Стена ${n}</button>`).join('')}</div>`;
+  else{
+    h+=`<div class="small mute" style="margin-bottom:6px">Идите вдоль стен от оранжевой точки: стрелка — куда идёт стена, дальше длина в мм. Косую стену можно не вписывать — нажмите «Замкнуть», и она достроится сама с нужным углом. «∠» — свой угол в градусах (0° → вправо, 90° ↓ вниз).</div>`;
+    it.walls.forEach((w,k)=>{h+=`<div class="row" style="margin-bottom:6px;gap:6px"><span class="small mute" style="width:18px">${k+1}</span><select data-wd="${k}" style="width:62px;flex:none;font-size:18px;padding:6px 4px">${DIRS.map((d,i)=>`<option value="${i}" ${+w.dir===i?'selected':''}>${d[2]}</option>`).join('')}<option value="8" ${+w.dir===8?'selected':''}>∠</option></select>${+w.dir===8?`<input data-wa="${k}" inputmode="decimal" value="${isSet(w.ang)?String(Math.round(n0(w.ang)*100)/100).replace('.',','):''}" placeholder="угол°" style="width:74px;flex:none">`:''}<input data-wl="${k}" inputmode="decimal" value="${isSet(w.len)?w.len:''}" placeholder="длина, мм"><button class="x" data-act="adddoor" data-k="${k}" title="Поставить дверь на эту стену" style="font-size:20px;padding:4px 4px">🚪</button><button class="x" data-act="delwall" data-k="${k}">✕</button></div>`});
+    h+=`<div class="chips">${[0,2,4,6,1,3,5,7].map(j=>`<button data-act="addwall" data-d="${j}" style="font-size:17px;min-width:44px">+${DIRS[j][2]}</button>`).join('')}</div>`;
+  }
+  h+=`<div style="margin-top:10px">${fld('ceil','Высота помещения (до потолка), мм',it.ceil,'2700')}</div><div id="doors">${doorsHtml(it)}</div><div id="plan" style="margin-top:10px">${planSvg(it)}</div><label class="row" style="margin-top:8px;gap:8px;font-size:14px"><input type="checkbox" data-k="center" ${it.center?'checked':''} style="width:auto"> <span>Показать центр помещения <span style="color:#8e44ad">┄┄</span></span></label><div id="roominfo" class="small">${roomInfo(it)}</div></div>
+  <div class="grid2"><button class="btn" data-tab="tile">Пол →</button><button class="btn sec" data-tab="walls">Стены →</button></div>`;
+  $('#main').innerHTML=h;
+}
+function roomInfo(it){const R=roomPoly(it);
+  if(it.shape==='free'&&!R.closed&&it.walls.length){const [gx,gy]=R.gap.map(Math.round);return`<span style="color:var(--bad)">Контур не замкнут: не хватает ${gx?Math.abs(gx)+' мм '+(gx>0?'вправо':'влево'):''}${gx&&gy?' и ':''}${gy?Math.abs(gy)+' мм '+(gy>0?'вниз':'вверх'):''}.</span> <button class="btn sm sec" data-act="close">Замкнуть</button>`}
+  if(R.pts.length<3)return'<span class="mute">Введите размеры</span>';
+  const odd=R.pts.length>2?cornerAngles(R.pts).filter(c=>Math.abs(c.deg-90)>0.05&&Math.abs(c.deg-270)>0.05):[];
+  return`Площадь <b>${fq(Math.abs(polyArea(R.pts))/1e6)} м²</b>`+(odd.length?`<div style="margin-top:6px"><b>Углы не 90°:</b><br>${odd.map(c=>`• между стенами ${c.w1} и ${c.w2}: <b>${fq(c.deg,1)}°</b>${c.deg>180?' (выступ)':''}`).join('<br>')}</div>`:'<div class="small mute" style="margin-top:4px">Все углы прямые</div>')}
+// ----- плитка
+const PATS=[['grid','Прямая'],['half','Вразбежку ½'],['third','Вразбежку ⅓'],['diag','Диагональ 45°'],['herr','Ёлочка 45°'],['herr0','Ёлочка прямая']];
+function patIcon(p){
+  const it={tile:{a:p.startsWith('herr')?40:24,b:p.startsWith('herr')?13:16,j:2},pat:p,swap:false};const pat=pattern(it);
+  const P=[[0,0],[112,0],[112,80],[0,80]];const L=layout(it,P,pat,3,3,true);
+  return`<svg viewBox="0 0 112 80"><rect width="112" height="80" fill="var(--grout)"/>${tilesSvg(it,L,[3,3]).replace(/var\(--cut\)|var\(--narrow\)/g,'var(--tile)')}</svg>`;
+}
+function renderTile(){
+  const it=cur();const isH=it.pat.startsWith('herr');
+  $('#main').innerHTML=`<div class="card"><h2 style="margin:0 0 8px">Размер плитки и шов, мм</h2>
+  <div class="grid3">${fld('ta','Длина',it.tile.a,'600')}${fld('tb','Ширина',it.tile.b,'300')}${fld('tj','Шов',it.tile.j,'2')}</div>
+  <div class="chips" style="margin-top:8px">${[[600,600],[600,300],[600,1200],[1200,1200],[300,300],[200,200],[750,150],[200,100]].map(([a,b])=>`<button data-act="size" data-a="${a}" data-b="${b}">${a/10}×${b/10}</button>`).join('')}</div>
+  ${isH?'':`<label class="row" style="margin-top:10px;gap:8px;font-size:14px"><input type="checkbox" data-k="swap" ${it.swap?'checked':''} style="width:auto"> Повернуть плитку на 90°</label>`}</div>
+  <div class="card"><h2 style="margin:0 0 8px">Укладка</h2><div class="pat">${PATS.map(([k,t])=>`<button data-act="pat" data-v="${k}" class="${it.pat===k?'on':''}">${patIcon(k)}${t}</button>`).join('')}</div>
+  ${isH?'<p class="small mute">Ёлочка: длинная сторона — длина «дощечки», короткая — ширина. Чаще всего 1:3…1:6.</p>':''}</div>
+  <div class="card"><div class="grid2">${fld('reserve','Запас, %',it.reserve,'10')}${fld('perBox','Штук в коробке',it.perBox,'необязательно')}</div></div>
+  <button class="btn wide" data-tab="lay">Дальше: раскладка →</button>`;
+}
+// ----- раскладка
+let lastSI=null,view={z:1,cx:null,cy:null},mode='move',sel=-1,VARS=null,lastL=null;
+function renderLay(){
+  const it=cur();const R=roomPoly(it);
+  if(R.pts.length<3){$('#main').innerHTML=`<div class="empty">Сначала задайте помещение${it.shape==='free'?' и замкните контур':''}.</div>`;return}
+  $('#main').innerHTML=`<div id="stage"><svg id="cv" xmlns="http://www.w3.org/2000/svg"></svg></div>
+  <div class="tools"><button data-mode="move" class="${mode==='move'?'on':''}">✋ Двигать плитку</button><button data-mode="look" class="${mode==='look'?'on':''}">👁 Смотреть</button>
+  <button data-act="zin">＋</button><button data-act="zout">－</button><button data-act="zfit">⤢</button></div>
+  <div class="tools"><span class="small mute" style="align-self:center">Сдвиг:</span><button data-nudge="-10,0">←</button><button data-nudge="10,0">→</button><button data-nudge="0,-10">↑</button><button data-nudge="0,10">↓</button><span class="small mute" style="align-self:center">по 10 мм</span>
+  <button data-act="half" title="на полплитки">½</button></div>
+  <div class="info" id="info"></div>
+  <div class="kpi" id="kpi"></div>
+  <h2>Варианты раскладки</h2><div class="vars" id="vars"><div class="small mute">Считаю…</div></div>
+  <div class="card" style="margin-top:10px"><div class="grid2">${fld('ox','Смещение X, мм',Math.round(it.ox))}${fld('oy','Смещение Y, мм',Math.round(it.oy))}</div>
+  <div class="row" style="margin-top:10px;gap:8px;align-items:center"><label class="row" style="gap:8px;font-size:15px;flex:1"><input type="checkbox" data-k="gapOn" ${it.gapOn?'checked':''} style="width:22px;height:22px"> <b>Зазор от стен</b></label><input data-k="gap" inputmode="decimal" value="${isSet(it.gap)?it.gap:5}" style="width:70px;flex:none;text-align:center"><span class="small mute">мм</span></div>
+  <label class="row" style="margin-top:8px;gap:8px;font-size:14px"><input type="checkbox" data-k="dims" ${it.dims?'checked':''} style="width:auto"> Размеры подрезок на схеме</label>
+  <label class="row" style="margin-top:8px;gap:8px;font-size:14px"><input type="checkbox" data-k="center" ${it.center?'checked':''} style="width:auto"> <span>Показать центр помещения <span style="color:#8e44ad">┄┄</span></span></label>
+  <div class="small mute" style="margin-top:6px"><span class="leg" style="background:var(--tile)"></span>целая <span class="leg" style="background:var(--cut);margin-left:8px"></span>подрезка <span class="leg" style="background:var(--narrow);margin-left:8px"></span>узкая (меньше ¼ плитки)</div></div>
+  <h2>Что на полу</h2><div class="card"><div class="small mute" style="margin-bottom:4px">Положение — расстояние от двух стен (номера стен — оранжевые кружки на схеме). Для отверстий — до центра, для поддона/колонны — до угла.</div><div id="fobjs">${fobjsHtml(it)}</div>
+  <div class="chips" style="margin-top:8px">${Object.entries(FOBJ).map(([k,t])=>`<button data-fact="add" data-v="${k}">+ ${t.n}</button>`).join('')}</div></div>
+  <h2>Как начать</h2><div class="card" id="start"></div>
+  <h2>Подрезки</h2><div class="card" id="cuts"></div>
+  <div class="row" style="gap:8px"><button class="btn" style="flex:1" data-act="png">Сохранить картинку</button><button class="btn sec" style="flex:1" data-act="sharetxt">Отправить текстом</button></div>`;
+  view={z:1,cx:null,cy:null};sel=-1;
+  draw(true);
+  setTimeout(()=>{VARS=variants(it);drawVars()},30);
+}
+function viewBox(it,R){
+  const [x0,y0,x1,y1]=bbox(R.pts);const w=x1-x0,h=y1-y0;const el=$('#cv');
+  if(!el._h){const W0=el.clientWidth||360;const want=W0*(h*1.12)/(w*1.12);el.style.height=Math.round(Math.max(220,Math.min(innerHeight*0.6,want)))+'px';el._h=1}const W=el.clientWidth||360,H=el.clientHeight||400;
+  const pad=Math.max(w,h)*0.06;let vw=w+2*pad,vh=h+2*pad;const ar=W/H;if(vw/vh<ar)vw=vh*ar;else vh=vw/ar;
+  if(view.cx===null){view.cx=(x0+x1)/2;view.cy=(y0+y1)/2}
+  vw/=view.z;vh/=view.z;return[view.cx-vw/2,view.cy-vh/2,vw,vh,W/vw];
+}
+function draw(full){
+  const it=cur();const R=roomPoly(it);const pat=pattern(it);
+  const L=layout(it,R.pts,pat,n0(it.ox),n0(it.oy),true);lastL=L;
+  const [vx,vy,vw,vh,sc]=viewBox(it,R);
+  const fs=12/sc;
+  let s=`<rect x="${vx}" y="${vy}" width="${vw}" height="${vh}" fill="var(--card)"/>`;
+  s+=`<polygon points="${ptsStr(R.pts)}" fill="var(--card)" stroke="none"/><polygon points="${ptsStr(tileArea(it,R.pts))}" fill="var(--grout)"/>`;
+  s+=tilesSvg(it,L,[n0(it.ox),n0(it.oy)],{labels:it.dims,fs});
+  if(sel>=0&&L.tiles[sel]&&!L.tiles[sel].full){const c=L.tiles[sel].piece.map(p=>tp(p,[n0(it.ox),n0(it.oy)],L.ang));s+=`<polygon points="${ptsStr(c)}" fill="none" stroke="var(--sel)" stroke-width="${3/sc}"/>`}
+  s+=fobjSvg(it,sc);
+  s+=`<defs><clipPath id="rc"><polygon points="${ptsStr(R.pts)}"/></clipPath></defs>`;
+  const si=startInfo(it,R,L);lastSI=si;s+=startSvg(si,R.pts,sc);
+  if(it.center)s+=centerSvg(R.pts,sc,'cc');
+  s+=outlineSvg(R,2.5/sc);s+=doorsSvg(it,R.pts,sc);s+=wallNums(R.pts,sc);
+  s+=`<circle cx="${R.pts[0][0]}" cy="${R.pts[0][1]}" r="${5/sc}" fill="var(--acc)"/>`;
+  const cv=$('#cv');cv.setAttribute('viewBox',`${vx} ${vy} ${vw} ${vh}`);cv.innerHTML=s;
+  if(full)stats(it,R,L);
+}
+function stats(it,R,L){
+  const se=$('#start');if(se)se.innerHTML=startHtml(it,lastSI);
+  const area=Math.max(0,Math.abs(polyArea(tileArea(it,R.pts)))-fobjCutArea(it))/1e6;const need=L.full+L.cuts;const withRes=Math.ceil(need*(1+n0(it.reserve)/100));
+  const pb=n0(it.perBox);
+  $('#kpi').innerHTML=`<div><span>Целых</span><b>${L.full}</b></div><div><span>Подрезок</span><b>${L.cuts}</b></div><div><span>Узких</span><b style="color:${L.narrow?'var(--bad)':'var(--acc2)'}">${L.narrow}</b></div>${L.hol?`<div style="grid-column:1/-1;text-align:left"><span>Плиток с отверстиями: <b style="font-size:15px">${L.hol}</b></span></div>`:''}
+  <div style="grid-column:1/-1;text-align:left"><span>Площадь ${fq(area)} м² · плиток на укладку ${need} шт · с запасом ${fq(it.reserve,0)}%: <b style="font-size:15px">${withRes} шт</b>${pb>0?` = <b style="font-size:15px">${Math.ceil(withRes/pb)} кор.</b>`:''}</span></div>`;
+  // список подрезок
+  const groups={};let fig=0;
+  for(const t of L.tiles){if(t.full)continue;if(!t.rect){fig++;continue}const k=labelOf(t);const full=`${Math.round(t.len)}×${Math.round(t.wid)}`;const key=Math.round(t.len)+'×'+Math.round(t.wid);groups[key]=groups[key]||{n:0,nar:false,len:t.len,wid:t.wid};groups[key].n++;if(t.nar)groups[key].nar=true}
+  const rows=Object.entries(groups).sort((a,b)=>b[1].n-a[1].n);
+  const pat=pattern(it);
+  $('#cuts').innerHTML=((rows.length||fig)?`<div class="small mute" style="margin-bottom:6px">Размер куска «длина × ширина» по плитке ${pat.L}×${pat.W}, округлено до 1 мм.</div><table class="cuts">${rows.map(([k,g])=>`<tr><td>${k} мм ${g.nar?'<span style="color:var(--bad)">· узкая</span>':''}</td><td class="n"><b>${g.n} шт</b></td></tr>`).join('')}${fig?`<tr><td>Фигурные / с вырезом</td><td class="n"><b>${fig} шт</b></td></tr>`:''}</table>`:'<div class="small mute">Подрезок нет</div>')+holesHtml(L);
+  const f=$('[data-k="ox"]'),g=$('[data-k="oy"]');if(f&&document.activeElement!==f)f.value=Math.round(n0(it.ox));if(g&&document.activeElement!==g)g.value=Math.round(n0(it.oy));
+  showSel();
+}
+function showSel(){
+  const el=$('#info');if(!el)return;const t=lastL&&lastL.tiles[sel];
+  if(!t||t.full){el.innerHTML='<span class="mute">Тяните схему пальцем — раскладка двигается. Двумя пальцами — приближение. Нажмите на подрезку — увидите размер, на целую плитку — она станет первой.</span>';return}
+  el.innerHTML=`Подрезка: <b>${Math.round(t.len)} × ${Math.round(t.wid)} мм</b>${t.rect?'':' (фигурная — размер по габариту)'}${t.nar?' · <span style="color:var(--bad)">узкая</span>':''}`;
+}
+function drawVars(){
+  const it=cur();const el=$('#vars');if(!el||!VARS)return;const R=roomPoly(it);const pat=pattern(it);
+  const [x0,y0,x1,y1]=bbox(R.pts);const w=x1-x0,h=y1-y0,pad=Math.max(w,h)*0.04;
+  el.innerHTML=VARS.map((v,i)=>{const L=layout(it,R.pts,pat,v.o[0],v.o[1],true);
+    const on=Math.abs(v.o[0]-n0(it.ox))<1&&Math.abs(v.o[1]-n0(it.oy))<1;
+    return`<button class="var ${on?'on':''}" data-var="${i}"><svg viewBox="${x0-pad} ${y0-pad} ${w+2*pad} ${h+2*pad}" preserveAspectRatio="xMidYMid meet"><polygon points="${ptsStr(R.pts)}" fill="var(--grout)"/>${tilesSvg(it,L,v.o)}${fobjSvg(it,Math.max(w,h)/120/2)}${outlineSvg(R,Math.max(w,h)/120)}</svg>
+    <b>${v.name}</b><span>целых ${v.full} · подрезок ${v.cuts} · узких ${v.narrow}</span></button>`}).join('');
+}
+function textReport(it){
+  const R=roomPoly(it);const L=lastL;const pat=pattern(it);
+  let t=`Раскладка: ${it.name}\nПлитка ${pat.L}×${pat.W}, шов ${fq(it.tile.j,1)} мм, ${PATS.find(p=>p[0]===it.pat)[1]}\nПлощадь ${fq(Math.abs(polyArea(R.pts))/1e6)} м²\nЦелых: ${L.full}, подрезок: ${L.cuts} (узких ${L.narrow})\nВсего плиток: ${L.full+L.cuts}, с запасом ${it.reserve}%: ${Math.ceil((L.full+L.cuts)*(1+n0(it.reserve)/100))}\n\nПодрезки:\n`;
+  const groups={};let fig=0;for(const x of L.tiles){if(x.full)continue;if(!x.rect){fig++;continue}const k=Math.round(x.len)+'×'+Math.round(x.wid);groups[k]=(groups[k]||0)+1}
+  for(const [k,n] of Object.entries(groups).sort((a,b)=>b[1]-a[1]))t+=`${k} мм — ${n} шт\n`;if(fig)t+=`фигурные — ${fig} шт\n`;for(const x of L.tiles)for(const h of (x.holes||[]))t+=`${FOBJ[h.o.type].n}: ${Math.round(h.a)} мм от края по длине, ${Math.round(h.b)} мм по ширине\n`;return t+startText(it,lastSI);
+}
+async function sharePng(){
+  const it=cur();const R=roomPoly(it);const [x0,y0,x1,y1]=bbox(R.pts);const w=x1-x0,h=y1-y0,pad=Math.max(w,h)*0.05;
+  const W=1600,sc=W/(w+2*pad),H=Math.round((h+2*pad)*sc)+120;
+  const cs=getComputedStyle(document.documentElement);const col=v=>cs.getPropertyValue(v).trim();
+  let svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="${x0-pad} ${y0-pad} ${w+2*pad} ${(H)/sc}"><rect x="${x0-pad}" y="${y0-pad}" width="${w+2*pad}" height="${H/sc}" fill="#fff"/><polygon points="${ptsStr(R.pts)}" fill="${col('--grout')}"/>${tilesSvg(it,lastL,[n0(it.ox),n0(it.oy)],{labels:true,fs:16/sc})}${fobjSvg(it,sc)}<defs><clipPath id="rc"><polygon points="${ptsStr(R.pts)}"/></clipPath></defs>${startSvg(lastSI,R.pts,sc)}${outlineSvg(R,3/sc)}${wallNums(R.pts,sc)}`;
+  const pat=pattern(it);const fs=26/sc;svg+=`<text x="${x0-pad+10/sc}" y="${y1+pad+40/sc}" font-size="${fs}" font-family="Arial" fill="#222">${esc(it.name)} · плитка ${pat.L}×${pat.W}, шов ${fq(it.tile.j,1)} · целых ${lastL.full}, подрезок ${lastL.cuts}</text></svg>`;
+  svg=svg.replace(/var\(--tile\)/g,col('--tile')).replace(/var\(--cut\)/g,col('--cut')).replace(/var\(--narrow\)/g,col('--narrow')).replace(/var\(--ink\)/g,'#1d2328').replace(/var\(--sel\)/g,'#4b8bd6').replace(/var\(--acc\)/g,'#c4572e');
+  const img=new Image();img.onload=()=>{const c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');g.drawImage(img,0,0);c.toBlob(async b=>{
+    const f=new File([b],`raskladka-${(it.name||'plan').replace(/[^\wа-яё-]+/gi,'_')}.png`,{type:'image/png'});
+    try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:it.name});return}}catch(e){if(e.name==='AbortError')return}
+    const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=f.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),3000)},'image/png')};
+  img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+}
+
+// ================== события ==================
+function resetVars(){VARS=null}
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-act],[data-tab],[data-mode],[data-nudge],[data-var]');if(!b)return;const it=cur();
+  if(b.dataset.tab){S.tab=b.dataset.tab;save();render();scrollTo(0,0);return}
+  if(b.dataset.mode){mode=b.dataset.mode;document.querySelectorAll('[data-mode]').forEach(x=>x.classList.toggle('on',x===b));return}
+  if(b.dataset.nudge){const [dx,dy]=b.dataset.nudge.split(',').map(Number);it.ox=n0(it.ox)+dx;it.oy=n0(it.oy)+dy;save();draw(true);drawVars();return}
+  if(b.dataset.var){const v=VARS[+b.dataset.var];it.ox=v.o[0];it.oy=v.o[1];it.startPick=null;sel=-1;save();draw(true);drawVars();toast(v.name);return}
+  switch(b.dataset.act){
+    case'new':{const n=newItem();S.items.unshift(n);S.cur=n.id;S.view='edit';S.tab='room';save();render();break}
+    case'open':S.cur=b.dataset.id;S.view='edit';S.tab='room';save();render();break;
+    case'back':S.view='list';save();render();break;
+    case'del':if(confirm('Удалить раскладку?')){S.items=S.items.filter(x=>x.id!==S.cur);S.view='list';save();render()}break;
+    case'dup':{const c=JSON.parse(JSON.stringify(it));c.id=uid();c.name+=' (копия)';S.items.unshift(c);S.cur=c.id;save();render();toast('Копия создана');break}
+    case'shape':it.shape=b.dataset.v;if(it.shape==='free'&&!it.walls.length){const W=n0(it.rw)||'',H=n0(it.rh)||'';it.walls=[{len:W,dir:0},{len:H,dir:2},{len:W,dir:4},{len:H,dir:6}]}save();resetVars();renderRoom();break;
+    case'addwall':it.walls.push({len:'',dir:+b.dataset.d});save();renderRoom();{const i=document.querySelector(`[data-wl="${it.walls.length-1}"]`);if(i)i.focus()}break;
+    case'delwall':{const k=+b.dataset.k;it.walls.splice(k,1);it.doors=(it.doors||[]).filter(d=>d.wall!==k).map(d=>d.wall>k?{...d,wall:d.wall-1}:d);save();renderRoom();break}
+    case'adddoor':{const R=roomPoly(it);const k=+b.dataset.k;const n=R.pts.length;let L=0;if(n>2&&k<n){L=edgeInfo(R.pts,k).L}else{const w=it.walls[k];L=w?n0(w.len):0}
+      it.doors=it.doors||[];it.doors.push({id:uid(),wall:k,w:800,off:Math.max(0,Math.round((L-800)/2)),into:true,cm:2});save();renderRoom();toast('Дверь поставлена на стену '+(k+1));break}
+    case'deldoor':it.doors=(it.doors||[]).filter(d=>d.id!==b.dataset.id);save();renderRoom();break;
+    case'close':{const R=roomPoly(it);const [gx,gy]=R.gap;const L=Math.hypot(gx,gy);if(L<1)break;const ang=Math.atan2(gy,gx)*180/Math.PI;
+      const di=DIRS.findIndex(d=>{const a=Math.atan2(d[1],d[0])*180/Math.PI;return Math.abs(((ang-a+540)%360)-180)<0.05});
+      const w={len:Math.round(L*10)/10};if(di>=0)w.dir=di;else{w.dir=8;w.ang=Math.round(((ang+360)%360)*100)/100}
+      it.walls.push(w);save();renderRoom();toast(`Добавлена стена ${it.walls.length}: ${Math.round(L)} мм${di<0?', под углом':''}`);break}
+    case'size':it.tile.a=+b.dataset.a;it.tile.b=+b.dataset.b;save();renderTile();break;
+    case'pat':it.pat=b.dataset.v;save();renderTile();break;
+    case'zin':view.z=Math.min(12,view.z*1.6);draw(false);break;
+    case'zout':view.z=Math.max(1,view.z/1.6);if(view.z===1){view.cx=null}draw(false);break;
+    case'zfit':view={z:1,cx:null,cy:null};draw(false);break;
+    case'half':{const pat=pattern(it);const d=rot([pat.T1[0]/2,pat.T1[1]/2],pat.ang*Math.PI/180);it.ox=n0(it.ox)+d[0];it.oy=n0(it.oy)+d[1];save();draw(true);drawVars();break}
+    case'startreset':it.startPick=null;save();draw(true);toast('Первая плитка — у оранжевого угла');break;
+    case'png':sharePng();break;
+    case'sharetxt':{const t=textReport(it);(async()=>{try{if(navigator.share){await navigator.share({text:t});return}}catch(e){if(e.name==='AbortError')return}try{await navigator.clipboard.writeText(t);toast('Скопировано')}catch(e){prompt('Скопируйте',t)}})();break}
+  }
+});
+document.addEventListener('input',e=>{
+  const el=e.target,d=el.dataset,it=cur();if(!it)return;
+  if(d.k){const k=d.k,v=el.type==='checkbox'?el.checked:el.value;
+    if(k==='gapOn'||k==='gap'){const R=roomPoly(it);if(R.pts.length>2){const g0=gapOf(it);const was=inset(R.pts,g0)[0];it[k]=v;const now=inset(R.pts,gapOf(it))[0];it.ox=n0(it.ox)+now[0]-was[0];it.oy=n0(it.oy)+now[1]-was[1]}}
+    if(k==='name'){it.name=v;$('#hdr h1').textContent=v||'Раскладка'}
+    else if(k==='ta')it.tile.a=v;else if(k==='tb')it.tile.b=v;else if(k==='tj')it.tile.j=v;
+    else it[k]=v;
+    save();resetVars();
+    if(S.tab==='room'){$('#plan').innerHTML=planSvg(it);$('#roominfo').innerHTML=roomInfo(it)}
+    if(S.tab==='walls'&&k==='center')wDraw(false);
+    if(S.tab==='lay'){if(k==='ox'||k==='oy'){draw(true);drawVars()}else if(k==='dims'||k==='center')draw(false);else if(k==='gapOn'||k==='gap'){draw(true);clearTimeout(window._gv);window._gv=setTimeout(()=>{VARS=variants(it);drawVars()},300);if(k==='gapOn')toast(v?'Зазор от стен включён':'Зазор выключен')}}
+    return}
+  if(d.door){const dr=(it.doors||[]).find(x=>x.id===d.door);if(!dr)return;dr[d.f]=el.type==='checkbox'?el.checked:el.value;save();resetVars();
+    if(d.f==='into'){$('#doors').innerHTML=doorsHtml(it)}$('#plan').innerHTML=planSvg(it);$('#roominfo').innerHTML=roomInfo(it);return}
+  if(d.wl!==undefined){it.walls[+d.wl].len=el.value;save();$('#plan').innerHTML=planSvg(it);$('#roominfo').innerHTML=roomInfo(it);return}
+  if(d.wa!==undefined){it.walls[+d.wa].ang=el.value;save();$('#plan').innerHTML=planSvg(it);$('#roominfo').innerHTML=roomInfo(it);return}
+  if(d.wd!==undefined&&+el.value===8&&+it.walls[+d.wd].dir!==8){const w=it.walls[+d.wd];const v=dirVec(w);w.ang=Math.round(((Math.atan2(v[1],v[0])*180/Math.PI)+360)%360);w.dir=8;save();renderRoom();const i=document.querySelector(`[data-wa="${d.wd}"]`);if(i){i.focus();i.select()}return}
+  if(d.wd!==undefined){it.walls[+d.wd].dir=+el.value;save();$('#plan').innerHTML=planSvg(it);$('#roominfo').innerHTML=roomInfo(it);return}
+});
+// перетаскивание и нажатия по схеме
+let drag=null,raf=0;
+document.addEventListener('pointerdown',e=>{const cv=e.target.closest('#cv');if(!cv)return;const it=cur();
+  drag={x:e.clientX,y:e.clientY,ox:n0(it.ox),oy:n0(it.oy),cx:view.cx,cy:view.cy,moved:false,sc:cv.clientWidth/cv.viewBox.baseVal.width,target:e.target};cv.setPointerCapture(e.pointerId)});
+document.addEventListener('pointermove',e=>{if(!drag)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(!drag.moved&&Math.hypot(dx,dy)<6)return;drag.moved=true;const it=cur();
+  if(mode==='move'){it.ox=drag.ox+dx/drag.sc;it.oy=drag.oy+dy/drag.sc}else{view.cx=drag.cx-dx/drag.sc;view.cy=drag.cy-dy/drag.sc}
+  if(!raf)raf=requestAnimationFrame(()=>{raf=0;draw(false)})});
+document.addEventListener('pointerup',e=>{if(!drag)return;const d=drag;drag=null;
+  if(d.moved){if(mode==='move'){save();draw(true);drawVars()}return}
+  const ti=d.target.closest&&d.target.closest('[data-ti]');const t=ti&&lastL?lastL.tiles[+ti.dataset.ti]:null;
+  if(t&&t.full){const it=cur();const c=[[t.x0+t.w/2,t.y0+t.h/2]].map(p=>tp(p,[n0(it.ox),n0(it.oy)],lastL.ang))[0];it.startPick=c;sel=-1;save();draw(true);toast('Первая плитка выбрана — размеры в «Как начать»');return}
+  sel=t?+ti.dataset.ti:-1;draw(false);showSel()});
+window.addEventListener('resize',()=>{if(S.view==='edit'&&S.tab==='lay')draw(false)});
+
+// ================== объекты на полу ==================
+const FOBJ={trap:{n:'Трап',hole:true,d:100},sewer:{n:'Канализация',hole:true,d:110},wc:{n:'Вывод унитаза',hole:true,d:110},pipe:{n:'Труба',hole:true,d:25},
+  tray:{n:'Поддон / ванна',w:900,h:900},column:{n:'Колонна / короб',w:300,h:300},furn:{n:'Тумба / мебель',w:600,h:450}};
+// положение объекта — от двух выбранных стен (расстояние по перпендикуляру)
+function fobjGeom(it,o){const t=FOBJ[o.type];if(!t)return null;const P=roomPoly(it).pts;
+  if(o.wA===undefined||P.length<3){// старый формат X/Y
+    if(t.hole)return{pt:[n0(o.x),n0(o.y)]};const x=n0(o.x),y=n0(o.y),w=n0(o.w),h=n0(o.h);return{poly:[[x,y],[x+w,y],[x+w,y+h],[x,y+h]]}}
+  const n=P.length,iA=Math.min(n-1,Math.max(0,+o.wA)),iB=Math.min(n-1,Math.max(0,+o.wB));const A=edgeInfo(P,iA),B=edgeInfo(P,iB);
+  const dA=n0(o.dA),dB=n0(o.dB);let p;
+  const det=A.nin[0]*B.nin[1]-A.nin[1]*B.nin[0];
+  if(Math.abs(det)<1e-6)p=[A.a[0]+A.u[0]*A.L/2+A.nin[0]*dA,A.a[1]+A.u[1]*A.L/2+A.nin[1]*dA];
+  else{const c1=A.nin[0]*A.a[0]+A.nin[1]*A.a[1]+dA,c2=B.nin[0]*B.a[0]+B.nin[1]*B.a[1]+dB;p=[(c1*B.nin[1]-A.nin[1]*c2)/det,(A.nin[0]*c2-c1*B.nin[0])/det]}
+  if(t.hole)return{pt:p};
+  const sA=n0(isSet(o.sA)?o.sA:t.w),sB=n0(isSet(o.sB)?o.sB:t.h);
+  return{poly:[p,[p[0]+A.nin[0]*sA,p[1]+A.nin[1]*sA],[p[0]+A.nin[0]*sA+B.nin[0]*sB,p[1]+A.nin[1]*sA+B.nin[1]*sB],[p[0]+B.nin[0]*sB,p[1]+B.nin[1]*sB]]}}
+function fobjSvg(it,sc){let s='';for(const o of (it.fobjs||[])){const t=FOBJ[o.type];const g=fobjGeom(it,o);if(!g)continue;
+  if(t.hole){const d=n0(o.d)||t.d,[x,y]=g.pt;const r=Math.max(d/2,1.5/sc);
+    s+=`<circle cx="${x}" cy="${y}" r="${r}" fill="#fff" stroke="#d11" stroke-width="${Math.min(2/sc,d/8)}"/><line x1="${x-r*1.6}" y1="${y}" x2="${x+r*1.6}" y2="${y}" stroke="#d11" stroke-width="${Math.min(1/sc,d/16)}"/><line x1="${x}" y1="${y-r*1.6}" x2="${x}" y2="${y+r*1.6}" stroke="#d11" stroke-width="${Math.min(1/sc,d/16)}"/>`}
+  else{const q=g.poly;s+=`<polygon points="${ptsStr(q)}" fill="#fff" stroke="var(--ink)" stroke-width="${1.5/sc}"/>`;const [x0,y0,x1,y1]=bbox(q);const w=x1-x0,h=y1-y0;const fs=Math.min(h*0.25,12/sc);if(w>fs*3)s+=`<text x="${(x0+x1)/2}" y="${(y0+y1)/2+fs*0.35}" font-size="${fs}" text-anchor="middle" fill="#334" style="pointer-events:none">${t.n}</text>`}}
+  return s}
+function fobjCutArea(it){return(it.fobjs||[]).filter(o=>FOBJ[o.type]&&!FOBJ[o.type].hole).reduce((a,o)=>{const g=fobjGeom(it,o);return a+(g?Math.abs(polyArea(g.poly)):0)},0)}
+function wallSel(o,k,n){return`<select data-fob="${o.id}" data-f="${k}" style="padding:8px 4px">${Array.from({length:n},(_,i)=>`<option value="${i}" ${+o[k]===i?'selected':''}>стены ${i+1}</option>`).join('')}</select>`}
+function fobjsHtml(it){const list=it.fobjs||[];if(!list.length)return'<div class="small mute">Пока ничего. Добавьте трап, выводы труб, поддон…</div>';const n=roomPoly(it).pts.length;
+  return list.map(o=>{const t=FOBJ[o.type];const f=(k,ph)=>`<input data-fob="${o.id}" data-f="${k}" inputmode="decimal" value="${isSet(o[k])?String(o[k]).replace('.',','):''}" placeholder="${ph||''}">`;
+    if(o.wA===undefined){o.wA=n-1;o.wB=0;const g=fobjGeom(it,{...o,wA:undefined});o.dA=Math.round(g?(t.hole?g.pt[0]:g.poly[0][0]):0);o.dB=Math.round(g?(t.hole?g.pt[1]:g.poly[0][1]):0);if(!t.hole){o.sA=n0(o.w)||t.w;o.sB=n0(o.h)||t.h}}
+    const row=(lbl,wk,dk)=>`<div class="row" style="gap:6px;margin-top:6px"><span class="small" style="width:70px;flex:none">${lbl}</span>${f(dk,'мм')}<span class="small mute" style="flex:none">мм от</span>${wallSel(o,wk,n)}</div>`;
+    return`<div style="border-top:1px solid var(--line);padding:8px 0"><div class="row" style="justify-content:space-between"><b>${t.n}</b><button class="x" data-fact="del" data-id="${o.id}">✕</button></div>
+    ${t.hole?`${row('Центр:','wA','dA')}${row('','wB','dB')}<div class="row" style="gap:6px;margin-top:6px"><span class="small" style="width:70px;flex:none">Диаметр</span>${f('d',t.d)}<span class="small mute">мм</span></div>`
+      :`${row('Угол:','wA','dA')}${row('','wB','dB')}<div class="row" style="gap:6px;margin-top:6px"><span class="small" style="width:70px;flex:none">Размер</span>${f('sA',t.w)}<span class="small mute">×</span>${f('sB',t.h)}<span class="small mute">мм</span></div><div class="small mute" style="margin-top:2px">Размер: первое — от стены ${+o.wA+1} вглубь, второе — от стены ${+o.wB+1}.</div>`}</div>`}).join('')}
+function holesHtml(L){const hs=[];for(const t of L.tiles)for(const h of (t.holes||[]))hs.push(h);
+  if(!hs.length)return'';return`<div style="margin-top:10px"><b>Отверстия в плитке</b> (центр — от ближайших краёв плитки):</div>`+hs.map(h=>`<div class="small" style="padding:4px 0;border-bottom:1px solid var(--line)">${FOBJ[h.o.type].n}: <b>${Math.round(h.a)} мм</b> от края по длине, <b>${Math.round(h.b)} мм</b> от края по ширине · коронка ⌀${n0(h.o.d)||FOBJ[h.o.type].d}</div>`).join('')}
+let fvT=0;function fobjChanged(){save();draw(true);clearTimeout(fvT);fvT=setTimeout(()=>{VARS=variants(cur());drawVars()},400)}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-fact]');if(!b)return;const it=cur();it.fobjs=it.fobjs||[];
+  if(b.dataset.fact==='add'){const t=FOBJ[b.dataset.v];const P=roomPoly(it).pts;const n=P.length;const o={id:uid(),type:b.dataset.v,wA:n-1,wB:0};
+    if(t.hole){const [x0,y0,x1,y1]=bbox(P);const c=[(x0+x1)/2,(y0+y1)/2];const hA=rayHit(P,c,[-1,0]),hB=rayHit(P,c,[0,-1]);o.dA=Math.round(hA?hA.t:500);o.dB=Math.round(hB?hB.t:500);o.d=t.d;
+      if(hA)o.wA=hA.wall-1;if(hB)o.wB=hB.wall-1}
+    else{o.dA=0;o.dB=0;o.sA=t.w;o.sB=t.h}it.fobjs.push(o)}
+  else it.fobjs=it.fobjs.filter(o=>o.id!==b.dataset.id);
+  $('#fobjs').innerHTML=fobjsHtml(it);fobjChanged()});
+document.addEventListener('input',e=>{const el=e.target;if(!el.dataset.fob)return;const it=cur();const o=(it.fobjs||[]).find(x=>x.id===el.dataset.fob);if(!o)return;o[el.dataset.f]=el.value;
+  if(el.tagName==='SELECT')$('#fobjs').innerHTML=fobjsHtml(it);fobjChanged()});
+
+// ================== СТЕНЫ ==================
+const OBJ={
+  window:{n:'Окно',cut:true,w:600,h:600,y:900,col:'#bfe0f5'},
+  door:{n:'Дверь',cut:true,w:800,h:2000,y:0,col:'#d9c4a6'},
+  bath:{n:'Ванна',cut:true,w:1700,h:600,y:0,col:'#ffffff'},
+  tray:{n:'Поддон / экран',cut:true,w:900,h:150,y:0,col:'#ffffff'},
+  hatch:{n:'Люк',cut:false,w:300,h:400,y:200,col:'none'},
+  mirror:{n:'Зеркало / проём',cut:true,w:600,h:800,y:1100,col:'#e8eef2'},
+  socket:{n:'Розетка',hole:true,d:70,y:1000},
+  pipe:{n:'Вывод трубы',hole:true,d:25,y:500},
+};
+function W(it){if(!it.W)it.W={tile:{a:600,b:300,j:2},pat:'grid',swap:false,H:'',y0:0,wx:{},wh:{},skip:{},objs:[],sel:0};const w=it.W;w.wx=w.wx||{};w.wh=w.wh||{};w.skip=w.skip||{};w.objs=w.objs||[];return w}
+function wallList(it){const T=W(it);if(T.own)return(T.list||[]).map((x,i)=>({idx:1000+i,num:i+1,len:n0(x.len)})).filter(w=>w.len>0);return wallListRoom(it)}
+function wallListRoom(it){const R=roomPoly(it);if(R.pts.length<3)return[];const P=R.pts,n=P.length;const cw=polyArea(P)>0;
+  const ord=[...Array(n).keys()];if(!cw)ord.reverse();
+  return ord.map(i=>({idx:i,num:i+1,len:Math.hypot(P[(i+1)%n][0]-P[i][0],P[(i+1)%n][1]-P[i][1])}))}
+function wTile(it){const T=W(it);let a=n0(T.tile.a)||600,b=n0(T.tile.b)||300;if(T.swap)[a,b]=[b,a];const j=Math.max(0,n0(T.tile.j));
+  const pw=a+j,ph=b+j;const sh=T.pat==='half'?pw/2:T.pat==='third'?pw/3:0;return{a,b,j,pw,ph,sh}}
+const wHH=it=>{const T=W(it);return isSet(T.H)?n0(T.H):(n0(it.ceil)||2700)};
+const wH0=(it,w)=>{const T=W(it);return isSet(T.wh[w.idx])?n0(T.wh[w.idx]):wHH(it)};
+// скос: высота слева до X1 = H1, по скосу до X2, дальше = H2
+function wSl(it,w){const T=W(it);T.slope=T.slope||{};return slProf(T.slope[w.idx],w.len,wH0(it,w))}
+function slProf(s,L,H0){if(!s||!s.on)return null;const cl=v=>Math.max(0,Math.min(L,v));
+  let pts;// точки верхнего контура слева направо
+  if(s.mode==='two'){const hL=n0(isSet(s.hL)?s.hL:H0),hR=n0(isSet(s.hR)?s.hR:H0),xm=cl(isSet(s.xm)?n0(s.xm):L/2),hm=n0(isSet(s.hm)?s.hm:H0);
+    const xa=Math.min(xm,cl(n0(s.xa))),xb=Math.max(xm,cl(isSet(s.xb)?n0(s.xb):L));pts=[[0,hL],[xa,hL],[xm,hm],[xb,hR],[L,hR]]}
+  else{const x1=cl(n0(s.x1)),x2=Math.max(x1,cl(isSet(s.x2)?n0(s.x2):L)),h1=n0(isSet(s.h1)?s.h1:H0),h2=n0(isSet(s.h2)?s.h2:H0);pts=[[0,h1],[x1,h1],[x2,h2],[L,h2]]}
+  const segs=[];for(let i=0;i<pts.length-1;i++){const [xa,ha]=pts[i],[xb,hb]=pts[i+1];const dx=xb-xa,dh=hb-ha;if(dx<0.5||Math.abs(dh)<0.5)continue;segs.push({xa,ha,xb,hb,ang:Math.atan2(Math.abs(dh),dx)*180/Math.PI,len:Math.hypot(dx,dh),up:dh>0})}
+  const top=x=>{for(let i=0;i<pts.length-1;i++){const [xa,ha]=pts[i],[xb,hb]=pts[i+1];if(x>=xa&&x<=xb)return xb-xa<1e-9?Math.max(ha,hb):ha+(hb-ha)*(x-xa)/(xb-xa)}return pts[pts.length-1][1]};
+  const poly=[[0,0],[L,0],...pts.slice().reverse()].filter((q,i,a)=>i===0||Math.hypot(q[0]-a[i-1][0],q[1]-a[i-1][1])>0.1);
+  let tl=0;for(let i=0;i<pts.length-1;i++)tl+=Math.hypot(pts[i+1][0]-pts[i][0],pts[i+1][1]-pts[i][1]);
+  return{segs,top,poly,pts,topLen:tl,mode:s.mode||'one',maxH:Math.max(...pts.map(q=>q[1]))}}
+const wH=(it,w)=>{const sl=wSl(it,w);return sl?sl.maxH:wH0(it,w)};
+const wX=(it,w)=>n0(W(it).wx[w.idx]);
+function ovl(r,c){const x=Math.max(0,Math.min(r[2],c[2])-Math.max(r[0],c[0])),y=Math.max(0,Math.min(r[3],c[3])-Math.max(r[1],c[1]));return x*y}
+function objRect(o){const t=OBJ[o.type];if(t.hole){const d=n0(o.d)||t.d;return[n0(o.x)-d/2,n0(o.y)-d/2,n0(o.x)+d/2,n0(o.y)+d/2]}return[n0(o.x),n0(o.y),n0(o.x)+n0(o.w),n0(o.y)+n0(o.h)]}
+function isCut(o){const t=OBJ[o.type];return !t.hole&&t.cut&&!o.tiled}
+// раскладка одной стены (координаты: x от левого угла, y от пола вверх)
+function wallLayout(it,w,ox,y0){
+  if(WPOLY(W(it).pat))return wallLayoutPoly(it,w,ox,y0);
+  const {a,b,j,pw,ph,sh}=wTile(it);const Lw=w.len,Hw=wH(it,w);
+  const objs=W(it).objs.filter(o=>o.wall===w.idx);const cuts=objs.filter(isCut).map(objRect),holes=objs.filter(o=>OBJ[o.type].hole);
+  const SL=wSl(it,w);const tiles=[];let full=0,cut=0,nar=0,hol=0;
+  if(W(it).skip[w.idx]||Lw<1||Hw<1)return{tiles,full,cut,nar,hol,Lw,Hw};
+  const k0=Math.floor(-y0/ph)-1,k1=Math.ceil((Hw-y0)/ph)+1;
+  const thr=s=>Math.max(40,s*0.25);
+  for(let k=k0;k<=k1;k++){const ry=y0+k*ph;if(ry+b<=0||ry>=Hw)continue;
+    const xs=ox+(((k*sh)%pw)+pw)%pw;const i0=Math.floor(-xs/pw)-1,i1=Math.ceil((Lw-xs)/pw)+1;
+    for(let i=i0;i<=i1;i++){const x0=xs+i*pw;if(x0+a<=0||x0>=Lw)continue;
+      let r=[Math.max(0,x0),Math.max(0,ry),Math.min(Lw,x0+a),Math.min(Hw,ry+b)];if(r[2]-r[0]<0.5||r[3]-r[1]<0.5)continue;
+      let piece=null,area,rect=true;const notch=[];
+      if(SL){piece=clipRect(SL.poly,x0,ry,x0+a,ry+b);if(piece.length<3)continue;area=Math.abs(polyArea(piece));if(area<1)continue;const bb=bbox(piece);r=[bb[0],bb[1],bb[2],bb[3]];rect=area>=(r[2]-r[0])*(r[3]-r[1])*0.985}
+      else area=(r[2]-r[0])*(r[3]-r[1]);
+      for(const c of cuts){const ov=ovl(r,c);if(ov<=0.5)continue;area-=ov;notch.push(c);
+        if(c[1]<=r[1]+0.1&&c[3]>=r[3]-0.1){if(c[0]<=r[0]+0.1)r=[Math.min(r[2],c[2]),r[1],r[2],r[3]];else if(c[2]>=r[2]-0.1)r=[r[0],r[1],Math.max(r[0],c[0]),r[3]];else rect=false}
+        else if(c[0]<=r[0]+0.1&&c[2]>=r[2]-0.1){if(c[1]<=r[1]+0.1)r=[r[0],Math.min(r[3],c[3]),r[2],r[3]];else if(c[3]>=r[3]-0.1)r=[r[0],r[1],r[2],Math.max(r[1],c[1])];else rect=false}
+        else rect=false}
+      if(area<1)continue;
+      const isFull=area>=a*b*0.999;
+      const hs=[];for(const o of holes){const cx=n0(o.x),cy=n0(o.y);if(cx>=x0&&cx<=x0+a&&cy>=ry&&cy<=ry+b)hs.push({o,dx:cx-x0,dy:cy-ry,k,i})}
+      if(hs.length)hol++;
+      const t={x0,y0:ry,a,b,r,full:isFull,rect,notch,holes:hs,k,area};
+      if(piece&&!isFull){t.poly=piece;if(!rect&&!notch.length){const bot=Math.max(0,ry);t.sl={hl:Math.min(SL.top(r[0]+0.01),ry+b)-bot,hr:Math.min(SL.top(r[2]-0.01),ry+b)-bot}}}
+      if(isFull)full++;else{cut++;const pwid=r[2]-r[0],phei=r[3]-r[1];t.len=pwid;t.wid=phei;t.nar=rect&&((pwid<a-0.5&&pwid<thr(a))||(phei<b-0.5&&phei<thr(b)));if(t.nar)nar++}
+      tiles.push(t)}}
+  return{tiles,full,cut,nar,hol,Lw,Hw};
+}
+function allWalls(it){const T=W(it);const ws=wallList(it);let full=0,cut=0,nar=0,hol=0,area=0;const res=ws.map(w=>{const L=wallLayout(it,w,wX(it,w),n0(T.y0));full+=L.full;cut+=L.cut;nar+=L.nar;hol+=L.hol;
+  if(!T.skip[w.idx]){const sl=wSl(it,w);let ar=sl?Math.abs(polyArea(sl.poly)):L.Lw*L.Hw;for(const o of T.objs.filter(o=>o.wall===w.idx&&isCut(o))){const c=objRect(o);ar-=ovl([0,0,L.Lw,L.Hw],c)}area+=Math.max(0,ar)}return{w,L}});
+  return{ws:res,full,cut,nar,hol,area}}
+// --- подбор
+function bestY0(it){const {ph}=wTile(it);const N=36;let best=null;
+  for(let s=0;s<N;s++){const y0=s/N*ph;const A=allWalls({...it,W:{...W(it),y0}});const sc=A.nar*1000+A.cut;if(!best||sc<best.sc)best={sc,y0}}return best.y0}
+function bestX(it,w){const {pw}=wTile(it);const N=36;let best=null;
+  for(let s=0;s<N;s++){const ox=s/N*pw;const L=wallLayout(it,w,ox,n0(W(it).y0));let mp=1e9;for(const t of L.tiles)if(!t.full&&t.rect)mp=Math.min(mp,Math.min(t.len<t.a-0.5?t.len:1e9,t.wid<t.b-0.5?t.wid:1e9));
+    const sc=L.nar*1e6+L.cut*1000-Math.min(mp,999);if(!best||sc<best.sc)best={sc,ox}}return best.ox}
+function y0Preset(it,k){const T=W(it);const {b,j,ph}=wTile(it);const H=wHH(it);
+  if(k==='floor')return 0;
+  if(k==='top')return H-b;
+  if(k==='sym'){const n=Math.floor((H+j)/ph);const rem=H-(n*ph-j);return rem/2}
+  if(k==='bath'){const bt=T.objs.filter(o=>o.type==='bath'||o.type==='tray').map(o=>n0(o.y)+n0(o.h));return bt.length?Math.max(...bt)+j:0}
+  return n0(T.y0)}
+function xPreset(it,w,k){const {a,j}=wTile(it);
+  if(k==='left')return 0;if(k==='right')return w.len-a;if(k==='ctile')return w.len/2-a/2;if(k==='cjoint')return w.len/2+j/2;if(k==='auto')return bestX(it,w);return wX(it,w)}
+
+// --- рисование развёртки
+let wview={z:1,cx:null,cy:null},wmode='move',wsel=null,lastWA=null;
+function wPano(it){const ws=wallList(it);const Hm=Math.max(...ws.map(w=>wH(it,w)),1);const gap=Math.max(120,Hm*0.07);let x=0;const pos=ws.map(w=>{const p={w,X:x,top:Hm-wH(it,w)};x+=w.len+gap;return p});return{pos,Wt:Math.max(1,x-gap),Hm}}
+function wSvg(it,opts={}){
+  const T=W(it);const A=allWalls(it);if(!opts.mini)lastWA=A;const {pos,Wt,Hm}=wPano(it);const sc=opts.sc||1;
+  let s='';
+  A.ws.forEach(({w,L},n)=>{const p=pos[n];const X=p.X,Y0=Hm;const fy=y=>Y0-y;const skip=T.skip[w.idx];
+    s+=`<g data-wall="${w.idx}">`;
+    const SLw=wSl(it,w);const wpoly=SLw?SLw.poly:[[0,0],[w.len,0],[w.len,L.Hw],[0,L.Hw]];const wps=wpoly.map(q=>(X+q[0]).toFixed(1)+','+fy(q[1]).toFixed(1)).join(' ');
+    s+=`<polygon points="${wps}" fill="${skip?'var(--line)':'var(--grout)'}"/>`;
+    for(const t of L.tiles){const r=t.r;let fill=t.full?'var(--tile)':(t.nar?'var(--narrow)':'var(--cut)');
+      const tx0=Math.max(0,t.x0),ty0=Math.max(0,t.y0),tx1=Math.min(L.Lw,t.x0+t.a),ty1=Math.min(L.Hw,t.y0+t.b);
+      if(t.poly){s+=`<polygon points="${t.poly.map(q=>(X+q[0]).toFixed(1)+','+fy(q[1]).toFixed(1)).join(' ')}" fill="${fill}" data-wt="${n}:${L.tiles.indexOf(t)}"/>`;continue}
+      s+=`<rect x="${(X+tx0).toFixed(1)}" y="${fy(ty1).toFixed(1)}" width="${(tx1-tx0).toFixed(1)}" height="${(ty1-ty0).toFixed(1)}" fill="${fill}" data-wt="${n}:${L.tiles.indexOf(t)}"/>`;
+      if(opts.labels&&!t.full&&t.rect){const fs=opts.fs;const lw=tx1-tx0,lh=ty1-ty0;const txt=labelW(t);if(Math.min(lw,lh)>fs*1.1&&Math.max(lw,lh)>txt.length*fs*0.55)
+        s+=`<text x="${(X+(r[0]+r[2])/2).toFixed(1)}" y="${(fy((r[1]+r[3])/2)+fs*0.35).toFixed(1)}" font-size="${fs.toFixed(1)}" text-anchor="middle" fill="#3a2a20" style="pointer-events:none">${txt}</text>`}}
+    for(const o of T.objs.filter(o=>o.wall===w.idx)){const t=OBJ[o.type];const c=objRect(o);
+      if(t.hole){const d=n0(o.d)||t.d;s+=`<circle cx="${X+n0(o.x)}" cy="${fy(n0(o.y))}" r="${Math.max(d/2,1.5/sc)}" fill="#fff" stroke="#d11" stroke-width="${Math.min(2/sc,d/8)}"/><line x1="${X+n0(o.x)-d*0.8}" y1="${fy(n0(o.y))}" x2="${X+n0(o.x)+d*0.8}" y2="${fy(n0(o.y))}" stroke="#d11" stroke-width="${Math.min(1/sc,d/16)}"/><line x1="${X+n0(o.x)}" y1="${fy(n0(o.y))-d*0.8}" x2="${X+n0(o.x)}" y2="${fy(n0(o.y))+d*0.8}" stroke="#d11" stroke-width="${Math.min(1/sc,d/16)}"/>`;continue}
+      const rx=X+c[0],ry=fy(c[3]),rw=c[2]-c[0],rh=c[3]-c[1];
+      if(isCut(o))s+=`<rect x="${rx}" y="${ry}" width="${rw}" height="${rh}" fill="${t.col}" stroke="var(--ink)" stroke-width="${1.5/sc}"/>`;
+      else s+=`<rect x="${rx}" y="${ry}" width="${rw}" height="${rh}" fill="none" stroke="#2b6cb0" stroke-width="${2.5/sc}" stroke-dasharray="${8/sc} ${5/sc}"/>`;
+      if(o.type==='window')s+=`<line x1="${rx}" y1="${ry}" x2="${rx+rw}" y2="${ry+rh}" stroke="#7aa9c9" stroke-width="${1/sc}"/><line x1="${rx+rw}" y1="${ry}" x2="${rx}" y2="${ry+rh}" stroke="#7aa9c9" stroke-width="${1/sc}"/>`;
+      const fs=Math.min(rh*0.3,13/sc);if(rw>fs*3)s+=`<text x="${rx+rw/2}" y="${ry+rh/2+fs*0.35}" font-size="${fs}" text-anchor="middle" fill="#334" style="pointer-events:none">${t.n}</text>`}
+    if(it.center&&!opts.png){const C='#8e44ad';const cxw=X+w.len/2;const topc=SLw?SLw.top(w.len/2):L.Hw;const fs3=Math.min(11/sc,w.len/8);
+      s+=`<line x1="${cxw}" y1="${fy(0)}" x2="${cxw}" y2="${fy(topc)}" stroke="${C}" stroke-width="${2/sc}" stroke-dasharray="${14/sc} ${5/sc} ${3/sc} ${5/sc}" style="pointer-events:none"/><text x="${cxw+4/sc}" y="${fy(Math.min(topc,L.Hw)*0.5)}" font-size="${fs3}" fill="${C}" font-weight="700" style="pointer-events:none">${Math.round(w.len/2)}</text>`}
+    s+=`<polygon points="${wps}" fill="none" stroke="${wsel===w.idx&&!opts.png?'var(--acc)':'var(--ink)'}" stroke-width="${(wsel===w.idx&&!opts.png?4:2)/sc}" stroke-linejoin="round"/>`;
+    if(SLw)for(const g of SLw.segs){const mx=X+(g.xa+g.xb)/2,my=fy((g.ha+g.hb)/2);const fs2=Math.min(13/sc,g.len/7);s+=`<text x="${mx}" y="${my-6/sc}" font-size="${fs2}" text-anchor="middle" font-weight="800" fill="#d11" transform="rotate(${(g.up?-1:1)*g.ang} ${mx} ${my})">${fq(g.ang,1)}°</text>`}
+    const fs=Math.min(14/sc,w.len/5.5);s+=`<text x="${X+w.len/2}" y="${fy(L.Hw)-fs*1.5}" font-size="${fs}" text-anchor="middle" font-weight="700" fill="var(--ink)">Стена ${w.num}</text><text x="${X+w.len/2}" y="${fy(L.Hw)-fs*0.4}" font-size="${fs*0.85}" text-anchor="middle" fill="var(--mute)">${Math.round(w.len)} мм</text>`;
+    // линия горизонта (низ первого целого ряда)
+ const si=wStart(it);if(si&&!skip&&!opts.png&&!WPOLY(T.pat)&&si.rowY<(SLw?Math.min(...SLw.poly.slice(2).map(q=>q[1])):L.Hw))s+=`<line x1="${X}" y1="${fy(si.rowY)}" x2="${X+w.len}" y2="${fy(si.rowY)}" stroke="var(--sel)" stroke-width="${2/sc}" stroke-dasharray="${8/sc} ${5/sc}"/>`;
+    s+=`</g>`});
+  s+=`<line x1="${-50}" y1="${Hm}" x2="${Wt+50}" y2="${Hm}" stroke="var(--mute)" stroke-width="${1/sc}"/>`;
+  return{s,Wt,Hm};
+}
+function labelW(t){const cl=t.len<t.a-0.5,cw=t.wid<t.b-0.5;if(cl&&cw)return`${Math.round(t.len)}×${Math.round(t.wid)}`;return String(Math.round(cl?t.len:t.wid))}
+function wStart(it){const T=W(it);const {b,j,ph}=wTile(it);const y0=n0(T.y0);let r=((y0%ph)+ph)%ph;const bottomCut=r-j;
+  return{rowY:r,bottomCut,ph}}
+
+// --- экран
+function renderWalls(){
+  const it=cur();const T=W(it);const ws=wallList(it);
+  if(!ws.length){$('#main').innerHTML=`<div class="card">${ownHtml(it)}</div><div class="empty">${T.own?'Добавьте стены — длину каждой.':`Сначала задайте помещение${it.shape==='free'?' и замкните контур':''} — стены возьмутся из него. Или выберите «Свои стены».`}</div>`;return}
+  if(wsel===null||!ws.some(w=>w.idx===wsel))wsel=ws[0].idx;
+  const sw=ws.find(w=>w.idx===wsel);
+  $('#main').innerHTML=`<div class="card">${ownHtml(it)}</div>
+  <details class="card" ${T._open?'open':''} id="wset"><summary style="font-weight:700;cursor:pointer">Плитка на стены: ${n0(T.tile.a)}×${n0(T.tile.b)}, шов ${fq(T.tile.j,1)}, высота ${wHH(it)} мм</summary><div style="margin-top:10px">
+   <div class="grid3">${wf('wa','Длина',T.tile.a)}${wf('wb','Ширина',T.tile.b)}${wf('wj','Шов',T.tile.j)}</div>
+   <div class="chips" style="margin-top:8px">${[[600,300],[300,600],[600,1200],[1200,600],[250,400],[200,200],[100,300],[75,150]].map(([a,b])=>`<button data-wact="wsize" data-a="${a}" data-b="${b}">${a/10}×${b/10}</button>`).join('')}</div>
+   <div class="pat" style="margin-top:10px">${PATS.map(([k,t])=>`<button data-wact="wpat" data-v="${k}" class="${T.pat===k?'on':''}">${patIcon(k)}${t}</button>`).join('')}</div>
+   <label class="row" style="margin-top:8px;gap:8px;font-size:14px"><input type="checkbox" data-wk="swap" ${T.swap?'checked':''} style="width:auto"> Плитка вертикально (повернуть на 90°)</label>
+   <div style="height:8px"></div>${wf('wH','Высота облицовки, мм (пусто = высота помещения)',T.H,wHH(it))}</div></details>
+  <div id="stage"><svg id="wv" xmlns="http://www.w3.org/2000/svg"></svg></div>
+  <div class="tools"><button data-wmode="move" class="${wmode==='move'?'on':''}">✋ Двигать</button><button data-wmode="look" class="${wmode==='look'?'on':''}">👁 Смотреть</button><button data-wact="zin">＋</button><button data-wact="zout">－</button><button data-wact="zall" title="Все стены">⤢ Все</button><button data-wact="zwall">◻ Эта стена</button></div>
+  <label class="row" style="margin:2px 0 6px;gap:8px;font-size:14px"><input type="checkbox" data-k="center" ${it.center?'checked':''} style="width:auto"> <span>Показать центр стен <span style="color:#8e44ad">┄┄</span></span></label>
+  <div class="chips" style="margin:6px 0">${ws.map(w=>`<button data-wact="selw" data-i="${w.idx}" class="${w.idx===wsel?'on':''}">Стена ${w.num}${T.skip[w.idx]?' ✕':''}</button>`).join('')}</div>
+  <div class="info" id="winfo"><span class="mute">Тяните вверх-вниз — двигаются ряды на всех стенах, влево-вправо — плитка на этой стене. Двумя пальцами — приближение. Нажмите на подрезку — увидите размер.</span></div>
+  <div class="kpi" id="wkpi"></div>
+  <h2>Варианты раскладки</h2><div class="vars" id="wvars">${wVarsHtml(it)}</div>
+  <h2>Ряды по высоте (все стены)</h2>
+  <div class="card"><div class="chips">${[['auto','Без узких (авто)'],['floor','Целый ряд от пола'],['top','Целый ряд сверху'],['sym','Симметрично'],...(T.objs.some(o=>o.type==='bath'||o.type==='tray')?[['bath','Целый ряд над ванной']]:[])].map(([k,t])=>`<button data-wact="ypre" data-v="${k}">${t}</button>`).join('')}</div>
+   <div class="row" style="margin-top:8px;gap:8px">${wf('wy0','Сдвиг рядов, мм',Math.round(n0(T.y0)))}<button class="btn sm ghost" data-wact="ynudge" data-v="-10" style="flex:none;margin-top:16px">↓10</button><button class="btn sm ghost" data-wact="ynudge" data-v="10" style="flex:none;margin-top:16px">↑10</button></div></div>
+  <h2>Стена ${sw.num} · ${Math.round(sw.len)} мм</h2>
+  <div class="card"><div class="chips">${[['auto','Без узких'],['left','От левого угла'],['right','От правого угла'],['ctile','Плитка по центру'],['cjoint','Шов по центру']].map(([k,t])=>`<button data-wact="xpre" data-v="${k}">${t}</button>`).join('')}<button data-wact="xall">Все стены: без узких</button></div>
+   <div class="grid2" style="margin-top:8px">${wf('wx','Сдвиг плитки, мм',Math.round(wX(it,sw)))}${wf('whh','Высота этой стены, мм',T.wh[sw.idx],wHH(it))}</div>
+   <label class="row" style="margin-top:8px;gap:8px;font-size:14px"><input type="checkbox" data-wk="skip" ${T.skip[sw.idx]?'checked':''} style="width:auto"> Эту стену не облицовываем</label></div>
+  <div class="card" id="slcard">${slopeHtml(it,sw)}</div>
+  <div class="card"><b>Что на стене ${sw.num}</b><div class="small mute" style="margin:2px 0 8px">Расстояния: от левого угла (стоя лицом к стене) и от чистого пола.</div>
+   <div id="wobjs">${objsHtml(it,sw)}</div>
+   <div class="chips" style="margin-top:8px">${Object.entries(OBJ).map(([k,t])=>`<button data-wact="addobj" data-v="${k}">+ ${t.n}</button>`).join('')}</div></div>
+  <h2>Как начать</h2><div class="card" id="wstart"></div>
+  <h2>Подрезки и отверстия</h2><div class="card" id="wcuts"></div>
+  <div class="row" style="gap:8px"><button class="btn" style="flex:1" data-wact="wpng">Сохранить картинку</button><button class="btn sec" style="flex:1" data-wact="wtxt">Отправить текстом</button></div>`;
+  wview={z:1,cx:null,cy:null};wDraw(true);WVARS=null;wVarsRefresh();
+}
+function slopeHtml(it,w){const T=W(it);T.slope=T.slope||{};const s=T.slope[w.idx]||{};const sl=wSl(it,w);
+  let h=`<label class="row" style="gap:8px;font-size:15px"><input type="checkbox" data-sl="on" ${s.on?'checked':''} style="width:22px;height:22px"> <b>Стена под скосом</b> <span class="small mute">(мансарда, короб под крышей)</span></label>`;
+  if(!s.on)return h;
+  const f=(k,l,v,ph)=>`<label class="f">${l}<input data-sl="${k}" inputmode="decimal" value="${isSet(v)?String(v).replace('.',','):''}" placeholder="${ph}"></label>`;
+  const two=s.mode==='two';const H0=wH0(it,w);
+  h+=`<div class="chips" style="margin:8px 0"><button data-slm="one" class="${two?'':'on'}">Один скат</button><button data-slm="two" class="${two?'on':''}">Два ската (конёк)</button></div>`;
+  if(!two)h+=`<div class="small mute" style="margin-bottom:6px">Отметьте начало и конец скоса: расстояние от левого угла и высоту от пола в этих точках.</div>
+  <div class="grid2">${f('x1','Начало скоса: от левого угла',s.x1,'0')}${f('h1','Высота в начале',s.h1,H0)}${f('x2','Конец скоса: от левого угла',s.x2,Math.round(w.len))}${f('h2','Высота в конце',s.h2,H0)}</div>`;
+  else h+=`<div class="small mute" style="margin-bottom:6px">Замерьте высоту у левого угла, у правого угла и в коньке (самая высокая точка) — и где конёк от левого угла.</div>
+  <div class="grid2">${f('hL','Высота у левого угла',s.hL,H0)}${f('hR','Высота у правого угла',s.hR,H0)}${f('xm','Конёк: от левого угла',s.xm,Math.round(w.len/2))}${f('hm','Высота в коньке',s.hm,H0)}</div>
+  <details style="margin-top:8px"><summary class="small mute">Скат начинается не от угла (есть прямой участок)</summary><div class="grid2" style="margin-top:6px">${f('xa','Левый скат начинается: от левого угла',s.xa,'0')}${f('xb','Правый скат кончается: от левого угла',s.xb,Math.round(w.len))}</div></details>`;
+  h+=`<div id="slinfo" style="margin-top:8px">${slInfo(sl)}</div>`;return h}
+function slInfo(sl){if(!sl)return'';if(!sl.segs.length)return'<div class="small mute">Скоса нет — высоты одинаковые.</div>';
+  const nm=sl.segs.length>1?['Левый скат','Правый скат']:['Скат'];
+  return sl.segs.map((g,i)=>`<div style="font-size:14.5px;margin-bottom:4px">${nm[i]||'Скат'}: <b>${fq(g.ang,1)}°</b> к горизонту (${fq(90-g.ang,1)}° к вертикали) · длина <b>${Math.round(g.len)} мм</b> · перепад ${Math.round(Math.abs(g.hb-g.ha))} мм на ${Math.round(g.xb-g.xa)} мм</div>`).join('')+(sl.segs.length>1?`<div class="small mute">Угол в коньке: ${fq(180-sl.segs[0].ang-sl.segs[1].ang,1)}°</div>`:'')}
+function wf(k,label,v,ph=''){return`<label class="f">${label}<input data-wk="${k}" inputmode="decimal" value="${isSet(v)?String(v).replace('.',','):''}" placeholder="${ph}"></label>`}
+function objsHtml(it,w){const T=W(it);const list=T.objs.filter(o=>o.wall===w.idx);
+  if(!list.length)return'<div class="small mute">Пока ничего. Добавьте окно, дверь, ванну, люк, розетки…</div>';
+  return list.map(o=>{const t=OBJ[o.type];const id=o.id;
+    const f=(k,l,ph)=>`<label class="f">${l}<input data-ob="${id}" data-f="${k}" inputmode="decimal" value="${isSet(o[k])?String(o[k]).replace('.',','):''}" placeholder="${ph||''}"></label>`;
+    return`<div style="border-top:1px solid var(--line);padding:8px 0"><div class="row" style="justify-content:space-between"><b>${t.n}</b><button class="x" data-wact="delobj" data-id="${id}">✕</button></div>
+    ${t.hole?`<div class="grid3">${f('x','Центр от угла')}${f('y','Центр от пола')}${f('d','Диаметр',t.d)}</div>`:`<div class="grid2">${f('x','От левого угла')}${f('y',o.type==='window'?'Низ окна от пола':'Низ от пола')}${f('w','Ширина')}${f('h','Высота')}</div>`}
+    ${o.type==='bath'||o.type==='tray'?`<label class="row" style="margin-top:6px;gap:8px;font-size:13.5px"><input type="checkbox" data-ob="${id}" data-f="tiled" ${o.tiled?'checked':''} style="width:auto"> Под ней тоже плитка (экран)</label>`:''}
+    ${o.type==='hatch'?'<div class="small mute" style="margin-top:4px">Люк закрывается плиткой — синий пунктир показывает, где пройдут швы.</div>':''}</div>`}).join('')}
+function wViewBox(it){const {Wt,Hm}=wPano(it);const el=$('#wv');const W0=el.clientWidth||360;
+  if(!el._h){const want=W0*(Hm*1.25)/(Wt*1.06);el.style.height=Math.round(Math.max(240,Math.min(innerHeight*0.55,want)))+'px';el._h=1}
+  const H0=el.clientHeight||300;const pad=Hm*0.14;let vw=Wt+pad*2,vh=Hm+pad*2;const ar=W0/H0;if(vw/vh<ar)vw=vh*ar;else vh=vw/ar;
+  if(wview.cx===null){wview.cx=Wt/2;wview.cy=Hm/2-pad*0.3}vw/=wview.z;vh/=wview.z;return[wview.cx-vw/2,wview.cy-vh/2,vw,vh,W0/vw]}
+function wDraw(full){
+  const it=cur();const el=$('#wv');if(!el)return;const [vx,vy,vw,vh,sc]=wViewBox(it);
+  const {s}=wSvg(it,{sc,labels:true,fs:11/sc});
+  el.setAttribute('viewBox',`${vx} ${vy} ${vw} ${vh}`);el.innerHTML=`<rect x="${vx}" y="${vy}" width="${vw}" height="${vh}" fill="var(--card)"/>`+s;
+  if(full)wStats(it);
+}
+function zoomWall(it,idx){const {pos,Hm}=wPano(it);const p=pos.find(p=>p.w.idx===idx);if(!p)return;const el=$('#wv');const W0=el.clientWidth||360,H0=el.clientHeight||300;
+  const {Wt}=wPano(it);const pad=Hm*0.14;let vw=Wt+pad*2,vh=Hm+pad*2;const ar=W0/H0;if(vw/vh<ar)vw=vh*ar;else vh=vw/ar;
+  let tw=p.w.len*1.15,th=Hm*1.3;if(tw/th<ar)tw=th*ar;wview.z=Math.max(1,vw/tw);wview.cx=p.X+p.w.len/2;wview.cy=Hm/2-pad*0.3}
+function wStats(it){
+  const A=lastWA;const {a,b,j,ph}=wTile(it);const T=W(it);const need=A.full+A.cut;const withRes=Math.ceil(need*(1+n0(it.reserve)/100));const pb=n0(it.perBox);
+  $('#wkpi').innerHTML=`<div><span>Целых</span><b>${A.full}</b></div><div><span>Подрезок</span><b>${A.cut}</b></div><div><span>Узких</span><b style="color:${A.nar?'var(--bad)':'var(--acc2)'}">${A.nar}</b></div>
+  <div style="grid-column:1/-1;text-align:left"><span>Площадь стен ${fq(A.area/1e6)} м² · плиток ${need} шт${A.hol?` (из них с отверстиями ${A.hol})`:''} · с запасом ${fq(it.reserve,0)}%: <b style="font-size:15px">${withRes} шт</b>${pb>0?` = <b style="font-size:15px">${Math.ceil(withRes/pb)} кор.</b>`:''}</span></div>`;
+  // как начать
+  if(WPOLY(T.pat)){let h=`<div style="font-size:14.5px;line-height:1.5"><b>Опорная точка на каждой стене</b> — нижний угол первой целой плитки (от левого угла и от пола). От неё ведите ${T.pat==='diag'?'диагональ под 45°':'ёлочку'} вверх и в стороны:<br>`;
+    for(const {w,L} of A.ws){if(T.skip[w.idx])continue;let best=null;for(const t of L.tiles){if(!t.full)continue;for(const q of t.poly){if(!best||q[1]<best[1]-0.5||(Math.abs(q[1]-best[1])<0.5&&q[0]<best[0]))best=q}}
+      h+=`• Стена ${w.num}: ${best?`<b>${Math.round(best[0])} мм</b> от левого угла, <b>${Math.round(best[1])} мм</b> от пола`:'целых плиток нет'}<br>`}
+    $('#wstart').innerHTML=h+'</div>'}
+  else{
+  const si=wStart(it);const H=wHH(it);
+  const nRows=Math.floor((H-si.rowY+j)/ph);const topCut=H-(si.rowY+nRows*ph);
+  let h=`<div style="font-size:14.5px;line-height:1.5"><b>1. Горизонт (синий пунктир).</b> Низ первого целого ряда — <b>${Math.round(si.rowY)} мм</b> от пола. Отбейте по уровню линию на этой высоте по всем стенам и поставьте опорный профиль/рейку.<br>`;
+  h+=si.rowY<1?'• Нижний ряд — целая плитка от пола.<br>':`• Нижний ряд подрезать до <b>${Math.max(0,Math.round(si.bottomCut))} мм</b>${si.bottomCut<Math.max(40,b*0.25)?' <span style="color:var(--bad)">(узкий)</span>':''} — кладётся последним, после снятия рейки.<br>`;
+  h+=topCut>0.5&&topCut<b-0.5?`• Верхний ряд подрезка <b>${Math.round(topCut)} мм</b>${topCut<Math.max(40,b*0.25)?' <span style="color:var(--bad)">(узкий)</span>':''}.<br>`:'• Верхний ряд — целый.<br>';
+  h+=`• Дальше ряды с шагом <b>${fq(ph,1)} мм</b>.<br><div style="height:6px"></div><b>2. Первый вертикальный шов на каждой стене</b> (в ряду на горизонте, от левого угла):<br>`;
+  for(const {w,L} of A.ws){if(T.skip[w.idx])continue;const row=L.tiles.filter(t=>Math.abs(t.y0-si.rowY)<0.5);
+    const firstFull=row.filter(t=>t.x0>=-0.5).sort((p,q)=>p.x0-q.x0)[0];const left=row.filter(t=>t.x0<-0.5)[0];const right=row.filter(t=>t.x0+t.a>w.len+0.5)[0];
+    h+=`• Стена ${w.num}: шов в <b>${firstFull?Math.round(firstFull.x0):'—'} мм</b> от левого угла · слева подрезка ${left?Math.round(left.x0+left.a):0} мм, справа ${right?Math.round(w.len-right.x0):0} мм<br>`}
+  // объекты: ближайшие швы
+  const objs=T.objs.filter(o=>!OBJ[o.type].hole);
+  if(objs.length){h+=`<div style="height:6px"></div><b>3. Швы у проёмов и ванны:</b><br>`;
+    for(const o of objs){const wl=A.ws.find(x=>x.w.idx===o.wall);if(!wl)continue;const nearJ=v=>{const k=Math.round((v-si.rowY+j/2)/ph);const jy=si.rowY+k*ph-j/2;return Math.round(jy-v)};
+      const bot=n0(o.y),top=n0(o.y)+n0(o.h);const d1=nearJ(bot),d2=nearJ(top);
+      const txt=d=>d===0?'точно по шву':`шов ${Math.abs(d)} мм ${d>0?'выше':'ниже'}`;
+      h+=`• ${OBJ[o.type].n} (стена ${wl.w.num}): ${bot>0?`низ ${bot} мм — ${txt(d1)}; `:''}верх ${top} мм — ${txt(d2)}<br>`}}
+  h+='</div>';$('#wstart').innerHTML=h;}
+  // подрезки
+  const groups={};let fig=0;const holes=[];
+  const sls={};for(const {w,L} of A.ws)for(const t of L.tiles){for(const hh of t.holes)holes.push({w,t,hh});if(t.full)continue;if(t.sl){const k=`${Math.round(t.len)} × ${Math.round(t.sl.hl)}→${Math.round(t.sl.hr)}`;sls[k]=(sls[k]||0)+1;continue}if(!t.rect){fig++;continue}const key=Math.round(t.len)+'×'+Math.round(t.wid);groups[key]=groups[key]||{n:0,nar:false};groups[key].n++;if(t.nar)groups[key].nar=true}
+  const rows=Object.entries(groups).sort((x,y)=>y[1].n-x[1].n);
+  let c=`<div class="small mute" style="margin-bottom:6px">«ширина × высота» куска, по плитке ${a}×${b}, округлено до 1 мм.</div><table class="cuts">${rows.map(([k,g])=>`<tr><td>${k} мм ${g.nar?'<span style="color:var(--bad)">· узкая</span>':''}</td><td class="n"><b>${g.n} шт</b></td></tr>`).join('')}${fig?`<tr><td>Г-образные / с вырезом (у окна, двери, ванны)</td><td class="n"><b>${fig} шт</b></td></tr>`:''}</table>
+  ${Object.keys(sls).length?`<div style="margin-top:10px"><b>Косые подрезки под скосом</b> <span class="small mute">(ширина × высота слева → справа, мм)</span></div><table class="cuts">${Object.entries(sls).sort((p,q)=>q[1]-p[1]).map(([k,n])=>`<tr><td>${k}</td><td class="n"><b>${n} шт</b></td></tr>`).join('')}</table>`:''}`;
+  if(holes.length)c+=`<div style="margin-top:10px"><b>Отверстия</b> (центр от левого и нижнего края плитки):</div>`+holes.map(({w,t,hh})=>`<div class="small" style="padding:4px 0;border-bottom:1px solid var(--line)">${OBJ[hh.o.type].n}, стена ${w.num}: <b>${Math.round(hh.dx)} мм</b> слева, <b>${Math.round(hh.dy)} мм</b> снизу · коронка ⌀${n0(hh.o.d)||OBJ[hh.o.type].d}</div>`).join('');
+  $('#wcuts').innerHTML=c;
+}
+function wText(it){const A=lastWA;const {a,b,j}=wTile(it);const si=wStart(it);const T=W(it);
+  let t=`Стены: ${it.name}\nПлитка ${a}×${b}, шов ${fq(j,1)}, высота облицовки ${wHH(it)} мм\nПлощадь ${fq(A.area/1e6)} м², целых ${A.full}, подрезок ${A.cut} (узких ${A.nar})\n\nГоризонт: низ первого целого ряда ${Math.round(si.rowY)} мм от пола\n`;
+  for(const {w,L} of A.ws){if(T.skip[w.idx])continue;const row=L.tiles.filter(x=>Math.abs(x.y0-si.rowY)<0.5);const ff=row.filter(x=>x.x0>=-0.5).sort((p,q)=>p.x0-q.x0)[0];t+=`Стена ${w.num} (${Math.round(w.len)}): первый шов ${ff?Math.round(ff.x0):'—'} мм от левого угла\n`}
+  const groups={};let fig=0;for(const {L} of A.ws)for(const x of L.tiles){if(x.full)continue;if(!x.rect){fig++;continue}const k=Math.round(x.len)+'×'+Math.round(x.wid);groups[k]=(groups[k]||0)+1}
+  t+='\nПодрезки:\n';for(const [k,n] of Object.entries(groups).sort((p,q)=>q[1]-p[1]))t+=`${k} мм — ${n} шт\n`;if(fig)t+=`с вырезом — ${fig} шт\n`;
+  for(const {w,L} of A.ws)for(const x of L.tiles)for(const hh of x.holes)t+=`${OBJ[hh.o.type].n}, стена ${w.num}: ${Math.round(hh.dx)} мм слева, ${Math.round(hh.dy)} мм снизу плитки\n`;
+  return t}
+function wPng(it){const {Wt,Hm}=wPano(it);const pad=Hm*0.15;const Wp=2400,sc=Wp/(Wt+2*pad),Hp=Math.round((Hm+2*pad)*sc)+80;
+  const cs=getComputedStyle(document.documentElement);const col=v=>cs.getPropertyValue(v).trim();
+  let svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${Wp}" height="${Hp}" viewBox="${-pad} ${-pad} ${Wt+2*pad} ${Hp/sc}"><rect x="${-pad}" y="${-pad}" width="${Wt+2*pad}" height="${Hp/sc}" fill="#fff"/>${wSvg(it,{sc,labels:true,fs:14/sc,png:true}).s}<text x="${-pad+10/sc}" y="${Hm+pad+40/sc}" font-size="${22/sc}" font-family="Arial" fill="#222">${esc(it.name)} — стены · целых ${lastWA.full}, подрезок ${lastWA.cut}</text></svg>`;
+  for(const v of ['--tile','--cut','--narrow','--grout','--line','--mute','--sel','--acc'])svg=svg.split(`var(${v})`).join(col(v));svg=svg.split('var(--ink)').join('#1d2328');
+  const img=new Image();img.onload=()=>{const c=document.createElement('canvas');c.width=Wp;c.height=Hp;c.getContext('2d').drawImage(img,0,0);c.toBlob(async bl=>{const f=new File([bl],'steny.png',{type:'image/png'});
+    try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f]});return}}catch(e){if(e.name==='AbortError')return}
+    const u=URL.createObjectURL(bl);const a=document.createElement('a');a.href=u;a.download=f.name;document.body.appendChild(a);a.click();a.remove()},'image/png')};
+  img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg)}
+
+// --- события стен
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-wact],[data-wmode]');if(!b)return;const it=cur();const T=W(it);const ws=wallList(it);const sw=ws.find(w=>w.idx===wsel);
+  if(b.dataset.wmode){wmode=b.dataset.wmode;document.querySelectorAll('[data-wmode]').forEach(x=>x.classList.toggle('on',x===b));return}
+  const v=b.dataset.v;
+  switch(b.dataset.wact){
+    case'wsize':T.tile.a=+b.dataset.a;T.tile.b=+b.dataset.b;T._open=true;save();renderWalls();break;
+    case'wpat':T.pat=v;T._open=true;save();renderWalls();break;
+    case'zin':wview.z=Math.min(15,wview.z*1.6);wDraw(false);break;
+    case'zout':wview.z=Math.max(1,wview.z/1.6);if(wview.z===1)wview.cx=null;wDraw(false);break;
+    case'zall':wview={z:1,cx:null,cy:null};wDraw(false);break;
+    case'zwall':zoomWall(it,wsel);wDraw(false);break;
+    case'selw':wsel=+b.dataset.i;renderWalls();zoomWall(it,wsel);wDraw(false);break;
+    case'ypre':T.y0=v==='auto'?bestY0(it):y0Preset(it,v);save();wDraw(true);syncW();if(WVARS)$('#wvars').innerHTML=wVarsHtml(it);toast(b.textContent);break;
+    case'ynudge':T.y0=n0(T.y0)+(+v);save();wDraw(true);syncW();break;
+    case'xpre':T.wx[wsel]=xPreset(it,sw,v);save();wDraw(true);syncW();toast(b.textContent);break;
+    case'xall':for(const w of ws)T.wx[w.idx]=bestX(it,w);save();wDraw(true);syncW();toast('Подобрано для всех стен');break;
+    case'addobj':{const t=OBJ[v];const o={id:uid(),type:v,wall:wsel};if(t.hole){o.x=Math.round(sw.len/2);o.y=t.y;o.d=t.d}else{o.w=Math.min(t.w,Math.round(sw.len));o.h=t.h;o.y=t.y;o.x=Math.max(0,Math.round((sw.len-o.w)/2))}
+      if(v==='bath'){o.x=0;o.w=Math.round(Math.min(sw.len,1700))}T.objs.push(o);save();$('#wobjs').innerHTML=objsHtml(it,sw);wDraw(true);wVarsRefresh();break}
+    case'delobj':T.objs=T.objs.filter(o=>o.id!==b.dataset.id);save();$('#wobjs').innerHTML=objsHtml(it,sw);wDraw(true);wVarsRefresh();break;
+    case'wpng':wPng(it);break;
+    case'wtxt':{const t=wText(it);(async()=>{try{if(navigator.share){await navigator.share({text:t});return}}catch(e){if(e.name==='AbortError')return}try{await navigator.clipboard.writeText(t);toast('Скопировано')}catch(e){prompt('Скопируйте',t)}})();break}
+  }
+});
+function syncW(){const it=cur();const T=W(it);const y=$('[data-wk="wy0"]'),x=$('[data-wk="wx"]');if(y&&document.activeElement!==y)y.value=Math.round(n0(T.y0));if(x&&document.activeElement!==x)x.value=Math.round(n0(T.wx[wsel]))}
+document.addEventListener('input',e=>{const el=e.target,d=el.dataset;const it=cur();if(!it)return;const T=W(it);
+  if(d.wk){const v=el.type==='checkbox'?el.checked:el.value;const k=d.wk;
+    if(k==='wa')T.tile.a=v;else if(k==='wb')T.tile.b=v;else if(k==='wj')T.tile.j=v;else if(k==='wH')T.H=v;else if(k==='swap')T.swap=v;
+    else if(k==='wy0')T.y0=v;else if(k==='wx')T.wx[wsel]=v;else if(k==='whh'){if(String(v).trim()==='')delete T.wh[wsel];else T.wh[wsel]=v}
+    else if(k==='skip'){T.skip[wsel]=v;save();renderWalls();return}
+    save();if(k==='wH'||k==='whh'){const el2=$('#wv');if(el2)el2._h=0}wDraw(true);if(k!=='wy0'&&k!=='wx')wVarsRefresh();return}
+  if(d.sl){T.slope=T.slope||{};const s=T.slope[wsel]=T.slope[wsel]||{};s[d.sl]=el.type==='checkbox'?el.checked:el.value;save();const e2=$('#wv');if(e2)e2._h=0;
+    if(d.sl==='on'){$('#slcard').innerHTML=slopeHtml(it,wallList(it).find(w=>w.idx===wsel))}else{const si=$('#slinfo');if(si)si.innerHTML=slInfo(wSl(it,wallList(it).find(w=>w.idx===wsel)))}
+    wDraw(true);wVarsRefresh();return}
+  if(d.ob){const o=T.objs.find(x=>x.id===d.ob);if(!o)return;o[d.f]=el.type==='checkbox'?el.checked:el.value;save();wDraw(true);wVarsRefresh()}
+});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-slm]');if(!b)return;const it=cur();const T=W(it);T.slope=T.slope||{};const s=T.slope[wsel]=T.slope[wsel]||{};s.mode=b.dataset.slm;s.on=true;save();const e2=$('#wv');if(e2)e2._h=0;
+  $('#slcard').innerHTML=slopeHtml(it,wallList(it).find(w=>w.idx===wsel));wDraw(true)});
+document.addEventListener('toggle',e=>{if(e.target.id==='wset'){const it=cur();if(it)W(it)._open=e.target.open}},true);
+let wdrag=null,wraf=0;
+document.addEventListener('pointerdown',e=>{const cv=e.target.closest('#wv');if(!cv)return;const it=cur();const g=e.target.closest('[data-wall]');
+  wdrag={x:e.clientX,y:e.clientY,y0:n0(W(it).y0),wall:g?+g.dataset.wall:wsel,cx:wview.cx,cy:wview.cy,moved:false,axis:null,sc:cv.clientWidth/cv.viewBox.baseVal.width,target:e.target};
+  if(g)wdrag.ox=n0(W(it).wx[+g.dataset.wall]);cv.setPointerCapture(e.pointerId)});
+document.addEventListener('pointermove',e=>{if(!wdrag)return;const dx=e.clientX-wdrag.x,dy=e.clientY-wdrag.y;if(!wdrag.moved&&Math.hypot(dx,dy)<6)return;wdrag.moved=true;const it=cur();const T=W(it);
+  if(wmode==='move'){if(!wdrag.axis)wdrag.axis=Math.abs(dx)>Math.abs(dy)?'x':'y';
+    if(wdrag.axis==='y')T.y0=wdrag.y0-dy/wdrag.sc;else if(wdrag.ox!==undefined){T.wx[wdrag.wall]=wdrag.ox+dx/wdrag.sc;if(wsel!==wdrag.wall){wsel=wdrag.wall}}}
+  else{wview.cx=wdrag.cx-dx/wdrag.sc;wview.cy=wdrag.cy-dy/wdrag.sc}
+  if(!wraf)wraf=requestAnimationFrame(()=>{wraf=0;wDraw(false)})});
+document.addEventListener('pointerup',e=>{if(!wdrag)return;const d=wdrag;wdrag=null;const it=cur();
+  if(d.moved){if(wmode==='move'){save();if(d.axis==='x'&&$('[data-wact="selw"].on')?.dataset.i!=String(wsel)){renderWalls();return}wDraw(true);syncW()}return}
+  const tt=d.target.closest&&d.target.closest('[data-wt]');
+  if(tt){const [n,i]=tt.dataset.wt.split(':').map(Number);const wl=lastWA.ws[n];const t=wl.L.tiles[i];
+    if(wsel!==wl.w.idx){wsel=wl.w.idx;renderWalls();}
+    const info=$('#winfo');if(!info)return;
+    if(t.full&&!t.holes.length){info.innerHTML=`Стена ${wl.w.num}: целая плитка, низ на ${Math.round(t.y0)} мм, левый край ${Math.round(t.x0)} мм от угла.`}
+    else if(t.sl)info.innerHTML=`Стена ${wl.w.num}: <b>косая подрезка</b> шириной ${Math.round(t.len)} мм, высота слева <b>${Math.round(t.sl.hl)}</b>, справа <b>${Math.round(t.sl.hr)} мм</b>`;
+    else info.innerHTML=`Стена ${wl.w.num}: ${t.full?'целая плитка':t.rect?`подрезка <b>${Math.round(t.len)} × ${Math.round(t.wid)} мм</b>`:'<b>плитка с вырезом</b> (Г-образная)'}${t.nar?' · <span style="color:var(--bad)">узкая</span>':''}${t.holes.map(h=>` · ${OBJ[h.o.type].n}: ${Math.round(h.dx)} мм слева, ${Math.round(h.dy)} мм снизу`).join('')}`;
+    return}
+  const g=d.target.closest&&d.target.closest('[data-wall]');if(g&&+g.dataset.wall!==wsel){wsel=+g.dataset.wall;renderWalls()}});
+window.addEventListener('resize',()=>{if(S.view==='edit'&&S.tab==='walls')wDraw(false)});
+
+// ---------- стены: диагональ и ёлочка (через общий расчёт пола) ----------
+const WPOLY=p=>p==='diag'||p==='herr'||p==='herr0';
+function wallLayoutPoly(it,w,ox,y0){
+  const T=W(it);const Lw=w.len,Hw=wH(it,w);const SL=wSl(it,w);
+  const poly=SL?SL.poly:[[0,0],[Lw,0],[Lw,Hw],[0,Hw]];
+  const objs=T.objs.filter(o=>o.wall===w.idx);
+  const fo=[];for(const o of objs){const c=objRect(o);if(OBJ[o.type].hole)fo.push({type:'pipe',x:n0(o.x),y:n0(o.y),d:n0(o.d)||OBJ[o.type].d,_src:o});else if(isCut(o))fo.push({type:'column',x:c[0],y:c[1],w:c[2]-c[0],h:c[3]-c[1]})}
+  const fake={tile:T.tile,swap:T.swap,pat:T.pat,fobjs:fo};const pat=pattern(fake);
+  if(T.skip[w.idx]||Lw<1||Hw<1)return{tiles:[],full:0,cut:0,nar:0,hol:0,Lw,Hw};
+  const L=layout(fake,poly,pat,ox,y0,true);const o=[ox,y0];const tiles=[];
+  for(const t of L.tiles){const hs=(t.holes||[]).map(h=>({o:h.o._src,dx:h.a,dy:h.b,edge:true}));
+    if(t.full){const c=[[t.x0,t.y0],[t.x0+t.w,t.y0],[t.x0+t.w,t.y0+t.h],[t.x0,t.y0+t.h]].map(p=>tp(p,o,L.ang));const bb=bbox(c);
+      tiles.push({full:true,poly:c,r:bb,x0:NaN,y0:NaN,a:pat.L,b:pat.W,rect:true,notch:[],holes:hs,area:t.w*t.h})}
+    else{const c=t.piece.map(p=>tp(p,o,L.ang));tiles.push({full:false,poly:c,r:bbox(c),x0:NaN,y0:NaN,a:pat.L,b:pat.W,rect:t.rect,len:t.len,wid:t.wid,nar:t.nar,notch:[],holes:hs,area:t.area})}}
+  return{tiles,full:L.full,cut:L.cuts,nar:L.narrow,hol:L.hol,Lw,Hw,poly:true};
+}
+// ---------- варианты раскладки стен ----------
+let WVARS=null;
+function wVariants(it){const T=W(it);const ws=wallList(it);if(!ws.length)return[];
+  const mk=(name,y0,xmode)=>{const wx={};const tmp={...it,W:{...T,y0,wx}};for(const w of ws)wx[w.idx]=xmode==='auto'?bestX(tmp,w):xPreset(tmp,w,xmode);const A=allWalls({...it,W:{...T,y0,wx}});return{name,y0,wx,full:A.full,cut:A.cut,nar:A.nar}};
+  const yA=bestY0(it);const out=[mk('Без узких подрезок',yA,'auto'),mk('Целый ряд от пола',0,'auto'),mk('Симметрично, плитка по центру',y0Preset(it,'sym'),'ctile'),mk('Симметрично, шов по центру',y0Preset(it,'sym'),'cjoint'),mk('От левых углов',0,'left')];
+  if(T.objs.some(o=>o.type==='bath'||o.type==='tray'))out.splice(1,0,mk('Целый ряд над ванной',y0Preset(it,'bath'),'auto'));
+  if(!WPOLY(T.pat))out.push(mk('Целый ряд сверху',y0Preset(it,'top'),'auto'));
+  const u=[];for(const v of out)if(!u.some(x=>Math.abs(x.y0-v.y0)<1&&ws.every(w=>Math.abs(n0(x.wx[w.idx])-n0(v.wx[w.idx]))<1)))u.push(v);return u}
+function wVarsHtml(it){if(!WVARS)return'<div class="small mute">Считаю варианты…</div>';const T=W(it);const ws=wallList(it);const {Wt,Hm}=wPano(it);const pad=Hm*0.05;
+  return WVARS.map((v,i)=>{const tmp={...it,W:{...T,y0:v.y0,wx:v.wx}};const sc=150/(Wt+2*pad);const on=Math.abs(n0(T.y0)-v.y0)<1&&ws.every(w=>Math.abs(n0(T.wx[w.idx])-n0(v.wx[w.idx]))<1);
+    return`<button class="var ${on?'on':''}" data-wvar="${i}"><svg viewBox="${-pad} ${-pad} ${Wt+2*pad} ${Hm+2*pad}" preserveAspectRatio="xMidYMid meet">${wSvg(tmp,{sc,mini:true,png:true}).s.replace(/<text[^>]*>[^<]*<\/text>/g,'')}</svg><b>${v.name}</b><span>целых ${v.full} · подрезок ${v.cut} · узких ${v.nar}</span></button>`}).join('')}
+function wVarsRefresh(){const it=cur();clearTimeout(window._wvt);window._wvt=setTimeout(()=>{if(S.tab!=='walls')return;WVARS=wVariants(it);const el=$('#wvars');if(el)el.innerHTML=wVarsHtml(it)},350)}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-wvar]');if(!b||!WVARS)return;const it=cur();const T=W(it);const v=WVARS[+b.dataset.wvar];T.y0=v.y0;T.wx={...T.wx,...v.wx};save();wDraw(true);syncW();$('#wvars').innerHTML=wVarsHtml(it);toast(v.name)});
+// ---------- свои стены (отдельно от пола) ----------
+function ownHtml(it){const T=W(it);const L=T.list||[];
+  return`<div class="chips"><button data-wown="0" class="${T.own?'':'on'}">Стены из помещения</button><button data-wown="1" class="${T.own?'on':''}">Свои стены</button></div>
+  ${T.own?`<div class="small mute" style="margin:8px 0 6px">Стены задаются отдельно от пола — по порядку, как идёте по комнате. Высоту и скос — ниже у выбранной стены.</div>
+  ${L.map((x,i)=>`<div class="row" style="gap:6px;margin-bottom:6px"><span class="small" style="width:62px;flex:none">Стена ${i+1}</span><input data-wl2="${i}" inputmode="decimal" value="${isSet(x.len)?x.len:''}" placeholder="длина, мм"><button class="x" data-wdel2="${i}">✕</button></div>`).join('')}
+  <button class="btn sm sec" data-wadd2="1">+ Стена</button>`:''}`}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-wown],[data-wadd2],[data-wdel2]');if(!b)return;const it=cur();const T=W(it);
+  if(b.dataset.wown!==undefined){T.own=b.dataset.wown==='1';if(T.own&&!(T.list&&T.list.length)){const R=roomPoly(it);const P=R.pts;T.list=P.length>2?wallListRoom(it).map(w=>({len:Math.round(w.len)})):[{len:2500},{len:1800},{len:2500},{len:1800}]}}
+  else if(b.dataset.wadd2){T.list=T.list||[];T.list.push({len:''})}
+  else{T.list.splice(+b.dataset.wdel2,1)}
+  wsel=null;save();renderWalls()});
+document.addEventListener('input',e=>{const el=e.target;if(el.dataset.wl2===undefined)return;const it=cur();const T=W(it);T.list[+el.dataset.wl2].len=el.value;save();const e2=$('#wv');if(e2)e2._h=0;wDraw(true);wVarsRefresh()});
+// ================== КАРКАС (Knauf / WALLBOX) ==================
+const KN_PS=[['50','ПС 50×50','ПН 50×40'],['65','ПС 65×50','ПН 65×40'],['75','ПС 75×50','ПН 75×40'],['100','ПС 100×50','ПН 100×40']];
+const INST=[['Унитаз · Geberit Duofix',500,1120],['Унитаз · Grohe Rapid SL',500,1130],['Унитаз · TECE',500,1120],['Унитаз · Viega',490,1130],['Своя',500,1120],['Унитаз · TECEspring',500,1120],['Раковина / биде (модуль)',500,1120]];
+const FOP={door:{n:'Дверь',w:800,h:2000,y:0,frame:true,cut:true,col:'#d9c4a6'},window:{n:'Окно / проём',w:600,h:600,y:900,frame:true,cut:true,col:'#bfe0f5'},
+  inst:{n:'Инсталляция',w:500,h:1120,y:0,frame:true,cut:false,col:'#cfe8d6'},hatch:{n:'Люк',w:300,h:400,y:200,frame:true,cut:true,col:'#e7e1f7'},
+  hole:{n:'Труба / вывод',hole:true,d:50,y:500},socket:{n:'Розетка',hole:true,d:70,y:300}};
+function F(it){if(!it.F)it.F={sys:'knauf',ps:'50',bar:3000,step:600,sheet:'1200x2500',layers:1,mode:'wall',hstep:1200,wbBar:3000,els:[],ops:[],sel:null};const f=it.F;f.els=f.els||[];f.ops=f.ops||[];return f}
+const segPts=el=>{const pts=[[0,0]];let x=0,y=0;for(const s of el.segs){const [dx,dy]=dirVec(s);const l=n0(s.len);x+=dx*l;y+=dy*l;pts.push([x,y])}return pts};
+// ---- расчёт одной панели (сегмента): каркас строится под листы ГКЛ
+const SHEETS={'1200x2500':[1200,2500],'1200x2000':[1200,2000],'1200x3000':[1200,3000]};
+const PW=f=>f.sys==='knauf'?50:33;
+function sheetOf(f){return SHEETS[f.sheet]||[1200,2500]}
+// наборы швов: слой 1, слой 2 (сдвиг на полшага листа), вторая сторона перегородки
+function seamSets(f,el,o0=0){const [sw]=sheetOf(f);const L=[{n:'1-й слой',ox:o0%sw,odd:0}];if(+f.layers===2)L.push({n:'2-й слой',ox:(o0+sw/2)%sw,odd:1});
+  if(el.type==='wall'&&+el.sides!==1){const k=L.length;for(let i=0;i<k;i++)L.push({n:'обратная сторона, '+L[i].n,ox:(L[i].ox+sw/2)%sw,odd:1-L[i].odd})}return L}
+function panelCalc(it,el,si,seg){
+  const f=F(it);const L=n0(seg.len),H=n0(el.H)||n0(it.ceil)||2700;const pw=PW(f);const [sw,sh]=sheetOf(f);
+  const step=Math.max(100,n0(f.step)||600);const SL=slProf(seg.sl,L,H);const topAt=x=>SL?SL.top(Math.max(0,Math.min(L,x))):H;const maxTop=SL?SL.maxH:H;
+  const ops=f.ops.filter(o=>o.el===el.id&&+o.seg===si);const fr=ops.filter(o=>FOP[o.type].frame),holes=ops.filter(o=>FOP[o.type].hole);
+  const warn=[];const cl=v=>Math.max(pw/2,Math.min(L-pw/2,v));
+  // раскрой листов: подбираем ширину первого листа, чтобы швы не падали на инсталляцию и края проёмов
+  const edgeX=[];for(const o of fr){edgeX.push(cl(n0(o.x)-pw/2),cl(n0(o.x)+n0(o.w)+pw/2))}
+  const bad=(x)=>{if(edgeX.some(e=>Math.abs(e-x)<=pw/2-8))return 0;if(edgeX.some(e=>Math.abs(e-x)<pw+10))return 1;for(const o of fr){if(o.type==='inst'&&x>n0(o.x)-pw&&x<n0(o.x)+n0(o.w)+pw)return 3}return 0};
+  const score=o0=>{let sc=0;for(const S0 of seamSets(f,el,o0)){const first=S0.ox||sw;if(first<250&&first<L-30)sc+=40;let last=0;for(let x=S0.ox||sw;x<L-30;x+=sw){sc+=bad(x)*100+1;last=x}if(L-last<250&&last>0)sc+=40}return sc+(o0?2:0)};
+  let o0=isSet(seg.sx)&&n0(seg.sx)>0?n0(seg.sx)%sw:0;
+  if(!(isSet(seg.sx)&&n0(seg.sx)>0)&&fr.length){const cand=new Set([0]);for(let v=25;v<sw;v+=25)cand.add(v);for(const e of edgeX){cand.add(((e%sw)+sw)%sw);cand.add(((e-sw/2)%sw+sw)%sw)}
+    let best=0,bs=score(0);for(const c of cand){const v=score(c);if(v<bs-0.5){bs=v;best=c}}o0=Math.round(best)}
+  const sets=seamSets(f,el,o0);const firstSheet=o0?o0:sw;
+  // 1) обязательные стойки: края участка и вертикальные швы листов
+  let st=[{x:pw/2,kind:'end'},{x:L-pw/2,kind:'end'}];
+  const vseams=[];for(const S0 of sets){for(let x=S0.ox||sw;x<L-30;x+=sw)vseams.push({x,set:S0})}
+  for(const s of vseams)if(!st.some(t=>Math.abs(t.x-s.x)<=pw/2-8))st.push({x:s.x,kind:'seam'});
+  // 2) проёмы: стойки вплотную снаружи проёма; внутри инсталляции профиля нет
+  const edges=[];for(const o of fr){const x0=n0(o.x),x1=n0(o.x)+n0(o.w);edges.push({x:cl(x0-pw/2),kind:'edge',o},{x:cl(x1+pw/2),kind:'edge',o})}
+  st=st.filter(s=>{for(const e of edges){if(Math.abs(s.x-e.x)<pw+10){if(s.kind==='seam'&&Math.abs(s.x-e.x)>pw/2-8)warn.push(`шов листа на ${Math.round(s.x)} мм рядом с краем проёма — подрежьте лист, чтобы шов лёг на стойку у проёма`);return s.kind==='end'?false:false}}
+    const ins=fr.find(o=>o.type==='inst'&&s.x>n0(o.x)-pw&&s.x<n0(o.x)+n0(o.w)+pw);if(ins){if(s.kind==='seam')warn.push(`шов листа на ${Math.round(s.x)} мм приходится на инсталляцию — сдвиньте раскрой листов`);return false}return true});
+  st=st.concat(edges);
+  // 3) промежуточные стойки по шагу, чтобы пролёт был не больше шага
+  st.sort((a,b)=>a.x-b.x);
+  const inInst=x=>fr.some(o=>o.type==='inst'&&x>n0(o.x)-pw&&x<n0(o.x)+n0(o.w)+pw);
+  const fill=[];for(let i=0;i<st.length-1;i++){const a=st[i].x,b=st[i+1].x;const gap=b-a;if(gap<=step+1)continue;
+    if(inInst((a+b)/2)&&fr.some(o=>o.type==='inst'&&a>=n0(o.x)-pw-1&&b<=n0(o.x)+n0(o.w)+pw+1))continue;
+    // ставим по сетке шага от начала, если попадает; иначе делим поровну
+    const n=Math.ceil(gap/step)-1;let grid=[];for(let x=Math.ceil((a+60)/step)*step;x<b-60;x+=step)grid.push(x);
+    const okGrid=grid.length===n&&[a,...grid,b].every((v,k,arr)=>k===0||arr[k]-arr[k-1]<=step+1);
+    const xs=okGrid?grid:Array.from({length:n},(_,k)=>a+gap*(k+1)/(n+1));for(const x of xs)if(!inInst(x))fill.push({x,kind:'reg'})}
+  st=st.concat(fill);
+  // 4) трубы и розетки: обычную стойку сдвигаем, остальные — предупреждение
+  for(const h of holes){const c=n0(h.x),r=(n0(h.d)||FOP[h.type].d)/2+pw/2+10;
+    for(const s of st){if(Math.abs(s.x-c)<r){if(s.kind!=='reg'){warn.push(`${FOP[h.type].n} на ${Math.round(c)} мм попадает в стойку (${s.kind==='seam'?'под шов листа':s.kind==='edge'?'у проёма':'крайнюю'}) — сдвиньте вывод или раскрой`);continue}
+      s.x=cl(s.x<c?c-r:c+r);s.moved=true}}}
+  st.sort((a,b)=>a.x-b.x);st=st.filter((s,i)=>i===0||Math.abs(s.x-st[i-1].x)>5);
+  // 5) куски стоек: целые и коротыши над/под проёмами
+  const pieces=[];
+  for(const s of st){const Ht=topAt(s.x);const inside=fr.filter(o=>s.x>n0(o.x)&&s.x<n0(o.x)+n0(o.w));
+    if(!inside.length){pieces.push({x:s.x,y0:0,y1:Ht,kind:s.kind,moved:s.moved});continue}
+    let segs=[[0,Ht]];for(const o of inside){const a=n0(o.y),b=n0(o.y)+n0(o.h);segs=segs.flatMap(([p,q])=>{const r=[];if(a>p)r.push([p,Math.min(a,q)]);if(b<q)r.push([Math.max(b,p),q]);return r})}
+    for(const [p,q] of segs)if(q-p>60)pieces.push({x:s.x,y0:p,y1:q,kind:'crip',hb:p>0,ht:q<Ht-1})}
+  const xs=[...new Set(pieces.map(p=>Math.round(p.x)))].sort((a,b)=>a-b);
+  const studAt=(x,y)=>pieces.some(p=>Math.abs(p.x-x)<1&&p.y0<=y+1&&p.y1>=y-1);
+  const inOpen=(a,b,y)=>fr.some(o=>y>n0(o.y)-1&&y<n0(o.y)+n0(o.h)+1&&a>=n0(o.x)-pw-1&&b<=n0(o.x)+n0(o.w)+pw+1);
+  // 6) перемычки над проёмами и под окнами
+  const heads=[];for(const o of fr){const w=n0(o.w),top=n0(o.y)+n0(o.h),bot=n0(o.y);if(top<topAt(n0(o.x)+w/2)-30)heads.push({x0:n0(o.x),x1:n0(o.x)+w,y:top,w,o,pos:'top'});if(bot>30)heads.push({x0:n0(o.x),x1:n0(o.x)+w,y:bot,w,o,pos:'bot'})}
+  // 7) поперечины: под горизонтальные швы листов (с разбежкой), вручную, над инсталляцией, шаг WALLBOX, обвязка
+  const cross=[];const add=(y,a,b,why)=>{y=Math.round(y);if(b-a<(why==='шов'?pw+30:150))return;if(y>Math.min(topAt(a),topAt(b))-pw/2+1)return;if(inOpen(a,b,y))return;if(!studAt(a,y)||!studAt(b,y))return;
+    if(cross.some(c=>Math.abs(c.y-y)<pw&&Math.abs(c.a-a)<1&&Math.abs(c.b-b)<1))return;cross.push({y,a,b,len:b-a,why})};
+  const pairs=(lo,hi)=>{const r=[];const q=xs.filter(x=>x>=lo-1&&x<=hi+1);for(let i=0;i<q.length-1;i++)r.push([q[i],q[i+1]]);return r};
+  const hseams=[];
+  for(const S0 of sets){const cuts=[0];for(let x=S0.ox||sw;x<L-30;x+=sw)cuts.push(x);cuts.push(L);
+    for(let k=0;k<cuts.length-1;k++){const c0=cuts[k],c1=cuts[k+1];const colTop=Math.max(topAt(c0),topAt(c1),topAt((c0+c1)/2));if(sh>=colTop-5)continue;
+      const off=((k+S0.odd)%2)*600;for(let y=sh-off;y<colTop-100;y+=sh){if(y<300)continue;hseams.push({y,c0,c1,set:S0});
+        for(const [a,b] of pairs(cl(c0),cl(c1)))add(y,a,b,'шов')}}}
+  const full=pairs(0,L);
+  String(el.cross||'').split(/[;,\s]+/).map(v=>parseFloat(v)).filter(v=>v>0&&v<maxTop).forEach(y=>full.forEach(([a,b])=>add(y,a,b,'ваша')));
+  if(f.sys==='wb'){const hs=Math.max(300,n0(f.hstep)||1200);for(let y=hs;y<maxTop-200;y+=hs)full.forEach(([a,b])=>{if(!cross.some(c=>c.a===a&&c.b===b&&Math.abs(c.y-y)<300))add(y,a,b,'шаг')});
+    // нижняя и верхняя обвязка (под край листа)
+    full.forEach(([a,b])=>{if(!fr.some(o=>n0(o.y)<5&&a>=n0(o.x)-pw-1&&b<=n0(o.x)+n0(o.w)+pw+1))add(pw/2,a,b,'низ');
+      if(Math.abs(topAt(a)-topAt(b))<3)add(Math.min(topAt(a),topAt(b))-gapTop(f)-pw/2,a,b,'верх')})}
+  // 8) направляющие (Knauf): низ — кроме дверей и инсталляций, верх — по потолку
+  const railBot=[];{let segs=[[0,L]];for(const o of fr.filter(o=>n0(o.y)<5)){const a=n0(o.x),b=n0(o.x)+n0(o.w);segs=segs.flatMap(([p,q])=>{const r=[];if(a>p)r.push([p,Math.min(a,q)]);if(b<q)r.push([Math.max(b,p),q]);return r})}
+    for(const [p,q] of segs)if(q-p>40)railBot.push(q-p)}
+  const railTopPts=SL?SL.pts:[[0,H],[L,H]];const railTop=[];for(let i=0;i<railTopPts.length-1;i++){const l=Math.hypot(railTopPts[i+1][0]-railTopPts[i][0],railTopPts[i+1][1]-railTopPts[i][1]);if(l>20)railTop.push(l)}
+  const cutA=fr.filter(o=>FOP[o.type].cut).reduce((a,o)=>a+n0(o.w)*n0(o.h),0);
+  return{firstSheet,L,H,SL,topAt,pieces,heads,cross,hseams,vseams,railBot,railTop,area:(SL?Math.abs(polyArea(SL.poly)):L*H)-cutA,warn,ops,xs,pw}
+}
+const gapTop=f=>f.slide?Math.max(0,n0(isSet(f.slideGap)?f.slideGap:40)):(f.sys==='knauf'?10:5);
+// раскрой: первый подходящий по убыванию, пропил 3 мм; длинные куски — со стыком
+function pack(items,bar,kerf=3){const ps=[];let splices=0;
+  for(const it of items){let p=it.len;if(p>bar){while(p>bar){ps.push({...it,len:bar,part:true});p-=bar;splices++}if(p>1)ps.push({...it,len:p,part:true})}else if(p>1)ps.push(it)}
+  ps.sort((a,b)=>b.len-a.len);const bins=[];
+  for(const p of ps){const b=bins.find(b=>b.used+p.len+(b.list.length?kerf:0)<=bar+0.5);if(b){b.used+=p.len+(b.list.length?kerf:0);b.list.push(p)}else bins.push({used:p.len,list:[p]})}
+  return{bars:bins.length,bins,used:ps.reduce((a,b)=>a+b.len,0),splices}}
+// сводка заготовок: одинаковые длины вместе
+function groupCuts(items){const m=new Map();for(const p of items){const k=p.name+'|'+Math.round(p.len);const g=m.get(k)||{name:p.name,len:Math.round(p.len),notes:new Set(),n:0,where:new Set()};g.n++;g.notes.add(p.note||'');g.nc=g.nc||{};g.nc[p.note||'']=(g.nc[p.note||'']||0)+1;if(p.where)g.where.add(p.where);m.set(k,g)}
+  const ord=n=>/^(Стойка|Коротыш)/.test(n)?0:/^Направляющая/.test(n)?1:/^(Перемычка|Подоконная)/.test(n)?2:3;
+  return[...m.values()].map(g=>{const ks=Object.keys(g.nc);const note=ks.length===1?ks[0]:ks.map(k=>`${k||'обычных'} — ${g.nc[k]}`).join(', ');return{...g,note}}).sort((a,b)=>ord(a.name)-ord(b.name)||a.name.localeCompare(b.name)||b.len-a.len)}
+// длины заготовок — одни и те же формулы для списка и для подсказки на схеме
+function studCut(f,P,p){const pw=PW(f);return Math.max(P.topAt(p.x-pw/2),P.topAt(p.x+pw/2))-gapTop(f)}
+function studCutShort(f,P,p){const pw=PW(f);return Math.min(P.topAt(p.x-pw/2),P.topAt(p.x+pw/2))-gapTop(f)}
+function cripCut(f,P,p){const pw=PW(f),kn=f.sys==='knauf';const top=P.topAt(p.x);let len=p.y1-p.y0;if(!kn){if(p.hb)len-=pw;if(p.ht)len-=pw}if(p.y1>=top-1)len-=gapTop(f);else if(kn)len-=5;return len}
+const crossCut=(f,c)=>f.sys==='knauf'?c.len-PW(f)+100:c.len-PW(f);
+const headCut=(f,h)=>f.sys==='knauf'?h.w+300:h.w;
+function frameCalc(it){const f=F(it);const out={els:[],warn:[]};const pw=PW(f);const gt=gapTop(f);const kn=f.sys==='knauf';
+  const S1=[],S2=[];// S1 — стоечный (или весь WALLBOX), S2 — направляющий Knauf
+  let area=0,nStud=0,nCrip=0,nHead=0,nInst=0,nCross=0,railRun=0,edgeH=0,cripEnds=0;const slide=[];const fixFloor=[];const wallFix=[];
+  for(const el of f.els){const res=[];const H=n0(el.H)||n0(it.ceil)||2700;const nm=el.name||'Элемент';
+    el.segs.forEach((s,si)=>{const P=panelCalc(it,el,si,s);res.push(P);const where=`${nm}, уч.${si+1}`;
+      for(const p of P.pieces){const top=P.topAt(p.x);const slope=P.SL&&Math.abs(P.topAt(p.x-pw/2)-P.topAt(p.x+pw/2))>2;
+        if(p.kind!=='crip'){nStud++;const len=studCut(f,P,p);S1.push({name:kn?'Стойка ПС':'Стойка (вертикаль)',len,note:slope?'верх под углом':'',where});
+          if(p.y1>=top-1)slide.push({where,x:Math.round(p.x),y:Math.round(top)});fixFloor.push({where,x:Math.round(p.x)})}
+        else{nCrip++;const len=cripCut(f,P,p);
+          if(p.y0<1)fixFloor.push({where,x:Math.round(p.x),crip:1});cripEnds+=(p.hb?1:0)+(p.ht?1:0);S1.push({name:kn?'Коротыш ПС':'Коротыш (вертикаль)',len,note:p.y0>0&&p.y1>=top-1?'над проёмом':p.y0<1?'под окном':'',where});if(p.y1>=top-1)slide.push({where,x:Math.round(p.x),y:Math.round(top)})}}
+      for(const h of P.heads){nHead++;(kn?S2:S1).push({name:h.pos==='top'?(h.o.type==='inst'?(kn?'Поперечина ПН над инсталляцией':'Горизонталь над инсталляцией'):(kn?'Перемычка ПН над проёмом':'Перемычка над проёмом')):(kn?'Подоконная ПН':'Подоконная'),len:headCut(f,h),note:kn?'полки надрезать, концы загнуть по 150':'',where})}
+      for(const c of P.cross){nCross++;const why={шов:'под шов ГКЛ',ваша:'',инсталляция:'над инсталляцией',шаг:'',низ:'по низу',верх:'по верху'}[c.why]||'';
+        (kn?S2:S1).push({name:kn?'Поперечина ПН':'Горизонталь',len:crossCut(f,c),note:(why?why+(kn?', ':''):'')+(kn?'+50 на «ушки» с каждой стороны':''),where})}
+      if(kn){for(const l of P.railBot){S2.push({name:'Направляющая ПН — пол',len:l,note:'',where});railRun+=l}for(const l of P.railTop){S2.push({name:'Направляющая ПН — потолок',len:l,note:P.SL?'по скату':'',where});railRun+=l}}
+      area+=P.area*(el.type==='wall'?(+el.sides===1?1:2):1);nInst+=P.ops.filter(o=>o.type==='inst').length;out.warn.push(...P.warn.map(w=>`${where}: ${w}`))});
+    // крепления к стенам: крайние стойки элемента, примыкающие к стенам (не у колонны)
+    if(el.type!=='col'&&el.segs.length){const st=f.slide?1000:(f.mode==='free'?600:1200);const mk=h=>{const pts=Math.max(2,Math.ceil((h-400)/st)+1);return Array.from({length:pts},(_,k)=>Math.round(200+(h-400)*k/(pts-1)))};
+      const h0=res[0].topAt(0)-gapTop(f),h1=res[res.length-1].topAt(res[res.length-1].L)-gapTop(f);
+      wallFix.push({where:`${nm} — начало (стойка у стены)`,ys:mk(h0)},{where:`${nm} — конец (стойка у стены)`,ys:mk(h1)});edgeH+=h0+h1}
+    out.els.push({el,res,H})}
+  const [sw,sh]=sheetOf(f);const layers=+f.layers||1;const sheets1=Math.ceil(area/(sw*sh)*1.1);
+  out.area=area;out.floor=fixFloor;out.sheets1=sheets1;out.sheets=sheets1*layers;out.sw=sw;out.sh=sh;out.slide=slide;out.wallFix=wallFix;
+  out.cutsS=groupCuts(S1);out.cutsN=groupCuts(S2);
+  const m=[];const A=area/1e6;
+  if(kn){const k=KN_PS.find(x=>x[0]===String(f.ps))||KN_PS[0];const bar=n0(f.bar)||3000;const ps=pack(S1,bar),pn=pack(S2,bar);out.packS=ps;out.packN=pn;out.barS=bar;out.barN=bar;
+    out.nameS=`${k[1]}×0,6`;out.nameN=`${k[2]}×0,6`;
+    m.push([`${k[1]}×0,6 (стоечный), хлыст ${bar}`,`${ps.bars} шт`,`стоек ${nStud}, коротышей ${nCrip}${ps.splices?`, наращиваний ${ps.splices}`:''}`]);
+    m.push([`${k[2]}×0,6 (направляющий), хлыст ${bar}`,`${pn.bars} шт`,`пол/потолок, перемычки (${nHead}), поперечины (${nCross})`]);
+    const dow=Math.ceil(railRun/1000)+S2.filter(p=>p.name.startsWith('Направляющая')).length+(f.slide?0:wallFix.reduce((a,w)=>a+w.ys.length,0));
+    m.push(['Дюбель-гвоздь 6×40 (ПН к полу/потолку и крайние ПС к стенам, шаг ≤1000)',`${dow} шт`,'']);
+    m.push(['Саморез LN 3,5×9,5 «клоп»',`${(nStud+nCrip)*(f.slide?2:4)+nHead*4+nCross*4} шт`,f.slide?'стойки крепятся только к нижней ПН — сверху не крутить (усадка)':'по 2 с каждой стороны на конце стойки']);
+    m.push(['Уплотнительная лента',`${fq((railRun+edgeH)/1000,1)} м`,'под ПН и крайние ПС'])}
+  else{const bar=n0(f.wbBar)||3000;const pk=pack(S1,bar);out.packS=pk;out.barS=bar;out.nameS='WB90003 33×33×1,5';const free=f.mode==='free';
+    m.push([`Профиль WALLBOX WB90003 33×33×1,5, хлыст ${bar}`,`${pk.bars} шт`,`вертикалей ${nStud}, коротышей ${nCrip}, горизонталей ${nCross+nHead}${pk.splices?`, наращиваний ${pk.splices} (уголок WB90109)`:''}`]);
+    const cH=nCross*2,cHd=nHead*2,cM=nInst*2,cC=cripEnds,cAll=cH+cHd+cM+cC;
+    m.push(['Уголок соединительный WB90102',`${cAll} шт`,`горизонтали ${nCross} × 2 = ${cH}`+(nHead?` · перемычки ${nHead} × 2 = ${cHd}`:'')+(cC?` · коротыши к перемычкам ${cC}`:'')+(cM?` · модули ${nInst} × 2 = ${cM}`:'')+'; затяжка 10 Нм, ключ SW4']);
+    const nF=fixFloor.length;m.push(['Опора к полу WB90302 (крепление одинарное)',`${nF} шт`,`по одной под каждую стойку${fixFloor.some(x=>x.crip)?' и коротыш под окном':''}; к полу жёстко, анкер 10×60 — ${nF} шт`]);
+    if(!f.slide)m.push(['Крепление одинарное WB90302 к потолку',`${nStud} шт`,'по одной на верх каждой стойки']);
+    if(pk.splices)m.push(['Уголок для наращивания WB90109',`${pk.splices*2} шт`,`${pk.splices} стыков профиля по длине, по 2 на стык`]);
+    if(!free&&!f.slide)m.push(['Крепление двойное WB90311 / WB90313 (к несущей стене)',`${Math.ceil(nStud*Math.max(1,Math.ceil((n0(f.els[0]?.H)||2700)/1200)))} шт`,'по стойкам, шаг ≤1200 по высоте'])}
+  if(f.slide){m.push(['Скользящая опора — потолок (верх стойки)',`${slide.length} шт`,`на каждую стойку, зазор под усадку ${gt} мм между торцом профиля и потолком`]);
+    const wf=wallFix.reduce((a,w)=>a+w.ys.length,0);if(wf)m.push(['Скользящее крепление к стене (крайние стойки)',`${wf} шт`,'шаг ≤1000 мм по высоте, крепить в середину паза']);}
+  if(nInst)m.push([kn?'Крепёж инсталляции к каркасу':'Кронштейны установки модуля WB90999',`${nInst} компл.`,kn?'по паспорту инсталляции; стойки вплотную к раме':'+ 2 соединения WB90102 на модуль']);
+  const per=(f.sheet||'1200x2500').replace('x','×');
+  m.push([`ГКЛ ${per} — на 1 слой`,`${sheets1} листов`,`площадь обшивки ${fq(A,2)} м², +10% на подрезку`]);
+  if(layers>1)m.push([`ГКЛ ${per} — всего на ${layers} слоя`,`${sheets1*layers} листов`,'швы 2-го слоя сдвинуты на 600 мм']);
+  if(layers===1)m.push(['Саморез TN 25 (шаг 250 мм)',`${Math.ceil(A*17)} шт`,'≈17 шт/м²']);
+  else{m.push(['Саморез TN 25 — 1-й слой (шаг 750 мм)',`${Math.ceil(A*8)} шт`,'≈8 шт/м²']);m.push(['Саморез TN 35 — 2-й слой (шаг 250 мм)',`${Math.ceil(A*17)} шт`,'≈17 шт/м²'])}
+  out.m=m;return out}
+
+// ---- рисование: развёртка выбранного элемента
+let FHIT=[],FSEL=null;
+function frameSvg(it,el,sc){const f=F(it);const hits=[];const hit=(k,box,title,rows)=>hits.push({k,box,title,rows});const H0e=n0(el.H)||n0(it.ceil)||2700;const H=Math.max(H0e,...el.segs.map(g=>{const q=slProf(g.sl,n0(g.len),H0e);return q?q.maxH:H0e}));let X=0;const gap=200;let s='';const pw=f.sys==='knauf'?50:33;
+  el.segs.forEach((seg,si)=>{const P=panelCalc(it,el,si,seg);const L=P.L;const fy=y=>H-y;
+    const shape=P.SL?P.SL.poly:[[0,0],[L,0],[L,P.H],[0,P.H]];s+=`<polygon points="${shape.map(q=>(X+q[0])+','+fy(q[1])).join(' ')}" fill="var(--soft2)" stroke="var(--line)" stroke-width="${1/sc}"/>`;
+    for(const o of P.ops){const t=FOP[o.type];if(t.hole){const d=n0(o.d)||t.d;s+=`<circle cx="${X+n0(o.x)}" cy="${fy(n0(o.y))}" r="${Math.max(d/2,1.5/sc)}" fill="#fff" stroke="#d11" stroke-width="${Math.min(2/sc,d/6)}"/>`;
+        hit('op:'+o.id,[X+n0(o.x)-d/2,fy(n0(o.y))-d/2,d,d],t.n,[['Диаметр',`${Math.round(d)} мм`],['Центр от начала участка',`${Math.round(n0(o.x))} мм`],['Центр от пола',`${Math.round(n0(o.y))} мм`]]);continue}
+      s+=`<rect x="${X+n0(o.x)}" y="${fy(n0(o.y)+n0(o.h))}" width="${n0(o.w)}" height="${n0(o.h)}" fill="${t.col}" stroke="var(--ink)" stroke-width="${1/sc}"/>`;
+      hit('op:'+o.id,[X+n0(o.x),fy(n0(o.y)+n0(o.h)),n0(o.w),n0(o.h)],o.type==='inst'?(INST[+o.preset||0]||INST[0])[0]:t.n,[['Размер',`${Math.round(n0(o.w))} × ${Math.round(n0(o.h))} мм`],['От начала участка',`${Math.round(n0(o.x))} мм`],['Низ от пола',`${Math.round(n0(o.y))} мм`],['Верх от пола',`${Math.round(n0(o.y)+n0(o.h))} мм`]]);const fs=Math.min(12/sc,n0(o.w)/6);s+=`<text x="${X+n0(o.x)+n0(o.w)/2}" y="${fy(n0(o.y)+n0(o.h)/2)}" font-size="${fs}" text-anchor="middle" fill="#334">${o.type==='inst'?(INST[+o.preset||0]||INST[0])[0].split(' · ')[0]:t.n}</text>`}
+    // направляющие
+    const topPts=P.SL?P.SL.pts:[[0,P.H],[L,P.H]];s+=`<polyline points="${topPts.map(q=>(X+q[0])+','+(fy(q[1])-pw*0.3)).join(' ')}" fill="none" stroke="#7a8a99" stroke-width="${pw*0.6}" stroke-linejoin="round"/><rect x="${X}" y="${H}" width="${L}" height="${pw*0.6}" fill="#7a8a99"/>`;
+    if(f.sys==='knauf'){hit(`rb:${si}`,[X,H,L,pw*0.6],'Направляющая ПН — пол',[['Куски',P.railBot.map(v=>Math.round(v)).join(' + ')+' мм'],['Где','по полу, кроме дверей и инсталляций']]);hit(`rt:${si}`,[X,fy(P.H)-pw*0.6,L,pw*0.6],'Направляющая ПН — потолок',[['Куски',P.railTop.map(v=>Math.round(v)).join(' + ')+' мм']])}
+    if(P.SL)for(const g of P.SL.segs){const mx=X+(g.xa+g.xb)/2,my=fy((g.ha+g.hb)/2)+16/sc;s+=`<text x="${mx}" y="${my}" font-size="${12/sc}" text-anchor="middle" font-weight="800" fill="#d11" transform="rotate(${(g.up?-1:1)*g.ang} ${mx} ${my})">${fq(g.ang,1)}°</text>`}
+    for(const h of P.heads){s+=`<rect x="${X+h.x0-20}" y="${fy(h.y)-pw*0.3}" width="${h.x1-h.x0+40}" height="${pw*0.6}" fill="#7a8a99"/>`;
+      hit(`hd:${si}:${Math.round(h.x0)}:${h.pos}`,[X+h.x0,fy(h.y)-pw/2,h.w,pw],h.o.type==='inst'?'Горизонталь над инсталляцией':h.pos==='top'?'Перемычка над проёмом':'Подоконная',[['Отпилить',`${Math.round(headCut(f,h))} мм`],['Высота от пола',`${Math.round(h.y)} мм`],['Ширина проёма',`${Math.round(h.w)} мм`],...(f.sys==='knauf'?[['Как','полки надрезать, концы загнуть по 150 мм']]:[])])}
+    for(const c of P.cross){s+=`<rect x="${X+c.a}" y="${fy(c.y)-pw/2}" width="${c.len}" height="${pw}" fill="${c.why==='шов'?'#2563eb':'#3b82c4'}" opacity=".9"/>`;
+      hit(`cr:${si}:${c.y}:${Math.round(c.a)}`,[X+c.a,fy(c.y)-pw/2,c.len,pw],f.sys==='knauf'?'Поперечина ПН':'Горизонталь',[['Отпилить',`${Math.round(crossCut(f,c))} мм`],['Ось на высоте',`${c.y} мм от пола`],['Между стойками',`${Math.round(c.a)} и ${Math.round(c.b)} мм`],['Зачем',{шов:'под горизонтальный шов ГКЛ',ваша:'ваша поперечина',шаг:'шаг горизонталей WALLBOX',низ:'обвязка по низу',верх:'обвязка по верху'}[c.why]||'—'],...(f.sys==='knauf'?[['Как','+50 мм на «ушки» с каждой стороны']]:[])])}
+    if(f.showSeams!==false){for(const v of P.vseams)s+=`<line x1="${X+v.x}" y1="${fy(P.topAt(v.x))}" x2="${X+v.x}" y2="${fy(0)}" stroke="${v.set.odd?'#a855f7':'#0ea5e9'}" stroke-width="${2/sc}" stroke-dasharray="${8/sc} ${5/sc}"/>`;
+      for(const hs of P.hseams)s+=`<line x1="${X+hs.c0}" y1="${fy(hs.y)}" x2="${X+hs.c1}" y2="${fy(hs.y)}" stroke="${hs.set.odd?'#a855f7':'#0ea5e9'}" stroke-width="${2/sc}" stroke-dasharray="${8/sc} ${5/sc}"/>`}
+    {const ys=[...new Set(P.cross.map(c=>c.y))];const fs2=Math.min(10/sc,120);ys.forEach(y=>{s+=`<text x="${X-6/sc}" y="${fy(y)+fs2*0.35}" font-size="${fs2}" text-anchor="end" fill="#3b82c4" font-weight="700">${y}</text>`})}
+    const gt=gapTop(f);for(const p of P.pieces){const c=p.kind==='crip'?'#c4572e':p.kind==='edge'?'#1f6f5c':p.kind==='seam'?'#2563eb':p.moved?'#b7791f':'#55636f';const top=p.y1>=P.topAt(p.x)-1?p.y1-gt:p.y1;
+      s+=`<rect x="${X+p.x-pw/2}" y="${fy(top)}" width="${pw}" height="${Math.max(1,top-p.y0)}" fill="${c}"/>`;
+      {const kn=f.sys==='knauf';const crip=p.kind==='crip';const why={end:'крайняя (у стены)',edge:'у края проёма / инсталляции',seam:'под вертикальный шов ГКЛ',reg:p.moved?'обычная, сдвинута от трубы':'обычная, по шагу'}[p.kind]||'';
+        const rows=crip?[['Отпилить',`${Math.round(cripCut(f,P,p))} мм`],['Ось от начала участка',`${Math.round(p.x)} мм`],['От пола',`${Math.round(p.y0)} до ${Math.round(Math.min(top,p.y1))} мм`]]
+          :[['Отпилить',`${Math.round(studCut(f,P,p))} мм`+(P.SL&&Math.abs(studCut(f,P,p)-studCutShort(f,P,p))>1?` (короткая сторона ${Math.round(studCutShort(f,P,p))})`:'')],['Ось от начала участка',`${Math.round(p.x)} мм`],['Тип',why]];
+        if(f.slide&&p.y1>=P.topAt(p.x)-1)rows.push(['Сверху','скользящая опора, зазор '+gt+' мм']);
+        if(!crip&&f.sys==='wb')rows.push(['Снизу','опора к полу WB90302']);
+        hit(`st:${si}:${Math.round(p.x)}:${Math.round(p.y0)}`,[X+p.x-pw/2,fy(top),pw,Math.max(1,top-p.y0)],crip?(kn?'Коротыш ПС':'Коротыш'):(kn?'Стойка ПС':'Стойка'),rows)}
+      if(f.slide&&p.y1>=P.topAt(p.x)-1){const y=fy(p.y1);s+=`<path d="M${X+p.x-pw} ${y} h${pw*2} l${-pw*0.5} ${pw*1.4} h${-pw} z" fill="#16a34a" opacity=".85"/>`}}
+    // подписи позиций стоек
+    const fs=Math.min(10/sc,step0(f)/4);const xs=[...new Set(P.pieces.map(p=>Math.round(p.x)))].sort((a,b)=>a-b);
+    xs.forEach((x,i)=>{s+=`<text x="${X+x}" y="${fy(P.topAt(x))-pw-6/sc-(i%2)*fs*1.1}" font-size="${fs}" text-anchor="middle" fill="var(--ink)">${x}</text>`});
+    s+=`<text x="${X+L/2}" y="${H+pw+16/sc}" font-size="${12/sc}" text-anchor="middle" font-weight="700" fill="var(--acc)">Участок ${si+1} · ${Math.round(L)} мм</text>`;
+    X+=L+gap});
+  const mn=16/sc;const sel=hits.find(h=>h.k===FSEL);
+  if(sel){const [x,y,w,h]=sel.box;const pd=4/sc;s+=`<rect x="${x-pd}" y="${y-pd}" width="${w+2*pd}" height="${h+2*pd}" fill="none" stroke="#f59e0b" stroke-width="${3/sc}" rx="${3/sc}"/>`}
+  // невидимые зоны нажатия (тонкие элементы — не меньше пальца); мелкие сверху
+  [...hits].sort((a,b)=>b.box[2]*b.box[3]-a.box[2]*a.box[3]).forEach(hh=>{const i=hits.indexOf(hh);let [x,y,w,h]=hh.box;if(w<mn){x-=(mn-w)/2;w=mn}if(h<mn){y-=(mn-h)/2;h=mn}s+=`<rect data-fhit="${i}" x="${x}" y="${y}" width="${w}" height="${h}" fill="transparent"/>`});
+  FHIT=hits;return{s,W:Math.max(1,X-gap),H}}
+function fInfoHtml(){const h=FHIT.find(x=>x.k===FSEL);if(!h)return'<div class="small mute">Нажмите на любую стойку, поперечину, перемычку или проём на схеме — здесь появится его размер.</div>';
+  return`<div class="row" style="justify-content:space-between"><b style="font-size:16px">${esc(h.title)}</b><button class="x" data-fa="fhitx">✕</button></div><table class="cuts" style="margin-top:4px">${h.rows.map(r=>`<tr><td class="mute">${r[0]}</td><td class="n" style="white-space:normal"><b>${esc(r[1])}</b></td></tr>`).join('')}</table>`}
+const step0=f=>Math.max(100,n0(f.step)||600);
+function framePlan(el){const pts=segPts(el);const [x0,y0,x1,y1]=bbox(pts);const w=Math.max(x1-x0,1),h=Math.max(y1-y0,1);const pad=Math.max(w,h)*0.15+50;const sw=Math.max(w,h)/90;
+  let s=`<svg viewBox="${x0-pad} ${y0-pad} ${w+2*pad} ${h+2*pad}" style="width:100%;max-height:150px;display:block"><polyline points="${ptsStr(pts)}" fill="none" stroke="#55636f" stroke-width="${sw*2.4}" stroke-linejoin="round"/>`;
+  const fs=Math.max(w,h)/14;el.segs.forEach((g,i)=>{const a=pts[i],b=pts[i+1];s+=`<text x="${(a[0]+b[0])/2}" y="${(a[1]+b[1])/2-fs*0.5}" font-size="${fs}" text-anchor="middle" fill="var(--acc)" font-weight="700">${i+1}</text>`});
+  s+=`<circle cx="${pts[0][0]}" cy="${pts[0][1]}" r="${sw*2}" fill="var(--acc)"/></svg>`;return s}
+
+// ---- экран
+let fview={z:1,cx:null,cy:null};
+function renderFrame(){const it=cur();const f=F(it);if(!f.sel||!f.els.some(e=>e.id===f.sel))f.sel=f.els[0]?.id||null;const el=f.els.find(e=>e.id===f.sel);
+  const chip=(k,v,t,cur)=>`<button data-fset="${k}" data-v="${v}" class="${String(cur)===String(v)?'on':''}">${t}</button>`;
+  let h=`<div class="card"><b>Система</b><div class="chips" style="margin-top:6px">${chip('sys','knauf','Knauf (ГКЛ-профиль)',f.sys)}${chip('sys','wb','WALLBOX (VALTEC)',f.sys)}</div>`;
+  if(f.sys==='knauf')h+=`<div class="small mute" style="margin:8px 0 4px">Стоечный профиль (направляющий подбирается сам), толщина 0,6 мм</div><div class="chips">${KN_PS.map(k=>chip('ps',k[0],k[1]+' / '+k[2],f.ps)).join('')}</div>
+    <div class="small mute" style="margin:8px 0 4px">Длина профиля</div><div class="chips">${[2750,3000,4000].map(v=>chip('bar',v,v+' мм',f.bar)).join('')}</div>`;
+  else h+=`<div class="small mute" style="margin:8px 0 4px">Каркас</div><div class="chips">${chip('mode','wall','У несущей стены',f.mode)}${chip('mode','free','Отдельностоящий',f.mode)}</div>
+    <div class="grid2" style="margin-top:8px">${ffld('hstep','Шаг горизонталей, мм',f.hstep,'1200')}${ffld('wbBar','Длина хлыста, мм',f.wbBar,'3000')}</div>
+    <div class="small mute" style="margin-top:4px">Профиль WB90003: сечение 33×33 мм, стенка 1,5 мм, хлыст 3 м. По альбому VALTEC: горизонтали 1200/1300/1350 (под ширину листа), крепления ≤1200 мм у стены и ≤600 мм для отдельностоящего.</div>`;
+  h+=`</div>
+  <div class="card"><b>Гипсокартон — от него строится каркас</b>
+   <div class="small mute" style="margin:8px 0 4px">Размер листа</div><div class="chips">${['1200x2500','1200x2000','1200x3000'].map(v=>chip('sheet',v,v.replace('x','×'),f.sheet)).join('')}</div>
+   <div class="small mute" style="margin:10px 0 4px">Слоёв обшивки</div><div class="chips">${chip('layers',1,'1 слой',f.layers)}${chip('layers',2,'2 слоя',f.layers)}</div>
+   <div class="small mute" style="margin:10px 0 4px">Шаг стоек</div><div class="chips">${chip('step',600,'600 — стена',f.step)}${chip('step',400,'400 — под плитку крупную / усиленно',f.step)}</div>
+   <label class="row" style="gap:8px;font-size:14.5px;margin-top:10px"><input type="checkbox" data-fchk="showSeams" ${f.showSeams!==false?'checked':''} style="width:22px;height:22px"> Показать швы листов на схеме</label>
+   <div class="small mute" style="margin-top:6px">Стойки сами встают под каждый вертикальный шов, поперечины — под каждый горизонтальный. Швы соседних листов разнесены на 600 мм, швы 2-го слоя и обратной стороны перегородки сдвинуты на пол-листа.</div></div>
+  <div class="card"><label class="row" style="gap:8px;font-size:15px;font-weight:600"><input type="checkbox" data-fchk="slide" ${f.slide?'checked':''} style="width:22px;height:22px"> Дом из бруса / сруб — усадка</label>
+   ${f.slide?`<div class="grid2" style="margin-top:8px">${ffld('slideGap','Зазор сверху под усадку, мм',f.slideGap,'40')}<div class="small mute" style="align-self:end">клеёный брус 20–40, обычный брус 50–80</div></div>
+   <div class="small mute" style="margin-top:6px">Каркас жёстко крепится только к полу. Сверху каждая стойка — в скользящую опору, к стенам — скользящие крепления. Профили отпиливаются короче на зазор.</div>`:'<div class="small mute" style="margin-top:4px">Включите, если дом деревянный: появятся скользящие опоры и зазор под усадку.</div>'}</div>
+  <h2>Что строим</h2><div class="chips">${f.els.map(e=>`<button data-fa="sel" data-id="${e.id}" class="${e.id===f.sel?'on':''}">${esc(e.name||'Элемент')}</button>`).join('')}</div>
+  <div class="chips" style="margin-top:8px"><button data-fa="addwall">+ Стена / перегородка</button><button data-fa="addbox">+ Короб у стены</button><button data-fa="addcol">+ Колонна</button></div>`;
+  if(el){h+=`<div class="card" style="margin-top:10px"><div class="row"><input data-fel="name" value="${esc(el.name)}" style="font-weight:700"><button class="x" data-fa="delel">🗑</button></div>
+    <div class="grid2" style="margin-top:8px">${felf('H','Высота, мм',el.H,n0(it.ceil)||2700)}${el.type==='wall'?`<label class="f">Обшивка<select data-fel="sides"><option value="1" ${+el.sides===1?'selected':''}>с одной стороны (фальшстена)</option><option value="2" ${+el.sides!==1?'selected':''}>с двух сторон (перегородка)</option></select></label>`:'<div class="small mute" style="align-self:end">обшивка снаружи</div>'}</div>
+    <div style="margin-top:8px"><label class="f">Поперечины на высоте, мм (через запятую)<input data-fel="cross" value="${esc(el.cross||'')}" placeholder="например 800, 1500"></label>
+    <label class="row" style="gap:8px;font-size:14px;margin-top:6px"><input type="checkbox" data-fel="xSheet" ${el.xSheet?'checked':''} style="width:auto"> Поперечины по стыкам листов ГКЛ</label>
+    <div class="small mute">Над инсталляцией поперечина ставится сама. Для раковины, полотенцесушителя, бойлера добавьте высоту крепления.</div></div>
+    <div class="small mute" style="margin:10px 0 4px">Участки стены — как в «Смете»: стрелка и длина. Каждый участок — отдельная панель каркаса. Если потолок наклонный (мансарда) — под участком выберите «Один скат» или «Два ската» и впишите высоты.</div>
+    ${el.segs.map((s,k)=>`<div class="row" style="gap:6px;margin-bottom:6px"><span class="small mute" style="width:18px">${k+1}</span><select data-fseg="${k}" data-f="dir" style="width:62px;flex:none;font-size:18px;padding:6px 4px">${DIRS.map((d,i)=>`<option value="${i}" ${+s.dir===i?'selected':''}>${d[2]}</option>`).join('')}</select><input data-fseg="${k}" data-f="len" inputmode="decimal" value="${isSet(s.len)?s.len:''}" placeholder="длина, мм"><button class="x" data-fa="delseg" data-k="${k}">✕</button></div>${fslHtml(el,k)}<div style="margin:0 0 12px 24px"><label class="f">Первый лист ГКЛ от начала участка, мм<input data-fseg="${k}" data-f="sx" inputmode="decimal" value="${isSet(s.sx)?s.sx:''}" placeholder="авто: ${(()=>{try{return Math.round(panelCalc(it,el,k,s).firstSheet)}catch(_){return 1200}})()}"></label></div>`).join('')}
+    <div class="chips">${[0,2,4,6].map(j=>`<button data-fa="addseg" data-d="${j}" style="font-size:17px;min-width:44px">+${DIRS[j][2]}</button>`).join('')}</div>
+    <div id="fplan" style="margin-top:8px">${framePlan(el)}</div></div>
+    <div class="card"><b>Проёмы, инсталляции, отверстия</b><div class="small mute">Расстояния: от начала участка (оранжевая точка — начало стены) и от пола.</div><div id="fops">${fopsHtml(it,el)}</div>
+    <div class="chips" style="margin-top:8px">${Object.entries(FOP).map(([k,t])=>`<button data-fa="addop" data-v="${k}">+ ${t.n}</button>`).join('')}</div></div>
+    <div id="stage"><svg id="fv" xmlns="http://www.w3.org/2000/svg"></svg></div>
+    <div class="card" id="finfo" style="margin-top:8px;border-color:#f59e0b!important">${fInfoHtml()}</div>
+    <div class="tools"><button data-fa="fzin">＋</button><button data-fa="fzout">－</button><button data-fa="fzfit">⤢</button><span class="small mute" style="align-self:center"><span class="leg" style="background:#55636f"></span>стойка <span class="leg" style="background:#1f6f5c"></span>у проёма <span class="leg" style="background:#c4572e"></span>коротыш <span class="leg" style="background:#b7791f"></span>сдвинута от трубы <span class="leg" style="background:#2563eb"></span>под шов листа <span class="leg" style="background:#3b82c4"></span>поперечина${f.slide?' <span class="leg" style="background:#16a34a"></span>скользящая опора':''} <span style="color:#0ea5e9">┆</span> шов 1-го слоя${+f.layers===2?' <span style="color:#a855f7">┆</span> шов 2-го':''}</span></div>`}
+  h+=`<h2>Материалы</h2><div class="card" id="fmat"></div>`;
+  if(!f.els.length)h+=`<div class="empty">Добавьте стену, короб или колонну — каркас и материалы посчитаются сами.</div>`;
+  $('#main').innerHTML=h;fDraw();
+}
+const SLICON={none:'<svg viewBox="0 0 40 26" width="40" height="26"><rect x="3" y="6" width="34" height="18" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
+  one:'<svg viewBox="0 0 40 26" width="40" height="26"><path d="M3 24 V12 L37 4 V24 Z" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
+  two:'<svg viewBox="0 0 40 26" width="40" height="26"><path d="M3 24 V12 L20 3 L37 12 V24 Z" fill="none" stroke="currentColor" stroke-width="2"/></svg>'};
+function fslHtml(el,k){const g=el.segs[k];const s=g.sl||{};const mode=s.on?(s.mode==='two'?'two':'one'):'none';const H0=n0(el.H)||2700;const L=n0(g.len);
+  const chip=(v,t)=>`<button data-fa="slmode" data-k="${k}" data-v="${v}" class="${mode===v?'on':''}" style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px">${SLICON[v]}${t}</button>`;
+  let h=`<div style="margin:0 0 10px 24px"><div class="small mute" style="margin-bottom:4px">Верх участка ${k+1}:</div><div class="chips">${chip('none','Ровный')}${chip('one','Один скат')}${chip('two','Два ската')}</div>`;
+  if(mode==='none')return h+'</div>';
+  const f=(q,l,ph)=>`<label class="f">${l}<input data-fsl="${k}" data-f="${q}" inputmode="decimal" value="${isSet(s[q])?s[q]:''}" placeholder="${ph}"></label>`;
+  if(mode==='one')h+=`<div class="grid2" style="margin-top:8px">${f('h1','① Высота у начала участка, мм',H0)}${f('h2','② Высота в конце участка, мм',H0)}</div>
+    <details style="margin-top:6px"><summary class="small mute">Скат идёт не по всей длине участка</summary><div class="grid2" style="margin-top:6px">${f('x1','Скат начинается: от начала, мм',0)}${f('x2','Скат кончается: от начала, мм',Math.round(L))}</div></details>`;
+  else h+=`<div class="grid2" style="margin-top:8px">${f('hL','① Высота у начала участка',H0)}${f('hR','② Высота в конце участка',H0)}${f('xm','③ Конёк: от начала участка',Math.round(L/2))}${f('hm','④ Высота в коньке',H0)}</div>
+    <details style="margin-top:6px"><summary class="small mute">Есть прямые участки стены до ската</summary><div class="grid2" style="margin-top:6px">${f('xa','Левый скат начинается: от начала',0)}${f('xb','Правый скат кончается: от начала',Math.round(L))}</div></details>`;
+  return h+`<div id="slp-${k}" style="margin-top:8px">${slPreview(el,k)}</div></div>`}
+// мини-схема участка с подписями
+function slPreview(el,k){const g=el.segs[k];const H0=n0(el.H)||2700;const L=n0(g.len)||1;const P=slProf(g.sl,L,H0);if(!P)return'';
+  const mh=Math.max(P.maxH,H0,1);const W=300,Hs=150,sx=(W-130)/L,sy=(Hs-40)/mh;const X=x=>65+x*sx,Y=y=>Hs-18-y*sy;
+  let s=`<svg viewBox="0 0 ${W} ${Hs}" style="width:100%;max-width:360px;background:var(--bg);border-radius:10px;display:block">`;
+  s+=`<polygon points="${P.poly.map(q=>X(q[0])+','+Y(q[1])).join(' ')}" fill="var(--soft2)" stroke="var(--ink)" stroke-width="2"/>`;
+  s+=`<polyline points="${P.pts.map(q=>X(q[0])+','+Y(q[1])).join(' ')}" fill="none" stroke="#d11" stroke-width="3"/>`;
+  const lab=(x,y,t,dx=0,anchor='middle')=>`<text x="${X(x)+dx}" y="${Y(y)-6}" font-size="11" text-anchor="${anchor}" fill="#d11" font-weight="700">${t}</text>`;
+  const s0=g.sl;const two=s0.mode==='two';
+  s+=lab(0,P.top(0),`① ${Math.round(P.top(0))}`,-4,'end')+lab(L,P.top(L),`② ${Math.round(P.top(L))}`,4,'start');
+  if(two){const pk=P.pts[2];s+=lab(pk[0],pk[1],`④ ${Math.round(pk[1])}`);s+=`<line x1="${X(pk[0])}" y1="${Y(0)}" x2="${X(pk[0])}" y2="${Y(pk[1])}" stroke="#d11" stroke-dasharray="3 3"/><text x="${X(pk[0])}" y="${Hs-4}" font-size="10" text-anchor="middle" fill="#d11">③ ${Math.round(pk[0])}</text>`}
+  s+=`<text x="${X(L/2)}" y="${Hs-4}" font-size="10" text-anchor="${two?'start':'middle'}" fill="var(--mute)" dx="${two?18:0}">длина ${Math.round(L)}</text>`;
+  for(const q of P.segs){const mx=(X(q.xa)+X(q.xb))/2,my=(Y(q.ha)+Y(q.hb))/2+14;s+=`<text x="${mx}" y="${my}" font-size="12" text-anchor="middle" font-weight="800" fill="var(--acc2)">${fq(q.ang,1)}°</text>`}
+  s+='</svg>';
+  const info=P.segs.length?P.segs.map((q,i)=>`${P.segs.length>1?(i?'Правый':'Левый')+' скат':'Скат'}: <b>${fq(q.ang,1)}°</b>, длина по скату ${Math.round(q.len)} мм`).join(' · '):'<span class="mute">Высоты одинаковые — скоса нет</span>';
+  return s+`<div class="small" style="margin-top:4px">${info}</div>`}
+function ffld(k,l,v,ph){return`<label class="f">${l}<input data-fk="${k}" inputmode="decimal" value="${isSet(v)?v:''}" placeholder="${ph}"></label>`}
+function felf(k,l,v,ph){return`<label class="f">${l}<input data-fel="${k}" inputmode="decimal" value="${isSet(v)?v:''}" placeholder="${ph}"></label>`}
+function fopsHtml(it,el){const f=F(it);const list=f.ops.filter(o=>o.el===el.id);if(!list.length)return'<div class="small mute" style="margin-top:6px">Пока ничего.</div>';
+  return list.map(o=>{const t=FOP[o.type];const fi=(k,l,ph)=>`<label class="f">${l}<input data-fop="${o.id}" data-f="${k}" inputmode="decimal" value="${isSet(o[k])?o[k]:''}" placeholder="${ph||''}"></label>`;
+    return`<div style="border-top:1px solid var(--line);padding:8px 0;margin-top:6px"><div class="row" style="justify-content:space-between"><b>${t.n}</b><button class="x" data-fa="delop" data-id="${o.id}">✕</button></div>
+    ${o.type==='inst'?`<select data-fop="${o.id}" data-f="preset" style="margin:4px 0">${INST.map((p,i)=>`<option value="${i}" ${+o.preset===i?'selected':''}>${p[0]} — ${p[1]}×${p[2]}</option>`).join('')}</select>`:''}
+    <div class="grid3"><label class="f">Участок<select data-fop="${o.id}" data-f="seg">${el.segs.map((s,i)=>`<option value="${i}" ${+o.seg===i?'selected':''}>${i+1}</option>`).join('')}</select></label>
+    ${t.hole?`${fi('x','Центр от начала')}${fi('y','Центр от пола')}</div><div class="grid3" style="margin-top:6px">${fi('d','Диаметр',t.d)}</div>`:`${fi('x','От начала участка')}${fi('y','Низ от пола')}</div><div class="grid3" style="margin-top:6px">${fi('w','Ширина')}${fi('h','Высота')}</div>`}
+    ${o.type==='inst'?'<div class="small mute">Размеры рамы — типовые, сверьте с паспортом инсталляции. Стойки встанут по бокам рамы.</div>':''}</div>`}).join('')}
+function fDraw(){const it=cur();const f=F(it);const el=f.els.find(e=>e.id===f.sel);const C=frameCalc(it);
+  const m=$('#fmat');if(m){const cutT=(title,list)=>list.length?`<div class="cutsh">${title}</div><table class="cuts">${list.map(g=>`<tr><td><b>${g.name}</b>${g.note?`<div class="small mute">${esc(g.note)}</div>`:''}</td><td class="n"><b class="cutlen">${g.len}</b>&nbsp;мм</td><td class="n cnt">×&nbsp;<b>${g.n}</b></td></tr>`).join('')}</table>`:'';
+    const binT=(pk,bar,nm)=>pk&&pk.bins.length?`<details class="bins"><summary>Раскрой хлыстов ${nm} по ${bar} мм — ${pk.bars} шт</summary>${pk.bins.map((b,i)=>`<div class="bin"><span class="mute">${i+1}.</span> ${b.list.map(p=>`<span class="pc" style="flex:${p.len}">${Math.round(p.len)}</span>`).join('')}<span class="pc rest" style="flex:${Math.max(0,bar-b.used)}">${Math.max(0,Math.round(bar-b.used))}</span></div>`).join('')}<div class="small mute">Пропил 3 мм учтён. Серым — остаток.</div></details>`:'';
+    const floorT=F(it).sys==='wb'&&C.floor&&C.floor.length?`<h3 style="margin-top:14px">Опоры к полу WB90302 — где ставить (${C.floor.length} шт)</h3><div class="small">${[...new Set(C.floor.map(s=>s.where))].map(w=>`<div style="margin:4px 0"><b>${esc(w)}:</b> ${C.floor.filter(s=>s.where===w).map(s=>s.x+(s.crip?' (коротыш)':'')).join(' · ')} <span class="mute">мм от начала до оси стойки</span></div>`).join('')}</div>`:'';
+    const slideT=C.slide.length?`<h3 style="margin-top:14px">Скользящие опоры — где ставить</h3><div class="small">${[...new Set(C.slide.map(s=>s.where))].map(w=>`<div style="margin:4px 0"><b>${esc(w)}:</b> ${C.slide.filter(s=>s.where===w).map(s=>s.x).join(' · ')} <span class="mute">мм от начала, по одной на каждую стойку у потолка</span></div>`).join('')}
+      ${C.wallFix.map(w=>`<div style="margin:4px 0"><b>${esc(w.where)}:</b> на высоте ${w.ys.join(' · ')} мм</div>`).join('')}</div>`:'';
+    m.innerHTML=`<table class="cuts">${C.m.map(r=>`<tr><td>${r[0]}${r[2]?`<div class="small mute">${r[2]}</div>`:''}</td><td class="n"><b>${r[1]}</b></td></tr>`).join('')}</table>
+    ${C.warn.length?`<div class="fwarn">${C.warn.map(esc).join('<br>')}</div>`:''}
+    <h3 style="margin-top:14px">Заготовки — что напилить</h3><div class="small mute">Длины уже с учётом ${F(it).slide?'зазора под усадку ('+gapTop(F(it))+' мм)':F(it).sys==='knauf'?'−10 мм на стойку':'зазоров'} и толщины профиля (${PW(F(it))} мм). Все элементы вместе.</div>
+    ${cutT(F(it).sys==='knauf'?'Стоечный профиль '+(C.nameS||''):'Профиль WALLBOX 33×33',C.cutsS)}${cutT('Направляющий профиль '+(C.nameN||''),C.cutsN)}
+    ${binT(C.packS,C.barS,C.nameS)}${binT(C.packN,C.barN,C.nameN)}
+    ${floorT}${slideT}
+    ${el?`<h3 style="margin-top:14px">Разметка стоек — ${esc(el.name)}</h3><div class="small">${el.segs.map((s,si)=>{const P=panelCalc(it,el,si,s);return`Участок ${si+1}: ${P.xs.map(x=>P.SL?`${x} (h ${Math.round(P.topAt(x))})`:x).join(' · ')}`}).join('<br>')}<div class="mute">мм от начала участка до оси стойки</div></div>`:''}
+    <div class="small mute" style="margin-top:8px">Расход ориентировочный: сверьте с проектом и инструкцией производителя.</div>`}
+  const cv=$('#fv');if(!cv||!el)return;const W0=cv.clientWidth||360;const tmp=frameSvg(it,el,1);const pad=Math.max(tmp.W,tmp.H)*0.09+250;
+  if(!cv._h){cv.style.height=Math.round(Math.max(240,Math.min(innerHeight*0.55,W0*(tmp.H+2*pad)/(tmp.W+2*pad))))+'px';cv._h=1}
+  const H0=cv.clientHeight||300;let vw=tmp.W+2*pad,vh=tmp.H+2*pad;const ar=W0/H0;if(vw/vh<ar)vw=vh*ar;else vh=vw/ar;if(fview.cx===null){fview.cx=tmp.W/2;fview.cy=tmp.H/2}
+  vw/=fview.z;vh/=fview.z;const sc=W0/vw;const {s}=frameSvg(it,el,sc);cv.setAttribute('viewBox',`${fview.cx-vw/2} ${fview.cy-vh/2} ${vw} ${vh}`);cv.innerHTML=s;const fi=$('#finfo');if(fi)fi.innerHTML=fInfoHtml()}
+function newEl(it,type){const f=F(it);const H=n0(it.ceil)||2700;let el;
+  if(type==='wall')el={id:uid(),type:'wall',name:'Стена '+(f.els.length+1),H,sides:2,segs:[{len:2500,dir:0}]};
+  else if(type==='box')el={id:uid(),type:'box',name:'Короб '+(f.els.length+1),H,segs:[{len:300,dir:2},{len:600,dir:0},{len:300,dir:6}]};
+  else el={id:uid(),type:'col',name:'Колонна '+(f.els.length+1),H,segs:[{len:400,dir:0},{len:400,dir:2},{len:400,dir:4},{len:400,dir:6}]};
+  f.els.push(el);f.sel=el.id;return el}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-fset],[data-fa]');if(!b)return;const it=cur();const f=F(it);const el=f.els.find(x=>x.id===f.sel);
+  if(b.dataset.fset){const k=b.dataset.fset,v=b.dataset.v;f[k]=(k==='layers')?+v:v;save();renderFrame();return}
+  const a=b.dataset.fa;
+  if(a==='sel'){f.sel=b.dataset.id;fview={z:1,cx:null,cy:null}}
+  else if(a==='addwall'||a==='addbox'||a==='addcol'){newEl(it,a==='addwall'?'wall':a==='addbox'?'box':'col');fview={z:1,cx:null,cy:null}}
+  else if(a==='delel'){if(!confirm('Удалить элемент?'))return;f.ops=f.ops.filter(o=>o.el!==f.sel);f.els=f.els.filter(x=>x.id!==f.sel);f.sel=null}
+  else if(a==='addseg'){el.segs.push({len:'',dir:+b.dataset.d})}
+  else if(a==='slmode'){const g=el.segs[+b.dataset.k];g.sl=g.sl||{};const v=b.dataset.v;if(v==='none')g.sl.on=false;else{g.sl.on=true;g.sl.mode=v}const cv=$('#fv');if(cv)cv._h=0}
+  else if(a==='delseg'){const k=+b.dataset.k;el.segs.splice(k,1);f.ops=f.ops.filter(o=>!(o.el===el.id&&+o.seg===k)).map(o=>o.el===el.id&&+o.seg>k?{...o,seg:+o.seg-1}:o)}
+  else if(a==='addop'){const t=FOP[b.dataset.v];const L=n0(el.segs[0]?.len)||1000;const o={id:uid(),el:el.id,seg:0,type:b.dataset.v,y:t.y};
+    if(t.hole){o.x=Math.round(L/2);o.d=t.d}else{o.w=t.w;o.h=t.h;o.x=Math.max(0,Math.round((L-t.w)/2))}if(o.type==='inst'){o.preset=0}f.ops.push(o)}
+  else if(a==='delop'){f.ops=f.ops.filter(o=>o.id!==b.dataset.id)}
+  else if(a==='fzin'){fview.z=Math.min(15,fview.z*1.6);fDraw();return}
+  else if(a==='fzout'){fview.z=Math.max(1,fview.z/1.6);if(fview.z===1)fview.cx=null;fDraw();return}
+  else if(a==='fzfit'){fview={z:1,cx:null,cy:null};fDraw();return}
+  else if(a==='fhitx'){FSEL=null;fDraw();return}
+  save();renderFrame()});
+document.addEventListener('change',e=>{const c=e.target;if(!c.dataset||!c.dataset.fchk)return;const f=F(cur());f[c.dataset.fchk]=c.checked;save();renderFrame()});
+document.addEventListener('input',e=>{const el2=e.target,d=el2.dataset;if(!(d.fk||d.fel||d.fseg!==undefined||d.fop||d.fsl!==undefined))return;const it=cur();const f=F(it);const el=f.els.find(x=>x.id===f.sel);
+  if(d.fk){f[d.fk]=el2.value}
+  else if(d.fel){el[d.fel]=el2.type==='checkbox'?el2.checked:el2.value;if(d.fel==='name'){save();const c=document.querySelector(`[data-fa="sel"][data-id="${el.id}"]`);if(c)c.textContent=el2.value;return}}
+  else if(d.fsl!==undefined){el.segs[+d.fsl].sl[d.f]=el2.value;save();const pv=document.getElementById('slp-'+d.fsl);if(pv)pv.innerHTML=slPreview(el,+d.fsl);const cv=$('#fv');if(cv)cv._h=0;fDraw();return}
+  else if(d.fseg!==undefined){el.segs[+d.fseg][d.f]=d.f==='dir'?+el2.value:el2.value;const p=$('#fplan');if(p)p.innerHTML=framePlan(el)}
+  else if(d.fop){const o=f.ops.find(x=>x.id===d.fop);if(!o)return;o[d.f]=el2.value;if(d.f==='preset'){const p=INST[+el2.value];if(p&&p[0]!=='Своя'){o.w=p[1];o.h=p[2]};save();$('#fops').innerHTML=fopsHtml(it,el)}
+    if(d.f==='seg'){save();$('#fops').innerHTML=fopsHtml(it,el)}}
+  save();const cv=$('#fv');if(cv&&(d.fel==='H'))cv._h=0;fDraw()});
+// перетаскивание и щипок для схемы каркаса
+let fdrag=null;
+document.addEventListener('pointerdown',e=>{const cv=e.target.closest('#fv');if(!cv)return;fdrag={x:e.clientX,y:e.clientY,cx:fview.cx,cy:fview.cy,sc:cv.clientWidth/cv.viewBox.baseVal.width};cv.setPointerCapture(e.pointerId)});
+document.addEventListener('pointermove',e=>{if(!fdrag)return;fview.cx=fdrag.cx-(e.clientX-fdrag.x)/fdrag.sc;fview.cy=fdrag.cy-(e.clientY-fdrag.y)/fdrag.sc;fDraw()});
+document.addEventListener('pointerup',e=>{if(fdrag&&Math.hypot(e.clientX-fdrag.x,e.clientY-fdrag.y)<8){const t=document.elementFromPoint(e.clientX,e.clientY);const hi=t&&t.dataset&&t.dataset.fhit;
+    FSEL=hi!==undefined&&FHIT[+hi]?FHIT[+hi].k:null;fdrag=null;fDraw();return}fdrag=null});
+window.addEventListener('resize',()=>{if(S.view==='edit'&&S.tab==='frame')fDraw()});
+
+// ================== приближение двумя пальцами (и колёсиком) ==================
+const PTS=new Map();let pinch=null,prf=0;
+function stageOf(t){const el=t&&t.closest&&t.closest('#cv,#wv,#fv');if(!el)return null;return{el,isW:el.id==='wv'}}
+function vObj(k){return k==='wv'||k===true?wview:k==='fv'?fview:view}
+function redrawStage(k){if(prf)return;prf=requestAnimationFrame(()=>{prf=0;k==='wv'?wDraw(false):k==='fv'?fDraw():draw(false)})}
+document.addEventListener('pointerdown',e=>{const st=stageOf(e.target);if(!st)return;PTS.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(PTS.size===2){
+    // отменяем начатое перетаскивание одним пальцем
+    if(typeof fdrag!=='undefined')fdrag=null;const it=cur();if(drag){if(drag.moved&&mode==='move'){it.ox=drag.ox;it.oy=drag.oy}drag=null}
+    if(wdrag){if(wdrag.moved&&wmode==='move'){const T=W(it);T.y0=wdrag.y0;if(wdrag.ox!==undefined)T.wx[wdrag.wall]=wdrag.ox}wdrag=null}
+    const [a,b]=[...PTS.values()];const vb=st.el.viewBox.baseVal;const r=st.el.getBoundingClientRect();const V=vObj(st.el.id);
+    const mid=[(a.x+b.x)/2,(a.y+b.y)/2];
+    pinch={...st,d0:Math.hypot(a.x-b.x,a.y-b.y)||1,z0:V.z,bw:vb.width*V.z,bh:vb.height*V.z,r,
+      P:[vb.x+(mid[0]-r.left)*vb.width/r.width,vb.y+(mid[1]-r.top)*vb.height/r.height]};
+    try{st.el.setPointerCapture(e.pointerId)}catch(_){}
+    e.stopPropagation();e.preventDefault();redrawStage(st.el.id)}
+  else if(PTS.size>2)e.stopPropagation();
+},true);
+document.addEventListener('pointermove',e=>{if(!PTS.has(e.pointerId))return;PTS.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(!pinch)return;e.stopPropagation();if(PTS.size<2)return;
+  const [a,b]=[...PTS.values()];const d=Math.hypot(a.x-b.x,a.y-b.y);const V=vObj(pinch.el.id);
+  const z=Math.max(1,Math.min(15,pinch.z0*d/pinch.d0));const vw=pinch.bw/z,vh=pinch.bh/z;const r=pinch.r;
+  const mid=[(a.x+b.x)/2,(a.y+b.y)/2];const vx=pinch.P[0]-(mid[0]-r.left)*vw/r.width,vy=pinch.P[1]-(mid[1]-r.top)*vh/r.height;
+  V.z=z;V.cx=vx+vw/2;V.cy=vy+vh/2;if(z<=1.0001){V.cx=null;V.cy=null}redrawStage(pinch.el.id)},true);
+const endPt=e=>{if(!PTS.has(e.pointerId))return;PTS.delete(e.pointerId);if(pinch){e.stopPropagation();if(PTS.size===0){const k=pinch.el.id;pinch=null;k==='wv'?wDraw(true):k==='fv'?fDraw():draw(true)}}};
+document.addEventListener('pointerup',endPt,true);document.addEventListener('pointercancel',endPt,true);
+document.addEventListener('wheel',e=>{const st=stageOf(e.target);if(!st)return;e.preventDefault();const V=vObj(st.el.id);const vb=st.el.viewBox.baseVal;const r=st.el.getBoundingClientRect();
+  const P=[vb.x+(e.clientX-r.left)*vb.width/r.width,vb.y+(e.clientY-r.top)*vb.height/r.height];const bw=vb.width*V.z,bh=vb.height*V.z;
+  const z=Math.max(1,Math.min(15,V.z*(e.deltaY<0?1.15:1/1.15)));const vw=bw/z,vh=bh/z;const vx=P[0]-(e.clientX-r.left)*vw/r.width,vy=P[1]-(e.clientY-r.top)*vh/r.height;
+  V.z=z;V.cx=vx+vw/2;V.cy=vy+vh/2;redrawStage(st.el.id)},{passive:false});
+
+// помещение пришло из «Сметы»
+function addRoomItem(item){const n={...newItem(),...item};if(!n.walls)n.walls=[];S.items.unshift(n);S.cur=n.id;S.view='edit';S.tab='room';saveNow();render();scrollTo(0,0);toast('Помещение из сметы: проверьте размеры и выберите плитку')}
+window.addEventListener('message',e=>{if(e.origin!==location.origin)return;const d=e.data;if(d&&d.type==='addRoom'&&d.item)addRoomItem(d.item)});
+load();
+if(!S.items.length){const n=newItem();n.name='Пример: санузел (Г-образный)';n.shape='free';n.walls=[{len:2700,dir:0},{len:1200,dir:2},{len:900,dir:4},{len:900,dir:2},{len:1800,dir:4},{len:2100,dir:6}];S.items.push(n);saveNow()}
+render();
+</script>
+</body>
+</html>
