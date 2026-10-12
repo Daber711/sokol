@@ -22,7 +22,8 @@ html,body{margin:0;height:100%;background:var(--bar);font:16px/1.4 -apple-system
 #bar button b{font-size:18px;font-weight:500;line-height:1;width:44px;height:30px;display:grid;place-items:center;border-radius:999px;transition:background .15s,color .15s}
 #bar button.on{color:var(--barink)}
 #bar button.on b{background:var(--acc);color:#fff;box-shadow:0 4px 12px -4px rgba(208,89,47,.6)}
-#bar .more{flex:none;width:56px}
+#bar .more{flex:none;width:46px}
+#bar button{font-size:10.5px!important}
 #frames{flex:1;position:relative;background:var(--bg)}
 #frames iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:none;background:var(--bg)}
 #frames iframe.on{display:block}
@@ -59,6 +60,7 @@ const APPS=[
   {id:'smeta',n:'Смета',i:'₽',src:'smeta.html',key:'smeta_plitka_v1'},
   {id:'plan',n:'Планёрка',i:'☑',src:'planerka.html',key:'planerka_v1'},
   {id:'rask',n:'Раскладка',i:'▦',src:'raskladka.html',key:'raskladka_v1'},
+  {id:'calc',n:'Расчёты',i:'⌗',src:'calc.html',key:'raschety_v1'},
 ];
 const LAST='master_last_app';
 const $=s=>document.querySelector(s);
@@ -85,7 +87,8 @@ function importFile(file){const r=new FileReader();r.onload=()=>{let o;try{o=JSO
   else if(o&&Array.isArray(o.entries)){if(!confirm('Это копия «Учёта». Заменить записи учёта?'))return;localStorage.setItem('plitka',JSON.stringify(o));done.push('uchet')}
   else if(o&&Array.isArray(o.jobs)){if(!confirm('Это копия «Сметы». Заменить данные сметы?'))return;localStorage.setItem('smeta_plitka_v1',JSON.stringify(o));done.push('smeta')}
   else if(o&&Array.isArray(o.works)&&Array.isArray(o.plans)){if(!confirm('Это копия «Планёрки». Заменить данные планёрки?'))return;localStorage.setItem('planerka_v1',JSON.stringify(o));done.push('plan')}
-  else if(o&&Array.isArray(o.items)){if(!confirm('Это копия «Раскладки». Заменить данные раскладки?'))return;localStorage.setItem('raskladka_v1',JSON.stringify(o));done.push('rask')}
+  else if(o&&Array.isArray(o.items)&&!o.mat){if(!confirm('Это копия «Раскладки». Заменить данные раскладки?'))return;localStorage.setItem('raskladka_v1',JSON.stringify(o));done.push('rask')}
+  else if(o&&Array.isArray(o.items)&&o.items.some(x=>x.type==='floor')&&o.mat){if(!confirm('Это копия «Расчётов». Заменить?'))return;localStorage.setItem('raschety_v1',JSON.stringify(o));done.push('calc')}
   else{toast('Не узнал формат копии');return}
   // перезагрузить открытые приложения
   document.querySelectorAll('#frames iframe').forEach(f=>{try{f.contentWindow.location.reload()}catch(e){}});

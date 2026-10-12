@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#f2f3f5">
+<title>Расчёты</title>
+<style>
+[hidden]{display:none!important}
+:root{--bg:#f3f1ec;--card:#fff;--ink:#1d2328;--mute:#6b7378;--line:#e2ded6;--acc:#c4572e;--acc2:#1f6f5c;--bad:#b42318;--soft:#f8efe9;--soft2:#e8f3ef;--head:#1f2a33;--inp:#fbfaf7;--hi:#d9480f;--lo:#1c7ed6;--ok:#2f9e44}
+@media (prefers-color-scheme:dark){:root{--bg:#14181b;--card:#1d2328;--ink:#eef0f1;--mute:#9aa3a8;--line:#2e363c;--acc:#e0784f;--acc2:#4fbf9f;--bad:#f07167;--soft:#2a211d;--soft2:#17302a;--head:#0f1316;--inp:#252c32;--hi:#ff8a4c;--lo:#5aa9ff;--ok:#51cf66}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+body{padding-bottom:calc(30px + env(safe-area-inset-bottom))}
+button{font:inherit;color:inherit;cursor:pointer}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--inp);border:1px solid var(--line);border-radius:10px;padding:9px 10px;width:100%;min-width:0}
+header{position:sticky;top:0;z-index:20;background:var(--head);color:#fff;padding:calc(10px + env(safe-area-inset-top)) 14px 10px;display:flex;align-items:center;gap:10px}
+header h1{font-size:18px;margin:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+header button{background:none;border:0;color:#fff;font-size:22px;padding:0 6px}
+main{padding:12px;max-width:760px;margin:0 auto}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px}
+.row{display:flex;gap:8px;align-items:center}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+label.f{display:block;font-size:12px;color:var(--mute)}label.f input,label.f select{margin-top:3px}
+.mute{color:var(--mute)}.small{font-size:12.5px}
+.btn{border:0;border-radius:11px;padding:11px 14px;background:var(--acc);color:#fff;font-weight:600}
+.btn.sec{background:var(--soft);color:var(--acc)}.btn.ghost{background:var(--card);border:1px solid var(--line);color:var(--ink);font-weight:500}
+.btn.wide{width:100%}.btn.sm{padding:7px 11px;font-size:13.5px}
+.x{background:none;border:0;color:var(--mute);font-size:18px;padding:4px 8px;flex:none}
+h2{font-size:16px;margin:16px 4px 8px}h3{font-size:15px;margin:0 0 6px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:7px 12px;font-size:14px}
+.chips button.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.item{display:block;width:100%;text-align:left;border:1px solid var(--line);background:var(--card);border-radius:14px;padding:13px;margin-bottom:10px}
+.item .t{font-weight:700;font-size:16px}
+.empty{text-align:center;color:var(--mute);padding:26px 10px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:40px;background:var(--ink);color:var(--bg);padding:9px 14px;border-radius:10px;z-index:99;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.on{opacity:1}
+.target{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--soft);border-radius:12px;padding:10px 12px;margin-top:10px}
+.target b{font-size:22px;color:var(--acc);font-variant-numeric:tabular-nums}
+.mgrid{display:grid;gap:4px;margin-top:8px}
+.mgrid .cell{position:relative;border-radius:10px;border:2px solid var(--line);background:var(--inp);padding:3px}
+.mgrid .cell input{border:0;background:transparent;text-align:center;padding:6px 2px 2px;font-weight:700;font-size:16px!important;min-height:0}
+.mgrid .cell .d{display:block;text-align:center;font-size:11.5px;font-weight:700;min-height:15px}
+.mgrid .cell.lo{border-color:var(--lo)}.mgrid .cell.lo .d{color:var(--lo)}
+.mgrid .cell.hi{border-color:var(--hi)}.mgrid .cell.hi .d{color:var(--hi)}
+.mgrid .cell.ok{border-color:var(--ok)}.mgrid .cell.ok .d{color:var(--ok)}
+.wall{font-size:11.5px;color:var(--mute);text-align:center;letter-spacing:.06em;text-transform:uppercase;margin:6px 0 2px}
+.door{height:6px;background:repeating-linear-gradient(90deg,var(--acc) 0 10px,transparent 10px 16px);border-radius:3px;margin:6px 20%}
+.opt{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:8px}
+.opt.best{border:2px solid var(--acc2);background:var(--soft2)}
+.opt.no{opacity:.55}
+.opt .h{display:flex;justify-content:space-between;gap:8px;font-weight:700}
+.opt ul{margin:6px 0 0;padding-left:18px}.opt li{margin:2px 0}
+.tag{display:inline-block;font-size:11px;padding:2px 7px;border-radius:999px;background:var(--acc2);color:#fff;font-weight:700;vertical-align:1px}
+.tag.no{background:var(--mute)}
+.kpi{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.kpi div{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px}
+.kpi span{display:block;font-size:12px;color:var(--mute)}.kpi b{font-size:19px}
+.leg{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:4px}
+/*THEME-START — современный стиль «Мастер плитки»*/
+:root{--bg:#f2f3f5;--card:#fff;--ink:#14181c;--mute:#69727a;--line:#e5e7ea;--line2:rgba(16,24,40,.07);
+  --acc:#d0592f;--acc2:#0f7a63;--bad:#c42b1c;--warn:#b7791f;--soft:#fcefe9;--soft2:#e5f4ee;--inp:#f6f7f8;
+  --head:rgba(242,243,245,.86);--headink:#14181c;--sh:0 1px 2px rgba(16,24,40,.05),0 2px 8px rgba(16,24,40,.06);--ring:rgba(208,89,47,.2)}
+@media (prefers-color-scheme:dark){:root{--bg:#0d1012;--card:#171b1f;--ink:#eef1f3;--mute:#98a1a8;--line:#262c31;--line2:#22282d;
+  --acc:#f07a4d;--acc2:#44c29b;--bad:#ff7a6e;--warn:#e8ae55;--soft:#2c1d16;--soft2:#11291f;--inp:#1e2328;
+  --head:rgba(13,16,18,.86);--headink:#eef1f3;--sh:0 1px 2px rgba(0,0,0,.3);--ring:rgba(240,122,77,.25)}}
+html,body{font:16px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,Inter,Arial,sans-serif;-webkit-font-smoothing:antialiased;letter-spacing:-.005em}
+input,select,textarea{font-size:16px!important;padding:11px 12px;border-radius:12px;border:1px solid var(--line);background:var(--inp);min-height:46px;transition:border-color .15s,box-shadow .15s}
+input[type=checkbox]{min-height:0;accent-color:var(--acc)}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px var(--ring);background:var(--card)}
+input::placeholder{color:#a3aab0}
+label.f{font-size:13px;font-weight:500;color:var(--mute)}
+label.f input,label.f select{margin-top:5px}
+header{background:var(--head)!important;color:var(--headink)!important;-webkit-backdrop-filter:saturate(180%) blur(16px);backdrop-filter:saturate(180%) blur(16px);
+  padding:calc(10px + env(safe-area-inset-top)) 14px 10px!important;min-height:calc(58px + env(safe-area-inset-top));border-bottom:1px solid var(--line2)}
+header h1{font-size:21px!important;font-weight:750;letter-spacing:-.02em}
+header button,header .back{color:var(--ink)!important;background:var(--card)!important;border:1px solid var(--line2)!important;border-radius:12px!important;min-width:38px;height:38px;padding:0 8px!important;font-size:18px!important;display:inline-grid;place-items:center;box-shadow:var(--sh)}
+.tabs{background:var(--head)!important;-webkit-backdrop-filter:saturate(180%) blur(16px);backdrop-filter:saturate(180%) blur(16px);top:calc(58px + env(safe-area-inset-top))!important;padding:8px 12px 10px!important;gap:6px!important;border-bottom:1px solid var(--line2)}
+.tabs button{background:var(--card)!important;color:var(--mute)!important;font-weight:600;font-size:14.5px!important;padding:8px 15px!important;border:1px solid var(--line2)!important;box-shadow:var(--sh)}
+.tabs button.on{background:var(--ink)!important;color:var(--bg)!important;border-color:var(--ink)!important}
+main{padding:14px 14px 100px}
+.card,.job,.plan,.item,details.cat,details.w,.kpi div,#stage{border:1px solid var(--line2)!important;box-shadow:var(--sh);border-radius:18px!important}
+.card{padding:16px}
+.job,.plan,.item{padding:16px;transition:transform .1s}
+.job:active,.plan:active,.item:active{transform:scale(.99)}
+.job .t,.plan .t,.item .t{font-size:17px;letter-spacing:-.01em}
+h2{font-size:19px;font-weight:750;letter-spacing:-.02em;margin:24px 4px 10px}
+h3{font-size:16px;font-weight:700}
+.small{font-size:13.5px}
+.btn{border-radius:14px;padding:13px 16px;font-weight:650;letter-spacing:-.005em;transition:transform .08s,filter .15s}
+.btn:not(.sec):not(.ghost){background:var(--acc);box-shadow:0 6px 16px -6px rgba(208,89,47,.55)}
+.btn:active{transform:scale(.98)}
+.btn.sec{background:var(--soft);color:var(--acc)}
+.btn.ghost{background:var(--card);border:1px solid var(--line)}
+.btn.sm{padding:9px 13px;font-size:14px;border-radius:12px}
+.x{border-radius:10px}
+.chips{gap:8px}
+.chips button,.pick,.tools button{border:1px solid var(--line)!important;background:var(--card);border-radius:999px;padding:8px 14px;font-size:14.5px;font-weight:500;box-shadow:var(--sh)}
+.tools button{border-radius:12px}
+.chips button.on,.pick.on,.tools button.on{background:var(--acc)!important;border-color:var(--acc)!important;color:#fff}
+.chip{border-color:var(--line2)!important;box-shadow:var(--sh);font-weight:500;padding:6px 4px 6px 13px}
+details.cat>summary,details.w>summary{padding:15px 16px;font-size:16px}
+details.sub>summary{padding:13px 16px}
+.it{padding:13px 16px}
+.it .nm{font-size:15.5px;font-weight:500}
+.it .meta{font-size:13px}
+.tool{padding:14px 16px}
+.tool .bx{border-radius:8px}
+.kpi div{padding:12px}
+.kpi b{font-size:20px;letter-spacing:-.02em}
+nav.bot{background:var(--head)!important;-webkit-backdrop-filter:saturate(180%) blur(16px);backdrop-filter:saturate(180%) blur(16px);border-top:1px solid var(--line2)!important}
+nav.bot button{font-size:11.5px;font-weight:600;padding:8px 0 7px}
+nav.bot button b{font-size:20px;width:46px;height:28px;display:grid;place-items:center;border-radius:999px;transition:background .15s}
+nav.bot button.on b{background:var(--soft)}
+.bar{left:10px!important;right:10px!important;bottom:calc(66px + env(safe-area-inset-bottom))!important;border-radius:16px;background:#14181c!important;color:#fff;padding:10px 16px!important;box-shadow:0 10px 30px -8px rgba(0,0,0,.45)}
+@media (prefers-color-scheme:dark){.bar{background:#262c31!important}}
+.toast{border-radius:999px!important;padding:11px 18px!important;font-weight:500;box-shadow:0 10px 30px -8px rgba(0,0,0,.4)}
+.sep{background:var(--line2)}
+.var,.pat button{border-radius:14px}
+table.doc{font-size:14px}
+.empty{padding:40px 16px}
+/*THEME-END*/
+
+</style>
+</head>
+<body>
+<header id="hdr"></header>
+<main id="main"></main>
+<div class="toast" id="toast"></div>
+<script>
+const KEY='raschety_v1';
+const $=s=>document.querySelector(s);
+const uid=()=>Math.random().toString(36).slice(2,9);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const num=v=>{if(v===null||v===undefined)return NaN;const s=String(v).replace(/\s/g,'').replace(',','.');return s===''?NaN:parseFloat(s)};
+const n0=v=>{const x=num(v);return isFinite(x)?x:0};
+const isSet=v=>v!==undefined&&v!==null&&String(v).trim()!=='';
+const fq=(v,d=1)=>(Math.round(v*10**d)/10**d).toLocaleString('ru-RU',{maximumFractionDigits:d});
+const rub=v=>Math.round(v).toLocaleString('ru-RU')+' ₽';
+function toast(t){const el=$('#toast');el.textContent=t;el.classList.add('on');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('on'),2200)}
+// материалы по умолчанию: расход кг на м² на 1 мм слоя
+const DEFM={self:{n:'Наливной пол',k:1.6,bag:25,price:'',min:3},rem:{n:'Ремонтная смесь / ремсостав',k:1.9,bag:25,price:''},glue:{n:'Клей для плитки',k:1.4,bag:25,price:'',max:10},grind:{price:'',max:10}};
+let S=null;
+function load(){try{S=JSON.parse(localStorage.getItem(KEY)||'null')}catch(e){}if(!S)S={items:[],cur:null,view:'list',mat:{}};S.items=S.items||[];S.mat=S.mat||{};
+  for(const k in DEFM)S.mat[k]={...DEFM[k],...(S.mat[k]||{})}}
+let st;function save(){clearTimeout(st);st=setTimeout(saveNow,200)}
+function saveNow(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){toast('Не сохранилось')}}
+window.addEventListener('pagehide',saveNow);
+function newFloor(){return{id:uid(),type:'floor',name:'Санузел',L:2000,W:1700,nx:4,ny:3,ref:'',tile:10,glue:5,hydro:1,offset:0,tol:2,pts:{},date:new Date().toISOString().slice(0,10)}}
+const cur=()=>S.items.find(x=>x.id===S.cur);
+
+// ---------- расчёт ----------
+// точка сетки: координаты (мм) от левой стены и от стены с дверью
+function grid(it){const L=Math.max(300,n0(it.L)),W=Math.max(300,n0(it.W)),nx=Math.max(2,+it.nx||3),ny=Math.max(2,+it.ny||3);
+  const m=Math.min(150,L/(2*nx),W/(2*ny));const xs=[],ys=[];for(let i=0;i<nx;i++)xs.push(m+(L-2*m)*i/(nx-1));for(let j=0;j<ny;j++)ys.push(m+(W-2*m)*j/(ny-1));return{L,W,nx,ny,xs,ys}}
+// толщина пирога: насколько основание должно быть ниже паркета
+const cake=it=>n0(it.tile)+n0(it.glue)+n0(it.hydro)-n0(it.offset);
+// d > 0 — основание ниже нужного (долить), d < 0 — выше (стесать)
+function analyze(it){const G=grid(it);const tgt=n0(it.ref)+cake(it);const tol=Math.max(0,n0(it.tol));const P=[];
+  for(let j=0;j<G.ny;j++)for(let i=0;i<G.nx;i++){const v=num(it.pts[i+','+j]);if(isFinite(v))P.push({i,j,x:G.xs[i],y:G.ys[j],d:v-tgt})}
+  if(!isFinite(num(it.ref))||P.length<2)return{G,tgt,P,ready:false};
+  // поле отклонений: обратные расстояния по всем точкам, мелкая сетка 40×40
+  const N=40,cw=G.L/N,ch=G.W/N;const cells=[];
+  for(let b=0;b<N;b++)for(let a=0;a<N;a++){const x=(a+.5)*cw,y=(b+.5)*ch;let s=0,w=0,hit=null;
+    for(const p of P){const r2=(p.x-x)**2+(p.y-y)**2;if(r2<1){hit=p.d;break}const ww=1/r2;s+=ww*p.d;w+=ww}cells.push({a,b,d:hit!==null?hit:s/w})}
+  const cA=cw*ch/1e6;const A=G.L*G.W/1e6;
+  const M=S.mat;const E=Math.max(0,n0(M.glue.max)-n0(it.glue));// сколько ещё возьмёт клей сверх обычного слоя
+  const st={A,lowMax:Math.max(0,...P.map(p=>p.d)),highMax:Math.max(0,...P.map(p=>-p.d)),
+    fillV:cells.reduce((s,c)=>s+Math.max(0,c.d)*cA,0),// м²·мм = литры
+    grindA:cells.filter(c=>-c.d>tol).length*cA,grindV:cells.reduce((s,c)=>s+Math.max(0,-c.d-0)*(-c.d>tol?1:0)*cA,0),
+    lowA:cells.filter(c=>c.d>tol).length*cA};
+  // варианты
+  const opts=[];const bags=(kg,m)=>m.bag>0?Math.ceil(kg/m.bag-1e-9):0;const cost=(kg,m)=>isSet(m.price)?bags(kg,m)*n0(m.price):null;
+  const grindCost=a=>isSet(M.grind.price)?a*n0(M.grind.price):null;
+  const needGrind=st.highMax>tol,canGrind=st.highMax<=n0(M.grind.max);
+  const gLine=needGrind?[`Стесать бугры: ${fq(st.grindA,2)} м², до ${fq(st.highMax)} мм (≈${fq(st.grindV,1)} л)`]:[];
+  // 1. клей
+  {const ok=!needGrind&&st.lowMax<=E+tol;const kg=st.fillV*M.glue.k;
+    opts.push({id:'glue',n:'Добрать клеем',ok,why:ok?'':needGrind?`есть бугры выше допуска (до ${fq(st.highMax)} мм)`:`ямы до ${fq(st.lowMax)} мм — клей берёт ещё только ${fq(E)} мм сверх обычного слоя`,
+      lines:[`Лишний клей: ${fq(kg,1)} кг (${bags(kg,M.glue)} меш.)`,'Ничего не сохнет — можно класть сразу','Плитку выставлять по лазеру, клей толще в ямах'],cost:cost(kg,M.glue),days:0,work:0})}
+  // 2. стесать + клей
+  if(needGrind){const ok=canGrind&&st.lowMax<=E+tol;const kg=st.fillV*M.glue.k;const gc=grindCost(st.grindA);const c=cost(kg,M.glue);
+    opts.push({id:'grind',n:'Стесать бугры + клей',ok,why:ok?'':!canGrind?`бугор ${fq(st.highMax)} мм — больше, чем разумно стесать (${fq(n0(M.grind.max))} мм)`:`ямы до ${fq(st.lowMax)} мм — клей не возьмёт`,
+      lines:[...gLine,`Лишний клей: ${fq(kg,1)} кг (${bags(kg,M.glue)} меш.)`,'Шлифовка чашкой по бетону, с пылесосом'],cost:c===null&&gc===null?null:(c||0)+(gc||0),days:0,work:st.grindA})}
+  // 3. ремсостав местами + клей
+  {const deep=cells.filter(c=>c.d>E);const remV=deep.reduce((s,c)=>s+(c.d)*cA,0);const deepA=deep.length*cA;const restV=cells.reduce((s,c)=>s+(c.d>E?0:Math.max(0,c.d))*cA,0);
+    const ok=(!needGrind||canGrind)&&deepA>0;const kgR=remV*M.rem.k,kgG=restV*M.glue.k;const c1=cost(kgR,M.rem),c2=cost(kgG,M.glue),gc=needGrind?grindCost(st.grindA):0;
+    opts.push({id:'rem',n:'Залить ямы ремсоставом + клей',ok,why:ok?'':deepA<=0?'глубоких ям нет — хватит клея':`бугор ${fq(st.highMax)} мм — сначала стесать не получится`,
+      lines:[...gLine,`Ремсостав в ямы глубже ${fq(E)} мм: ${fq(deepA,2)} м², ${fq(kgR,1)} кг (${bags(kgR,M.rem)} меш.)`,`Остальное — клеем: ${fq(kgG,1)} кг`,'Ремсостав сохнет ~1 сутки (смотрите мешок)'],
+      cost:c1===null&&c2===null&&!gc?null:(c1||0)+(c2||0)+(gc||0),days:1,work:needGrind?st.grindA:0})}
+  // 4. наливной пол по всей площади до нужной отметки
+  {const mn=n0(M.self.min);const gr=cells.filter(c=>c.d<mn);const grA=gr.filter(c=>mn-c.d>0.5).length*cA;const grMax=Math.max(0,...cells.map(c=>mn-c.d));
+    const kg=cells.reduce((s,c)=>s+Math.max(c.d,mn)*cA,0)*M.self.k;const avg=kg/M.self.k/st.A;const ok=grMax<=n0(M.grind.max)&&st.lowMax<=50;
+    const c=cost(kg,M.self),gc=grA>0?grindCost(grA):0;
+    opts.push({id:'self',n:'Наливной пол по всей площади',ok,why:ok?'':st.lowMax>50?`перепад до ${fq(st.lowMax)} мм — тут нужна стяжка, а не наливной`:`чтобы влез слой ${fq(mn)} мм, пришлось бы стесать до ${fq(grMax)} мм`,
+      lines:[...(grA>0?[`Сначала стесать до ${fq(grMax)} мм на ${fq(grA,2)} м² (иначе слой тоньше ${fq(mn)} мм)`]:[]),`Слой в среднем ${fq(avg)} мм, ${fq(kg,1)} кг (${bags(kg,M.self)} меш.)`,'Грунт перед заливкой, демпферная лента по периметру','Плитку — через 3–7 дней (смотрите мешок)'],
+      cost:c===null&&!gc?null:(c||0)+(gc||0),days:5,work:grA})}
+  if(st.lowMax>50)opts.push({id:'screed',n:'Перелить стяжку (ЦПС / полусухая)',ok:true,why:'',lines:[`Перепад до ${fq(st.lowMax)} мм — наливным и клеем не вытянуть`,'Сохнет до 2–4 недель'],cost:null,days:21,work:0});
+  // выбор лучшего: дешевле, если цены есть; иначе — по порядку (клей → стесать → ремсостав → наливной)
+  const ok=opts.filter(o=>o.ok);let best=null;
+  if(ok.length){const priced=ok.filter(o=>o.cost!==null);best=priced.length===ok.length&&priced.length>1?priced.reduce((a,b)=>b.cost+b.days*0<a.cost?b:a):ok[0]}
+  // подсказка: на сколько поднять плитку, чтобы не стёсывать
+  const raise=needGrind?Math.ceil(st.highMax-tol):0;
+  return{G,tgt,P,ready:true,cells,N,st,opts,best,E,raise,tol}}
+
+// ---------- экран ----------
+function hdr(t,back,extra=''){$('#hdr').innerHTML=(back?`<button data-act="back">‹</button>`:'')+`<h1>${esc(t)}</h1>`+extra}
+function render(){if(S.view==='floor'&&cur())return renderFloor();S.view='list';renderList()}
+function renderList(){hdr('Расчёты');
+  let h=`<h2>Выравнивание пола под плитку</h2><div class="small mute" style="margin:0 4px 8px">Отбиваете лазером уровень чистового пола соседней комнаты (паркет), меряете стяжку по сетке — калькулятор покажет, где долить, где стесать, и что выгоднее: клей, ремсостав или наливной пол.</div>`;
+  const fl=S.items.filter(x=>x.type==='floor');
+  h+=fl.map(it=>{const R=analyze(it);return`<button class="item" data-act="open" data-id="${it.id}"><div class="row" style="justify-content:space-between"><span class="t">${esc(it.name||'Без названия')}</span><span class="small mute">${esc(it.date||'')}</span></div>
+    <div class="small mute">${fq(n0(it.L)/1000,2)} × ${fq(n0(it.W)/1000,2)} м · точек ${R.P.length} из ${R.G.nx*R.G.ny}${R.ready&&R.best?` · <b style="color:var(--acc2)">${esc(R.best.n)}</b>`:''}</div></button>`}).join('')||'<div class="empty">Замеров пока нет</div>';
+  h+=`<button class="btn wide" data-act="newfloor">+ Новый замер пола</button>`;
+  $('#main').innerHTML=h}
+function fld(k,l,v,ph,extra=''){return`<label class="f">${l}<input data-k="${k}" inputmode="decimal" value="${isSet(v)?esc(String(v)):''}" placeholder="${ph}" ${extra}></label>`}
+function renderFloor(){const it=cur();hdr(it.name||'Замер пола',true,`<button data-act="del" title="Удалить" style="font-size:17px">🗑</button>`);
+  const G=grid(it);
+  let h=`<div class="card"><label class="f">Название<input data-k="name" value="${esc(it.name)}"></label>
+   <div class="grid2" style="margin-top:8px">${fld('L','Длина — по стене с дверью, мм',it.L,'2000')}${fld('W','Ширина — от двери вглубь, мм',it.W,'1700')}</div>
+   <div class="small mute" style="margin:10px 0 4px">Точек по длине</div><div class="chips">${[2,3,4,5,6,7,8].map(v=>`<button data-set="nx" data-v="${v}" class="${+it.nx===v?'on':''}">${v}</button>`).join('')}</div>
+   <div class="small mute" style="margin:10px 0 4px">Точек по ширине</div><div class="chips">${[2,3,4,5,6,7,8].map(v=>`<button data-set="ny" data-v="${v}" class="${+it.ny===v?'on':''}">${v}</button>`).join('')}</div>
+   <div class="small mute" style="margin-top:6px">Шаг сетки ≈ ${fq((G.xs[1]-G.xs[0])/10,0)} × ${fq((G.ys[1]-G.ys[0])/10,0)} см. Чем больше ям и бугров — тем гуще сетка.</div></div>
+  <div class="card"><h3>Уровень — от паркета</h3>
+   ${fld('ref','От лазерной линии до паркета (чистовой пол рядом), мм',it.ref,'например 1000')}
+   <div class="grid3" style="margin-top:8px">${fld('tile','Плитка, мм',it.tile,'10')}${fld('glue','Клей обычный слой, мм',it.glue,'5')}${fld('hydro','Гидроизоляция, мм',it.hydro,'1')}</div>
+   <div class="grid2" style="margin-top:8px">${fld('offset','Плитка выше паркета на, мм (0 — в одну плоскость)',it.offset,'0')}${fld('tol','Допуск, ± мм',it.tol,'2')}</div>
+   <div class="target" id="tgt"></div></div>
+  <div class="card"><h3>Замеры: от лазерной линии вниз до стяжки, мм</h3><div class="small mute">Меряйте в каждой точке сетки. Рамка: <span style="color:var(--lo);font-weight:700">синяя — долить</span>, <span style="color:var(--hi);font-weight:700">оранжевая — стесать</span>, <span style="color:var(--ok);font-weight:700">зелёная — в допуске</span>.</div>
+   <div class="wall">дальняя стена</div>
+   <div class="mgrid" style="grid-template-columns:repeat(${G.nx},1fr)">${[...Array(G.ny).keys()].reverse().map(j=>[...Array(G.nx).keys()].map(i=>`<div class="cell" data-c="${i},${j}"><input data-pt="${i},${j}" inputmode="decimal" value="${isSet(it.pts[i+','+j])?esc(String(it.pts[i+','+j])):''}"><span class="d"></span></div>`).join('')).join('')}</div>
+   <div class="door"></div><div class="wall">стена с дверью (паркет)</div>
+   <div class="small mute" style="margin-top:4px">Точки — в ${fq(Math.min(150,G.L/(2*G.nx),G.W/(2*G.ny))/10,0)} см от стен, дальше равномерно. Слева направо — как стоите в дверях лицом в санузел.</div></div>
+  <div id="res"></div>
+  <details class="card"><summary><b>Материалы и цены</b> <span class="small mute">— для сравнения вариантов</span></summary><div style="margin-top:8px">${matHtml()}</div></details>`;
+  $('#main').innerHTML=h;refresh()}
+function matHtml(){const M=S.mat;const f=(g,k,l,ph)=>`<label class="f">${l}<input data-m="${g}.${k}" inputmode="decimal" value="${isSet(M[g][k])?esc(String(M[g][k])):''}" placeholder="${ph}"></label>`;
+  return`<b class="small">Наливной пол</b><div class="grid2" style="margin:4px 0 10px">${f('self','k','Расход, кг/м² на 1 мм','1,6')}${f('self','min','Мин. слой, мм','3')}${f('self','bag','Мешок, кг','25')}${f('self','price','Цена мешка, ₽','')}</div>
+  <b class="small">Ремсостав</b><div class="grid2" style="margin:4px 0 10px">${f('rem','k','Расход, кг/м² на 1 мм','1,9')}${f('rem','bag','Мешок, кг','25')}${f('rem','price','Цена мешка, ₽','')}</div>
+  <b class="small">Клей</b><div class="grid2" style="margin:4px 0 10px">${f('glue','k','Расход, кг/м² на 1 мм','1,4')}${f('glue','max','Макс. слой клея, мм','10')}${f('glue','bag','Мешок, кг','25')}${f('glue','price','Цена мешка, ₽','')}</div>
+  <b class="small">Шлифовка бугров</b><div class="grid2" style="margin:4px 0">${f('grind','max','Стёсывать максимум, мм','10')}${f('grind','price','Ваша цена за м², ₽','')}</div>
+  <div class="small mute">Макс. слой клея смотрите на мешке: обычно 10 мм, у клеев для керамогранита бывает до 15–20. Цены можно не вписывать — тогда варианты идут по простоте работы.</div>`}
+function heat(R){const {G,cells,N}=R;const W=320,H=Math.max(120,Math.min(320,W*G.W/G.L));const sx=W/G.L,sy=H/G.W;const tol=R.tol;
+  const col=d=>{const t=Math.min(1,Math.abs(d)/12);if(Math.abs(d)<=tol)return`rgba(47,158,68,${.25+.2*t})`;return d>0?`rgba(28,126,214,${.25+.6*t})`:`rgba(217,72,15,${.25+.6*t})`};
+  let s=`<svg viewBox="0 0 ${W} ${H+18}" style="width:100%;display:block;border-radius:10px">`;
+  for(const c of cells)s+=`<rect x="${(c.a*G.L/N*sx).toFixed(2)}" y="${(H-(c.b+1)*G.W/N*sy).toFixed(2)}" width="${(G.L/N*sx+.6).toFixed(2)}" height="${(G.W/N*sy+.6).toFixed(2)}" fill="${col(c.d)}"/>`;
+  s+=`<rect x="0" y="0" width="${W}" height="${H}" fill="none" stroke="var(--ink)" stroke-width="2"/>`;
+  for(const p of R.P){const x=p.x*sx,y=H-p.y*sy;const t=Math.abs(p.d)<=tol?'ок':(p.d>0?'+':'−')+fq(Math.abs(p.d),0);s+=`<circle cx="${x}" cy="${y}" r="3" fill="var(--ink)"/><text x="${x}" y="${y-6}" font-size="11" font-weight="700" text-anchor="middle" fill="var(--ink)" stroke="var(--card)" stroke-width="3" paint-order="stroke">${t}</text>`}
+  s+=`<rect x="${W*0.3}" y="${H-3}" width="${W*0.4}" height="6" fill="var(--acc)"/><text x="${W/2}" y="${H+15}" font-size="10.5" text-anchor="middle" fill="var(--mute)">дверь, паркет</text></svg>`;return s}
+function refresh(){const it=cur();if(!it)return;const R=analyze(it);const tg=$('#tgt');
+  if(tg)tg.innerHTML=`<div class="small">Основание (стяжка) должно быть<br><b style="font-size:15px;color:var(--ink)">на ${fq(cake(it))} мм ниже паркета</b></div><div style="text-align:right"><span class="small mute">от лазера до стяжки</span><br><b>${isFinite(num(it.ref))?fq(R.tgt,0)+' мм':'—'}</b></div>`;
+  // ячейки
+  document.querySelectorAll('[data-c]').forEach(el=>{const v=num(it.pts[el.dataset.c]);const d=el.querySelector('.d');el.classList.remove('lo','hi','ok');
+    if(!isFinite(v)||!isFinite(num(it.ref))){d.textContent='';return}const dd=v-R.tgt;
+    if(Math.abs(dd)<=n0(it.tol)){el.classList.add('ok');d.textContent=dd?`${dd>0?'+':'−'}${fq(Math.abs(dd))} ок`:'ровно'}else if(dd>0){el.classList.add('lo');d.textContent=`долить ${fq(dd)}`}else{el.classList.add('hi');d.textContent=`стесать ${fq(-dd)}`}});
+  const res=$('#res');if(!res)return;
+  if(!R.ready){res.innerHTML=`<div class="card small mute">${isFinite(num(it.ref))?'Впишите хотя бы 2 замера — появится карта и варианты.':'Впишите, сколько от лазерной линии до паркета, — от него считается нужный уровень.'}</div>`;return}
+  const s=R.st;
+  let h=`<h2>Карта пола</h2><div class="card">${heat(R)}<div class="small mute" style="margin-top:6px"><span class="leg" style="background:rgba(28,126,214,.7)"></span>ниже — долить <span class="leg" style="background:rgba(217,72,15,.7);margin-left:8px"></span>выше — стесать <span class="leg" style="background:rgba(47,158,68,.45);margin-left:8px"></span>в допуске ±${fq(R.tol)} мм</div></div>
+  <div class="kpi"><div><span>Самая глубокая яма</span><b style="color:var(--lo)">${s.lowMax>R.tol?fq(s.lowMax)+' мм':'нет'}</b></div><div><span>Самый высокий бугор</span><b style="color:var(--hi)">${s.highMax>R.tol?fq(s.highMax)+' мм':'нет'}</b></div>
+   <div><span>Долить (объём)</span><b>${fq(s.fillV,1)} л</b></div><div><span>Стесать</span><b>${s.grindA>0?fq(s.grindA,2)+' м²':'—'}</b></div></div>`;
+  h+=`<h2>Что выгоднее</h2><div class="card">`;
+  if(R.best)h+=`<div style="font-size:15.5px"><b>Совет: ${esc(R.best.n)}</b>${R.best.cost!==null?` · ≈ ${rub(R.best.cost)}`:''}</div>`;
+  else h+=`<div><b>Ни один простой вариант не подходит</b> — смотрите причины ниже.</div>`;
+  if(R.raise>0)h+=`<div class="small" style="margin-top:6px">💡 Если поднять плитку над паркетом на <b>${R.raise} мм</b> (порожек или переходный профиль), бугры стёсывать не придётся.</div>`;
+  for(const o of R.opts)h+=`<div class="opt ${o===R.best?'best':''} ${o.ok?'':'no'}"><div class="h"><span>${esc(o.n)} ${o===R.best?'<span class="tag">лучше всего</span>':o.ok?'':'<span class="tag no">не подходит</span>'}</span><span>${o.cost!==null&&o.ok?rub(o.cost):''}</span></div>
+    ${o.ok?`<ul class="small">${o.lines.map(l=>`<li>${esc(l)}</li>`).join('')}</ul>`:`<div class="small mute" style="margin-top:4px">${esc(o.why)}</div>`}</div>`;
+  h+=`<div class="small mute" style="margin-top:8px">Объём между точками считается по замерам, так что расход ориентировочный: плюс 10% на неровности. Клей «сверх обычного слоя» — до ${fq(R.E)} мм (макс. слой клея минус обычный).</div></div>`;
+  res.innerHTML=h}
+
+// ---------- события ----------
+document.addEventListener('click',e=>{const b=e.target.closest('[data-act],[data-set]');if(!b)return;
+  if(b.dataset.set){const it=cur();it[b.dataset.set]=+b.dataset.v;save();renderFloor();return}
+  const a=b.dataset.act;
+  if(a==='newfloor'){const it=newFloor();it.name='Санузел '+(S.items.filter(x=>x.type==='floor').length+1);S.items.unshift(it);S.cur=it.id;S.view='floor';save();render();scrollTo(0,0)}
+  else if(a==='open'){S.cur=b.dataset.id;S.view='floor';save();render();scrollTo(0,0)}
+  else if(a==='back'){S.view='list';save();render()}
+  else if(a==='del'){if(confirm('Удалить замер?')){S.items=S.items.filter(x=>x.id!==S.cur);S.view='list';save();render()}}});
+document.addEventListener('input',e=>{const el=e.target,d=el.dataset;const it=cur();
+  if(d.k&&it){it[d.k]=el.value;save();if(d.k==='name'){$('#hdr h1').textContent=el.value;return}if(d.k==='L'||d.k==='W'){clearTimeout(el._t);el._t=setTimeout(refresh,300);return}refresh()}
+  else if(d.pt&&it){it.pts[d.pt]=el.value;save();refresh()}
+  else if(d.m){const [g,k]=d.m.split('.');S.mat[g][k]=el.value;save();refresh()}});
+// Enter / «Далее» в замере — к следующей точке
+document.addEventListener('keydown',e=>{if(e.key!=='Enter'||!e.target.dataset.pt)return;e.preventDefault();const all=[...document.querySelectorAll('[data-pt]')];const i=all.indexOf(e.target);if(all[i+1])all[i+1].focus();else e.target.blur()});
+load();render();
+</script>
+</body>
+</html>
