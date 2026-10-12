@@ -210,6 +210,11 @@ function renderPlans(){
   $('#main').innerHTML=h;
 }
 
+document.addEventListener('click',e=>{const t=e.target.closest('[data-buy]');if(!t)return;const P=plan();if(!P||!P.buy)return;const x=P.buy[+t.dataset.buy];if(!x)return;x.got=!x.got;save();render()});
+// приём списка покупок из «Сметы»
+window.extIn=function(kind,p){if(kind!=='buy')return;const d=tomorrow();let P=S.plans.find(x=>x.date===d&&(x.place===p.place||!x.place));
+  if(!P){P={id:uid(),date:d,place:p.place||'',note:'',works:[],extra:[],got:{}};S.plans.push(P)}if(!P.place)P.place=p.place||'';
+  P.buy=(P.buy||[]).filter(x=>x.src!==p.src).concat(p.items.map(t=>({t,got:false,src:p.src,from:p.place})));S.cur=P.id;S.view='plan';save();render();scrollTo(0,0);return P.place};
 function renderPlan(){
   const P=plan();
   hdr(fdate(P.date)||'План',true,`<button data-act="dupplan" title="Повторить" style="font-size:15px">⧉</button><button data-act="delplan" title="Удалить" style="font-size:17px">🗑</button>`);
@@ -221,9 +226,12 @@ function renderPlan(){
   <div class="sep"></div>
   <div class="row"><input id="nw" placeholder="Новый вид работы"><button class="btn" data-act="newwork">+</button></div>
   <label class="f" style="margin-top:8px">Заметка на день<textarea data-pf="note" rows="2" placeholder="что не забыть, кому позвонить…">${esc(P.note||'')}</textarea></label></div>
-  <div id="tl">${toolsBlock(P)}</div>`;
+  <div id="tl">${toolsBlock(P)}</div>${buyBlock(P)}`;
   $('#main').innerHTML=h;
 }
+function buyBlock(P){const L=P.buy||[];if(!L.length)return'';const got=L.filter(x=>x.got).length;
+  return`<h2><span>🛒 Купить</span><span class="small ${got===L.length?'ok':'mute'}">${got} из ${L.length}</span></h2><div class="card" style="padding:0;overflow:hidden">${L.map((x,i)=>`<div class="tool ${x.got?'on':''}" data-buy="${i}"><span class="bx">${x.got?'✓':''}</span><div><div class="nm">${esc(x.t)}</div>${x.from?`<div class="for">из сметы «${esc(x.from)}»</div>`:''}</div></div>`).join('')}</div>
+  <div class="row" style="justify-content:flex-end;margin:-2px 2px 10px"><button class="btn sm ghost" data-act="clrbuy">Очистить список</button></div>`}
 function toolsBlock(P){
   const pr=progress(P);
   let h=`<h2><span>Инструмент — собрать</span><span class="small ${pr.all&&pr.got===pr.all?'ok':'mute'}">${pr.all?`${pr.got} из ${pr.all}`:''}</span></h2>`;
@@ -370,6 +378,7 @@ document.addEventListener('click',e=>{
   const a=b.dataset.act,P=plan();
   switch(a){
     case'back':go('plans');break;
+    case'clrbuy':if(confirm('Очистить список покупок?')){P.buy=[];save();render()}break;
     case'newplan':{const p={id:uid(),date:tomorrow(),place:'',note:'',works:[],extra:[],got:{}};S.plans.push(p);S.cur=p.id;go('plan');break}
     case'open':S.cur=b.dataset.id;go('plan');break;
     case'dupplan':{const p=JSON.parse(JSON.stringify(P));p.id=uid();p.date=tomorrow();p.got={};S.plans.push(p);S.cur=p.id;save();render();toast('План повторён на завтра');break}

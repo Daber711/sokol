@@ -98,6 +98,19 @@ window.addEventListener('message',e=>{if(e.origin!==location.origin)return;const
   if(f&&f.contentWindow&&f.contentWindow.addRoomItem){open('rask');f.contentWindow.addRoomItem(d.item)}
   else{if(f)f.remove();try{const k='raskladka_v1';const R=JSON.parse(localStorage.getItem(k)||'null')||{items:[]};R.items=R.items||[];R.items.unshift({...d.item,walls:d.item.walls||[]});R.cur=d.item.id;R.view='edit';R.tab='room';localStorage.setItem(k,JSON.stringify(R))}catch(_){}
     open('rask');toast('Помещение перенесено в «Раскладку»')}});
+// обмен данными между приложениями
+function ensureApp(id){return new Promise(res=>{const a=APPS.find(x=>x.id===id);let f=document.getElementById('f-'+id);
+  if(!f){f=document.createElement('iframe');f.id='f-'+id;f.src=a.src;f.title=a.n;f.setAttribute('allow','web-share; clipboard-write; fullscreen');$('#frames').appendChild(f)}
+  let n=0;const t=setInterval(()=>{n++;try{if(f.contentWindow&&f.contentWindow.extIn){clearInterval(t);res(f.contentWindow)}}catch(e){}if(n>100){clearInterval(t);res(null)}},50)})}
+window.addEventListener('message',async e=>{if(e.origin!==location.origin)return;const d=e.data;if(!d||d.type!=='ext')return;const p=d.payload||{};
+  if(d.app==='uchet'){const f=document.getElementById('f-uchet');if(f)f.remove();
+    try{const U=JSON.parse(localStorage.getItem('plitka')||'null')||{entries:[],settings:{goal:200000}};U.entries=U.entries||[];
+      if(d.kind==='add'){U.entries=U.entries.filter(x=>x.id!==p.id);U.entries.push({id:p.id,date:p.date,object:p.object,work:p.work,sum:+p.sum||0})}
+      else if(d.kind==='del')U.entries=U.entries.filter(x=>x.id!==p.id);
+      localStorage.setItem('plitka',JSON.stringify({entries:U.entries,settings:U.settings||{}}))}catch(_){toast('Не удалось записать в «Учёт»')}
+    if(cur==='uchet')open('uchet');return}
+  const w=await ensureApp(d.app);if(!w||!w.extIn){toast('Не удалось открыть приложение');return}
+  try{const r=w.extIn(d.kind,p);open(d.app);toast(d.app==='plan'?'Список покупок добавлен в план на завтра':'Перенесено в смету «'+(r||'')+'»')}catch(err){toast('Ошибка переноса')}});
 open(cur);
 if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{})}
 </script>

@@ -192,6 +192,7 @@ table.doc{font-size:14px}
 <div class="bar" id="bar" hidden></div>
 <nav class="bot" id="nav">
   <button data-go="jobs"><b>▦</b>Объекты</button>
+  <button data-go="month"><b>◔</b>Месяц</button>
   <button data-go="prices"><b>₽</b>Прайс</button>
   <button data-go="matdef"><b>◫</b>Материалы</button>
   <button data-go="settings"><b>⚙</b>Ещё</button>
@@ -438,7 +439,7 @@ function render(){
   document.querySelectorAll('nav.bot button').forEach(b=>b.classList.toggle('on',b.dataset.go===v||(v==='job'&&b.dataset.go==='jobs')));
   $('#tabs').hidden=v!=='job';$('#bar').hidden=true;
   if(v==='job'&&!job()){S.view='jobs';return render()}
-  ({jobs:renderJobs,job:renderJob,prices:renderPrices,matdef:renderMatDef,settings:renderSettings})[v]();
+  ({jobs:renderJobs,job:renderJob,prices:renderPrices,matdef:renderMatDef,settings:renderSettings,month:renderMonth})[v]();
 }
 function hdr(title,back){$('#hdr').innerHTML=(back?`<button class="back" data-act="back">‹</button>`:'')+`<h1>${esc(title)}</h1>`}
 
@@ -611,7 +612,7 @@ function renderMats(){
   <div class="small mute" style="margin-top:6px">Расход <b>${fq(M.hy.k,1)} кг/м²</b> · упаковка ${fq(M.hy.bag,1)} кг — ${esc(M.hy.note)}</div>
   <div class="small" style="margin-top:6px">Площадь: пол <b>${fq(C.q('p46'))} м²</b> + стены <b>${fq(C.q('p47'))} м²</b> → нужно <b>${fq((C.q('p46')+C.q('p47'))*M.hy.k,1)} кг</b> (${Math.ceil((C.q('p46')+C.q('p47'))*M.hy.k/M.hy.bag-1e-9)||0} упак.). Лента в углы — <b>${fq(C.q('p48'),1)} м</b>.</div>
   <div class="small mute" style="margin-top:4px">Площади берутся из помещений (галочка «Гидроизоляция пола» и высота на стены) или из работ, если вписаны вручную.</div></div>
-  <div class="row" style="justify-content:space-between;margin:4px 2px 10px"><label class="toggle"><input type="checkbox" id="mall" ${showAllMats?'checked':''}> Показать все материалы</label><button class="btn sm sec" data-act="sharemats">Список закупки</button></div>
+  <div class="row" style="justify-content:space-between;margin:4px 2px 10px"><label class="toggle"><input type="checkbox" id="mall" ${showAllMats?'checked':''}> Показать все материалы</label><span class="row" style="gap:6px"><button class="btn sm sec" data-act="toplan">🛒 В Планёрку</button><button class="btn sm sec" data-act="sharemats">Список</button></span></div>
   <div id="mlist">${matList(J,M)}</div>
   <h2>Свои материалы</h2><div class="card">`;
   J.customMats.forEach((c,i)=>{h+=`<div class="row"><input data-b="cm.${i}.name" value="${esc(c.name)}" placeholder="Материал"><button class="x" data-act="delcm" data-i="${i}">✕</button></div>
@@ -662,6 +663,7 @@ function renderMoney(){
   <h2>Получил от заказчика</h2><div class="card">
   <div class="grid2"><label class="f">Дата<input type="date" id="pd" value="${today()}"></label><label class="f">Сумма, ₽<input id="ps" inputmode="decimal" placeholder="0"></label></div><div style="height:8px"></div>
   <div class="row"><input id="pn" placeholder="За что: аванс, этап, доп. работы"><button class="btn" data-act="addpay">+</button></div>
+  <label class="toggle" style="margin-top:8px"><input type="checkbox" id="pu" ${S.toUchet===true?'checked':''}> Записать оплату и в «Учёт»</label>
   <div class="list" style="margin-top:6px">${J.pays.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map(p=>`<div class="li"><div class="grow"><b class="sum pos">${rub(p.sum)}</b> <span class="small mute">${fdate(p.date)}</span><div class="small">${esc(p.note||'')}</div></div><button class="x" data-act="delpay" data-id="${p.id}">✕</button></div>`).join('')||'<div class="small mute" style="padding:8px 0">Оплат пока нет</div>'}</div></div>
   <h2>Потратил</h2><div class="card">
   <div class="chips" id="ecats">${EXP_CATS.map(c=>`<button data-ecat="${c}" class="${c===expCat?'on':''}">${c}</button>`).join('')}</div><div style="height:8px"></div>
@@ -681,6 +683,29 @@ function kpi(m){
   ${m.perDay!==null?`<div style="grid-column:1/-1"><span>Заработок в день</span><b class="sum">${rub(m.perDay)}</b></div>`:''}`;
 }
 
+// --- Месяц: деньги по всем объектам + заработок из «Учёта»
+let monthK=null;
+function renderMonth(){hdr('Месяц');const k=monthK||today().slice(0,7);const [y,mo]=k.split('-').map(Number);const MN=['январь','февраль','март','апрель','май','июнь','июль','август','сентябрь','октябрь','ноябрь','декабрь'];
+  let U={entries:[],settings:{goal:200000}};try{const d=JSON.parse(localStorage.getItem('plitka')||'null');if(d){U.entries=d.entries||[];U.settings={...U.settings,...(d.settings||{})}}}catch(e){}
+  const inM=d=>(d||'').startsWith(k);
+  const earned=U.entries.filter(e=>inM(e.date)&&!String(e.id||'').startsWith('sm')).reduce((a,e)=>a+(+e.sum||0),0);
+  const pays=[],exps=[];let debt=0;const debts=[];
+  for(const J of S.jobs){const m=money(J);for(const p of J.pays)if(inM(p.date))pays.push({J,p});for(const e of J.exps)if(inM(e.date))exps.push({J,e});if(m.all>0&&m.left>0.5){debt+=m.left;debts.push({J,m})}}
+  const got=pays.reduce((a,x)=>a+n0(num(x.p.sum)),0),spent=exps.reduce((a,x)=>a+n0(num(x.e.sum)),0);
+  const goal=+U.settings.goal||0;const base=Math.max(earned,got);const pc=goal?Math.min(100,base/goal*100):0;
+  const days=new Date(y,mo,0).getDate(),t=today(),curK=t.slice(0,7);const remDays=k<curK?0:k>curK?days:days-(+t.slice(8))+1;const need=remDays>0?Math.max(0,goal-base)/remDays:0;
+  let h=`<div class="card"><div class="row" style="justify-content:space-between"><button class="btn sm ghost" data-act="mon" data-v="-1">‹</button><b style="font-size:18px">${MN[mo-1]} ${y}</b><button class="btn sm ghost" data-act="mon" data-v="1">›</button></div></div>
+  <div class="card"><div class="row" style="justify-content:space-between"><span class="mute small">Цель на месяц (из «Учёта»)</span><b class="sum">${rub(goal)}</b></div>
+   <div class="prog" style="height:12px;margin:10px 0 6px"><i style="width:${pc}%"></i></div>
+   <div class="row small" style="justify-content:space-between"><span>${fq(pc,0)}% · осталось <b>${rub(Math.max(0,goal-base))}</b></span>${remDays&&goal>base?`<span class="mute">≈ ${rub(need)} в день</span>`:goal&&base>=goal?'<b class="pos">Цель выполнена ✓</b>':''}</div></div>
+  <div class="kpi"><div><span>Заработано (Учёт)</span><b class="sum">${rub(earned)}</b></div><div><span>Получено оплат</span><b class="sum pos">${rub(got)}</b></div>
+   <div><span>Потрачено</span><b class="sum neg">${rub(spent)}</b></div><div><span>Чистыми (оплаты − траты)</span><b class="sum ${got-spent<0?'neg':''}">${rub(got-spent)}</b></div>
+   <div style="grid-column:1/-1"><span>Должны заказчики — по всем объектам</span><b class="sum" style="color:var(--acc)">${rub(debt)}</b></div></div>
+  <h2>Кто сколько должен</h2><div class="card">${debts.sort((a,b)=>b.m.left-a.m.left).map(({J,m})=>`<button class="job" style="margin:0 0 8px;box-shadow:none" data-act="open" data-id="${J.id}"><div class="row" style="justify-content:space-between"><span class="t" style="font-size:15.5px">${esc(J.name||'Без названия')}</span><b class="sum" style="color:var(--acc)">${rub(m.left)}</b></div><div class="small mute">получено ${rub(m.got)} из ${rub(m.all)}</div><div class="prog"><i style="width:${m.all?m.got/m.all*100:0}%"></i></div></button>`).join('')||'<div class="small mute">Никто не должен 🙌</div>'}</div>
+  <h2>Оплаты за месяц</h2><div class="card list">${pays.sort((a,b)=>(b.p.date||'').localeCompare(a.p.date||'')).map(({J,p})=>`<div class="li"><div class="grow"><b class="sum pos">${rub(p.sum)}</b> <span class="small mute">${fdate(p.date)}</span><div class="small">${esc(J.name||'')}${p.note?' · '+esc(p.note):''}</div></div></div>`).join('')||'<div class="small mute">Оплат в этом месяце нет</div>'}</div>
+  <h2>Траты за месяц</h2><div class="card list">${exps.sort((a,b)=>(b.e.date||'').localeCompare(a.e.date||'')).map(({J,e})=>`<div class="li"><div class="grow"><b class="sum neg">−${rub(e.sum)}</b> <span class="tag g">${esc(e.cat)}</span> <span class="small mute">${fdate(e.date)}</span><div class="small">${esc(J.name||'')}${e.note?' · '+esc(e.note):''}</div></div></div>`).join('')||'<div class="small mute">Трат в этом месяце нет</div>'}</div>
+  <p class="small mute" style="margin:6px 4px">«Заработано» — записи из «Учёта» за месяц (без оплат, перенесённых из смет). Прогресс к цели считается по большему из «заработано» и «получено». Цель меняется в «Учёте».</p>`;
+  $('#main').innerHTML=h}
 // --- Смета для заказчика
 function renderDoc(){
   const J=job(),C=calc(J);
@@ -689,7 +714,9 @@ function renderDoc(){
     rows+=`<tr><td>${n}. ${esc(w.name)}</td><td class="n">${fq(qq)} ${esc(unitOf(w.id))}</td><td class="n">${rub(pr)}</td><td class="n">${rub(qq*pr)}</td></tr>`}
   const cu=J.custom.filter(c=>n0(num(c.qty))*n0(num(c.price)));
   if(cu.length){rows+=`<tr class="cat"><td colspan="5">Прочие работы</td></tr>`;for(const c of cu){n++;rows+=`<tr><td>${n}. ${esc(c.name)}</td><td class="n">${fq(num(c.qty))} ${esc(c.unit||'')}</td><td class="n">${rub(num(c.price))}</td><td class="n">${rub(num(c.qty)*num(c.price))}</td></tr>`}}
-  let h=`<div class="row noprint" style="gap:8px;margin-bottom:10px"><button class="btn" style="flex:1.4" data-act="pdf">📄 PDF-файл</button><button class="btn sec" style="flex:1" data-act="sharedoc">Текстом</button><button class="btn sec" style="flex:none" data-act="print" title="Печать">🖨</button></div>
+  let h=`<div class="row noprint" style="gap:8px;margin-bottom:10px"><button class="btn" style="flex:1.4" data-act="pdf">📄 Смета PDF</button><button class="btn sec" style="flex:1" data-act="sharedoc">Текстом</button><button class="btn sec" style="flex:none" data-act="print" title="Печать">🖨</button></div>
+  <div class="row noprint" style="gap:8px;margin-bottom:10px"><button class="btn sec" style="flex:1" data-act="pdfact">📄 Акт выполненных работ</button><button class="btn sec" style="flex:1" data-act="pdfkp">📸 КП с фото работ</button></div>
+  <input type="file" id="kpph" accept="image/*" multiple hidden>
   <div class="card" id="doc"><div class="doc-h"><h2>СМЕТА</h2><div class="small mute">на выполнение плиточных и сопутствующих работ</div></div><div class="sep"></div>
   <div class="small">${J.name?`<div>Объект: <b>${esc(J.name)}</b></div>`:''}${J.client?`<div>Заказчик: <b>${esc(J.client)}</b></div>`:''}${J.date?`<div>Дата: ${fdate(J.date)}</div>`:''}${S.me.name?`<div>Исполнитель: ${esc(S.me.name)}${S.me.phone?', '+esc(S.me.phone):''}</div>`:''}</div>
   <div class="sep"></div>
@@ -706,8 +733,8 @@ function docRows(J,C){const out=[];let cat='',n=0;
   const cu=J.custom.filter(c=>n0(num(c.qty))*n0(num(c.price)));
   if(cu.length){out.push({cat:'Прочие работы'});for(const c of cu){n++;out.push({n,name:c.name||'Работа',qty:fq(num(c.qty))+' '+(c.unit||''),price:rub(num(c.price)),sum:rub(num(c.qty)*num(c.price))})}}
   return out}
-function pdfPages(J){
-  const C=calc(J),rows=docRows(J,C);
+function pdfPages(J,opt={}){
+  const mode=opt.mode||'smeta';const C=calc(J),rows=docRows(J,C);const MM=money(J);
   const PW=1240,PH=1754,M=86,R=PW-M;const F='-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif';
   const COL={acc:'#c4572e',ink:'#1d2328',mute:'#6b7378',line:'#e2ded6',soft:'#f8efe9',head:'#1f2a33',zebra:'#faf8f4'};
   const X={qty:820,price:1000,sum:R};const NAMEW=X.qty-150-M-40;
@@ -717,16 +744,26 @@ function pdfPages(J){
   const wrap=(t,w)=>{const ws=String(t).split(/\s+/);const ls=[];let cur='';for(const x of ws){const tt=cur?cur+' '+x:x;if(c.measureText(tt).width>w&&cur){ls.push(cur);cur=x}else cur=tt}if(cur)ls.push(cur);return ls};
   function page(first){const cv=document.createElement('canvas');cv.width=PW;cv.height=PH;c=cv.getContext('2d');c.fillStyle='#fff';c.fillRect(0,0,PW,PH);c.textBaseline='alphabetic';pages.push(cv);
     if(first){c.fillStyle=COL.head;c.fillRect(0,0,PW,210);c.fillStyle=COL.acc;c.fillRect(0,210,PW,10);
-      font(64,800);txt('СМЕТА',M,104,'left','#fff');font(26);txt('на выполнение плиточных и сопутствующих работ',M,150,'left','#c9d0d4');
+      const T={smeta:['СМЕТА','на выполнение плиточных и сопутствующих работ',64],act:['АКТ','выполненных работ'+(opt.num?' № '+opt.num:''),64],kp:['КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ','плиточные и сопутствующие работы под ключ',44]}[mode];
+      font(T[2],800);txt(T[0],M,104,'left','#fff');font(26);txt(T[1],M,150,'left','#c9d0d4');
+      if(S.me.insta){font(24,600);txt('Instagram: @'+S.me.insta.replace(/^@/,''),R,176,'right','#f0b49a')}
       if(S.me.name){font(28,700);txt(S.me.name,R,96,'right','#fff')}if(S.me.phone){font(26);txt(S.me.phone,R,136,'right','#c9d0d4')}
       y=280;const info=[['Объект',J.name],['Заказчик',J.client],['Телефон',J.phone],['Дата',J.date?fdate(J.date):'']].filter(x=>x[1]);
       info.forEach(([k,v],i)=>{const col=i%2,row=Math.floor(i/2);const xx=M+col*540,yy=y+row*88;font(22);txt(k.toUpperCase(),xx,yy,'left',COL.mute);font(30,600);txt(String(v).slice(0,40),xx,yy+36)});
       y+=Math.ceil(info.length/2)*88+20}
-    else{font(24);txt('Смета'+(J.name?' — '+J.name:'')+' (продолжение)',M,80,'left',COL.mute);y=110}
-    if(rows.length)thead()}
+    else{font(24);txt(({smeta:'Смета',act:'Акт',kp:'Смета'})[mode]+(J.name?' — '+J.name:'')+(pages.length>1&&!(mode==='kp'&&pages.length===2)?' (продолжение)':''),M,80,'left',COL.mute);y=110}
+    if(rows.length&&!(first&&mode==='kp'))thead()}
   function thead(){c.fillStyle=COL.head;c.fillRect(M,y,R-M,56);font(23,700);const yy=y+37;txt('Работа',M+18,yy,'left','#fff');txt('Кол-во',X.qty,yy,'right','#fff');txt('Цена',X.price,yy,'right','#fff');txt('Сумма',X.sum-14,yy,'right','#fff');y+=56}
   const bottom=PH-110;let zi=0;
   page(true);
+  if(mode==='kp'){// о себе + фото работ
+    const ab=(S.me.about||'Укладываю плитку и керамогранит в санузлах, кухнях и на полу: ровные швы, аккуратные запилы под 45°, гидроизоляция и короба. Работаю по смете, без скрытых доплат.');
+    font(27);const ls=ab.split(/\n/).flatMap(l=>wrap(l,R-M));ls.forEach((l,k)=>txt(l,M,y+34+k*40));y+=34+ls.length*40+20;
+    const ph=(opt.photos||[]).slice(0,6);if(ph.length){font(26,700);txt('Мои работы',M,y+30,'left',COL.acc);y+=50;
+      const cols=ph.length===1?1:2,rowsN=Math.ceil(ph.length/cols),gap=20,cw=(R-M-gap*(cols-1))/cols,ch=Math.min(560,(bottom-y-gap*(rowsN-1))/rowsN);
+      ph.forEach((im,k)=>{const cx=M+(k%cols)*(cw+gap),cy=y+Math.floor(k/cols)*(ch+gap);const r=Math.max(cw/im.width,ch/im.height);const sw=cw/r,sh=ch/r;
+        c.save();c.beginPath();c.rect(cx,cy,cw,ch);c.clip();c.drawImage(im,(im.width-sw)/2,(im.height-sh)/2,sw,sh,cx,cy,cw,ch);c.restore()});y+=rowsN*(ch+gap)}
+    page(false)}
   for(const r of rows){
     if(r.cat){if(y+60+56>bottom){page(false)}c.fillStyle=COL.soft;c.fillRect(M,y,R-M,52);c.fillStyle=COL.acc;c.fillRect(M,y,8,52);font(25,700);txt(r.cat,M+24,y+35,'left',COL.acc);y+=52;zi=0;continue}
     font(25);const ls=wrap(r.n+'. '+r.name,NAMEW);const h=Math.max(56,20+ls.length*32);
@@ -739,11 +776,16 @@ function pdfPages(J){
   if(!rows.length){font(28);txt('В смете пока нет работ',M,y+50,'left',COL.mute);y+=90}
   // итоги
   const tot=[['Сумма работ',rub(C.works)]];if(C.adj)tot.push([C.adj<0?'Скидка':'Наценка',rub(C.adj)]);
-  const need=30+tot.length*48+90+(C.minApplied?40:0)+230;if(y+need>bottom)page(false);
+  if(mode==='act'&&n0(num(J.extra)))tot.push(['Доп. работы',rub(num(J.extra))]);
+  const finalSum=mode==='act'?MM.all:C.total;
+  const need=30+tot.length*48+90+(C.minApplied?40:0)+(mode==='act'?150:0)+230;if(y+need>bottom)page(false);
   y+=30;const bx=PW/2-20;font(26);for(const [k,v] of tot){txt(k,bx,y+30);font(26,700);txt(v,R-14,y+30,'right');font(26);y+=48}
-  c.fillStyle=COL.acc;c.fillRect(bx-20,y,R-bx+20,80);font(30,800);txt('ИТОГО К ОПЛАТЕ',bx,y+52,'left','#fff');txt(rub(C.total),R-14,y+52,'right','#fff');y+=80;
+  c.fillStyle=COL.acc;c.fillRect(bx-20,y,R-bx+20,80);font(30,800);txt(mode==='act'?'ИТОГО ВЫПОЛНЕНО':'ИТОГО К ОПЛАТЕ',bx,y+52,'left','#fff');txt(rub(finalSum),R-14,y+52,'right','#fff');y+=80;
+  if(mode==='act'){font(26);y+=20;txt('Оплачено',bx,y+30);font(26,700);txt(rub(MM.got),R-14,y+30,'right','#1f6f5c');y+=48;font(28,800);txt('Остаток к оплате',bx,y+32);txt(rub(Math.max(0,finalSum-MM.got)),R-14,y+32,'right',finalSum-MM.got>0?COL.acc:'#1f6f5c');y+=50}
   if(C.minApplied){font(22);txt('Применена минимальная сумма заказа ('+rub(minOrder())+')',R,y+34,'right',COL.mute);y+=40}
-  y+=60;font(23);txt('Стоимость материалов в смету не входит. Объёмы уточняются по факту выполненных работ.',M,y,'left',COL.mute);
+  y+=60;font(23);
+  if(mode==='act'){wrap('Работы выполнены в полном объёме и в срок. Заказчик претензий по объёму, качеству и срокам выполнения работ не имеет.',R-M).forEach((l,k)=>txt(l,M,y+k*32,'left',COL.ink));y+=32}
+  else txt('Стоимость материалов в смету не входит. Объёмы уточняются по факту выполненных работ.',M,y,'left',COL.mute);
   y+=110;font(25);txt('Исполнитель  ______________________',M,y);txt('Заказчик  ______________________',R,y,'right');
   // нумерация страниц
   pages.forEach((cv,i)=>{c=cv.getContext('2d');font(22);txt(`стр. ${i+1} из ${pages.length}`,R,PH-50,'right',COL.mute);if(S.me.name){txt(S.me.name+(S.me.phone?' · '+S.me.phone:''),M,PH-50,'left',COL.mute)}});
@@ -761,10 +803,10 @@ function pdfFromJpegs(imgs){// imgs: [{bytes:Uint8Array,w,h}] → Uint8Array PDF
   const total=3+n*3;const xref=len;let x=`xref\n0 ${total}\n0000000000 65535 f \n`;for(let i=1;i<total;i++)x+=String(offs[i]).padStart(10,'0')+' 00000 n \n';
   put(x+`trailer\n<< /Size ${total} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`);
   const out=new Uint8Array(len);let o=0;for(const u of parts){out.set(u,o);o+=u.length}return out}
-async function makePdf(J){try{toast('Готовлю PDF…');
-  const cvs=pdfPages(J);const imgs=cvs.map(cv=>{const b=atob(cv.toDataURL('image/jpeg',0.9).split(',')[1]);const u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return{bytes:u,w:cv.width,h:cv.height}});
+async function makePdf(J,opt={}){try{toast('Готовлю PDF…');
+  const cvs=pdfPages(J,opt);const imgs=cvs.map(cv=>{const b=atob(cv.toDataURL('image/jpeg',0.9).split(',')[1]);const u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return{bytes:u,w:cv.width,h:cv.height}});
   const blob=new Blob([pdfFromJpegs(imgs)],{type:'application/pdf'});
-  const nm=('Смета '+(J.name||'')+' '+(J.date||today())).replace(/[\\/:*?"<>|]+/g,' ').replace(/\s+/g,' ').trim()+'.pdf';
+  const nm=(({smeta:'Смета',act:'Акт',kp:'КП'})[opt.mode||'smeta']+' '+(J.name||'')+' '+(opt.mode==='act'?today():(J.date||today()))).replace(/[\\/:*?"<>|]+/g,' ').replace(/\s+/g,' ').trim()+'.pdf';
   const f=new File([blob],nm,{type:'application/pdf'});
   try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:nm});return}}catch(e){if(e.name==='AbortError')return}
   const u=URL.createObjectURL(blob);const l=document.createElement('a');l.href=u;l.download=nm;document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(u),5000);toast('PDF сохранён')}
@@ -826,7 +868,9 @@ function renderMatDef(){
 // --- Настройки
 function renderSettings(){
   hdr('Ещё');
-  $('#main').innerHTML=`<div class="card"><h3>Исполнитель (для сметы)</h3><div class="grid2"><label class="f">Имя<input data-me="name" value="${esc(S.me.name)}" placeholder="Соколов"></label><label class="f">Телефон<input data-me="phone" inputmode="tel" value="${esc(S.me.phone)}"></label></div></div>
+  $('#main').innerHTML=`<div class="card"><h3>Исполнитель (для сметы)</h3><div class="grid2"><label class="f">Имя<input data-me="name" value="${esc(S.me.name)}" placeholder="Соколов"></label><label class="f">Телефон<input data-me="phone" inputmode="tel" value="${esc(S.me.phone)}"></label></div>
+  <div style="height:8px"></div><label class="f">Instagram<input data-me="insta" value="${esc(S.me.insta||'')}" placeholder="sokolov.tiles"></label>
+  <div style="height:8px"></div><label class="f">О себе — для коммерческого предложения<textarea data-me="about" rows="3" placeholder="Чем занимаетесь, сколько лет опыта, гарантия…">${esc(S.me.about||'')}</textarea></label></div>
   <div class="card"><h3>Резервная копия</h3><p class="small mute" style="margin-top:0">Все данные хранятся только в этом телефоне, в этом браузере. Делайте копию время от времени — если очистить браузер, данные пропадут.</p>
   <div class="row" style="gap:8px"><button class="btn" style="flex:1" data-act="export">Сохранить копию</button><button class="btn sec" style="flex:1" data-act="import">Загрузить копию</button></div>
   <input type="file" id="impf" accept=".json,application/json" hidden></div>
@@ -869,6 +913,7 @@ document.addEventListener('input',e=>{
 document.addEventListener('change',e=>{
   const el=e.target;
   if(el.dataset.b&&/^r\.\d+\.ops\./.test(el.dataset.b)){const i=+el.dataset.b.split('.')[1];const box=document.querySelector(`[data-ops="${i}"]`);if(box){box.innerHTML=opsBlock(job().rooms[i],i)}return}
+  if(el.id==='kpph'){const fs=[...el.files].slice(0,6);el.value='';Promise.all(fs.map(f=>new Promise(r=>{const u=URL.createObjectURL(f);const im=new Image();im.onload=()=>r(im);im.onerror=()=>r(null);im.src=u}))).then(ims=>makePdf(job(),{mode:'kp',photos:ims.filter(Boolean)}));return}
   if(el.id==='wall'){showAllWorks=el.checked;renderWorks();return}
   if(el.id==='mall'){showAllMats=el.checked;$('#mlist').innerHTML=matList(job(),matCalc(job(),calc(job())));return}
   if(el.id==='impf'&&el.files[0]){const fr=new FileReader();fr.onload=()=>{try{const o=JSON.parse(fr.result);if(!o||!Array.isArray(o.jobs))throw 0;if(confirm('Заменить текущие данные данными из копии?')){S=o;load2();saveNow();toast('Копия загружена');go('jobs')}}catch(_){toast('Это не файл копии сметы')}};fr.readAsText(el.files[0])}
@@ -884,6 +929,7 @@ document.addEventListener('click',e=>{
   const a=b.dataset.act,J=job();
   switch(a){
     case'back':go('jobs');break;
+    case'mon':{const k=monthK||today().slice(0,7);const [yy,mm]=k.split('-').map(Number);const d=new Date(yy,mm-1+ +b.dataset.v,1);monthK=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');renderMonth();break}
     case'newjob':{const j=newJob();j.name='Объект '+(S.jobs.length+1);S.jobs.unshift(j);S.cur=j.id;S.tab='rooms';S.view='job';save();render();window.scrollTo(0,0);break}
     case'open':S.cur=b.dataset.id;S.tab=S.tab||'rooms';S.view='job';save();render();window.scrollTo(0,0);break;
     case'torask':{const r=J.rooms[+b.dataset.i];const P={...DEF_PARAMS,...J.params};
@@ -926,14 +972,22 @@ document.addEventListener('click',e=>{
     case'delcustom':J.custom.splice(+b.dataset.i,1);save();renderWorks();updateBar();break;
     case'addcm':J.customMats.push({name:'',unit:'шт',qty:'',price:''});save();renderMats();break;
     case'delcm':J.customMats.splice(+b.dataset.i,1);save();renderMats();updateBar();break;
-    case'addpay':{const s=num($('#ps').value);if(!(s>0)){toast('Впишите сумму');break}J.pays.push({id:uid(),date:$('#pd').value,sum:s,note:$('#pn').value});save();renderMoney();toast('Оплата добавлена');break}
-    case'delpay':if(confirm('Удалить оплату?')){J.pays=J.pays.filter(p=>p.id!==b.dataset.id);save();renderMoney()}break;
+    case'addpay':{const s=num($('#ps').value);if(!(s>0)){toast('Впишите сумму');break}const pu=$('#pu');S.toUchet=pu?pu.checked:false;const p={id:uid(),date:$('#pd').value||today(),sum:s,note:$('#pn').value};J.pays.push(p);
+      if(S.toUchet){p.uid='sm'+p.id;sendExt('uchet','add',{id:p.uid,date:p.date,object:J.name||'',work:'Оплата по смете'+(p.note?': '+p.note:''),sum:s})}
+      save();renderMoney();toast(S.toUchet?'Оплата добавлена и записана в «Учёт»':'Оплата добавлена');break}
+    case'delpay':if(confirm('Удалить оплату?')){const p=J.pays.find(p=>p.id===b.dataset.id);if(p&&p.uid)sendExt('uchet','del',{id:p.uid});J.pays=J.pays.filter(p=>p.id!==b.dataset.id);save();renderMoney()}break;
     case'addexp':{const s=num($('#es').value);if(!(s>0)){toast('Впишите сумму');break}J.exps.push({id:uid(),date:$('#ed').value,sum:s,cat:expCat,note:$('#en').value});save();renderMoney();toast('Трата добавлена');break}
     case'delexp':if(confirm('Удалить трату?')){J.exps=J.exps.filter(p=>p.id!==b.dataset.id);save();renderMoney()}break;
     case'print':window.print();break;
     case'pdf':makePdf(J);break;
+    case'pdfact':makePdf(J,{mode:'act'});break;
+    case'pdfkp':toast('Выберите до 6 фото своих работ (или «Отмена» — без фото)');$('#kpph').click();break;
     case'sharedoc':share(docText(J),'Смета');break;
     case'sharemats':share(matsText(J),'Материалы');break;
+    case'toplan':{const C=calc(J),M=matCalc(J,C);const rk=t=>J.customMats.some(c=>c.src&&c.src.startsWith('rask:')&&c.src.endsWith(t));const skip=id=>id==='m30'||id==='m31'||(id==='m29'&&rk(':floor'))||(id==='m28'&&rk(':walls'));
+      const items=M.rows.filter(x=>x.need>0&&!J.bought[x.m.id]&&!skip(x.m.id)).map(x=>`${x.m.name}${x.m.id==='m47'?' ('+M.hy.name.split(' (')[0]+')':''} — ${x.packs} уп. (${fq(x.need,1)} ${x.m.unit})`);
+      for(const c of J.customMats)if(c.name&&!c.bought)items.push(`${c.name}${isSet(c.qty)?' — '+fq(num(c.qty))+' '+(c.unit||''):''}`);
+      if(!items.length){toast('Всё уже куплено');break}sendExt('plan','buy',{place:J.name||'',items,src:J.id});break}
     case'export':{saveNow();const blob=new Blob([JSON.stringify(S,null,1)],{type:'application/json'});const f=new File([blob],`smeta-kopiya-${today()}.json`,{type:'application/json'});
       if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],title:'Копия сметы'}).catch(()=>{})}else{const u=URL.createObjectURL(blob);const l=document.createElement('a');l.href=u;l.download=f.name;document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(u),2000)}break}
     case'import':$('#impf').click();break;
@@ -942,6 +996,16 @@ document.addEventListener('click',e=>{
     case'dupjob':{const c=JSON.parse(JSON.stringify(J));c.id=uid();c.name=J.name+' (копия)';c.pays=[];c.exps=[];c.bought={};S.jobs.unshift(c);S.cur=c.id;save();render();toast('Копия создана');break}
   }
 });
+// обмен с другими приложениями «Мастера»
+function sendExt(app,kind,payload){if(window.parent&&window.parent!==window){window.parent.postMessage({type:'ext',app,kind,payload},'*');return true}
+  toast('Связь работает внутри «Мастера плитки»');return false}
+// приём: материалы и объёмы из «Раскладки» и «Каркаса»
+window.extIn=function(kind,p){if(kind==='jobs')return S.jobs.map(j=>({id:j.id,name:j.name||'Без названия'}));
+  if(kind==='mats'){let J=S.jobs.find(j=>j.id===p.jobId);if(!J){J=newJob();J.name=p.jobName||'Новый объект';S.jobs.unshift(J)}
+    J.customMats=(J.customMats||[]).filter(r=>!(r.src&&r.src.startsWith(p.src)));for(const r of p.rows)J.customMats.push({name:r.name,unit:r.unit||'шт',qty:String(r.qty),price:'',src:p.src});
+    if(p.custom){J.custom=(J.custom||[]).filter(r=>!(r.src&&r.src.startsWith(p.src)));for(const r of p.custom)J.custom.push({...r,src:p.src})}
+    if(p.qty)for(const [k,v] of Object.entries(p.qty))J.qty[k]=String(Math.round(v*100)/100);
+    S.cur=J.id;S.view='job';S.tab='mats';saveNow();render();window.scrollTo(0,0);return J.name}};
 // перенос помещения в «Раскладку»: внутри «Мастера» — через главный экран, отдельно — напрямую в память
 function sendToRask(it){
   if(window.parent&&window.parent!==window){window.parent.postMessage({type:'toRask',item:it},'*');return}

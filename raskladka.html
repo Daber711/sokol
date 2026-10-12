@@ -517,7 +517,7 @@ function renderLay(){
   <div class="chips" style="margin-top:8px">${Object.entries(FOBJ).map(([k,t])=>`<button data-fact="add" data-v="${k}">+ ${t.n}</button>`).join('')}</div></div>
   <h2>Как начать</h2><div class="card" id="start"></div>
   <h2>Подрезки</h2><div class="card" id="cuts"></div>
-  <div class="row" style="gap:8px"><button class="btn" style="flex:1" data-act="png">Сохранить картинку</button><button class="btn sec" style="flex:1" data-act="sharetxt">Отправить текстом</button></div>`;
+  <div class="row" style="gap:8px"><button class="btn" style="flex:1" data-pdfs="floor">📄 Схема PDF</button><button class="btn sec" style="flex:1" data-act="png">Картинка</button><button class="btn sec" style="flex:1" data-act="sharetxt">Текстом</button></div><div style="height:10px"></div>${smCard('floor')}`;
   view={z:1,cx:null,cy:null};sel=-1;
   draw(true);
   setTimeout(()=>{VARS=variants(it);drawVars()},30);
@@ -581,14 +581,14 @@ function textReport(it){
   const groups={};let fig=0;for(const x of L.tiles){if(x.full)continue;if(!x.rect){fig++;continue}const k=Math.round(x.len)+'×'+Math.round(x.wid);groups[k]=(groups[k]||0)+1}
   for(const [k,n] of Object.entries(groups).sort((a,b)=>b[1]-a[1]))t+=`${k} мм — ${n} шт\n`;if(fig)t+=`фигурные — ${fig} шт\n`;for(const x of L.tiles)for(const h of (x.holes||[]))t+=`${FOBJ[h.o.type].n}: ${Math.round(h.a)} мм от края по длине, ${Math.round(h.b)} мм по ширине\n`;return t+startText(it,lastSI);
 }
-async function sharePng(){
+async function sharePng(cb){
   const it=cur();const R=roomPoly(it);const [x0,y0,x1,y1]=bbox(R.pts);const w=x1-x0,h=y1-y0,pad=Math.max(w,h)*0.05;
   const W=1600,sc=W/(w+2*pad),H=Math.round((h+2*pad)*sc)+120;
-  const cs=getComputedStyle(document.documentElement);const col=v=>cs.getPropertyValue(v).trim();
+  const cs=getComputedStyle(document.documentElement);const col=v=>(PDFLIGHT&&LIGHTV[v])||cs.getPropertyValue(v).trim();
   let svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="${x0-pad} ${y0-pad} ${w+2*pad} ${(H)/sc}"><rect x="${x0-pad}" y="${y0-pad}" width="${w+2*pad}" height="${H/sc}" fill="#fff"/><polygon points="${ptsStr(R.pts)}" fill="${col('--grout')}"/>${tilesSvg(it,lastL,[n0(it.ox),n0(it.oy)],{labels:true,fs:16/sc})}${fobjSvg(it,sc)}<defs><clipPath id="rc"><polygon points="${ptsStr(R.pts)}"/></clipPath></defs>${startSvg(lastSI,R.pts,sc)}${outlineSvg(R,3/sc)}${wallNums(R.pts,sc)}`;
   const pat=pattern(it);const fs=26/sc;svg+=`<text x="${x0-pad+10/sc}" y="${y1+pad+40/sc}" font-size="${fs}" font-family="Arial" fill="#222">${esc(it.name)} · плитка ${pat.L}×${pat.W}, шов ${fq(it.tile.j,1)} · целых ${lastL.full}, подрезок ${lastL.cuts}</text></svg>`;
   svg=svg.replace(/var\(--tile\)/g,col('--tile')).replace(/var\(--cut\)/g,col('--cut')).replace(/var\(--narrow\)/g,col('--narrow')).replace(/var\(--ink\)/g,'#1d2328').replace(/var\(--sel\)/g,'#4b8bd6').replace(/var\(--acc\)/g,'#c4572e');
-  const img=new Image();img.onload=()=>{const c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');g.drawImage(img,0,0);c.toBlob(async b=>{
+  const img=new Image();img.onload=()=>{const c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');g.drawImage(img,0,0);if(cb){cb(c);return}c.toBlob(async b=>{
     const f=new File([b],`raskladka-${(it.name||'plan').replace(/[^\wа-яё-]+/gi,'_')}.png`,{type:'image/png'});
     try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:it.name});return}}catch(e){if(e.name==='AbortError')return}
     const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=f.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),3000)},'image/png')};
@@ -861,7 +861,7 @@ function renderWalls(){
    <div class="chips" style="margin-top:8px">${Object.entries(OBJ).map(([k,t])=>`<button data-wact="addobj" data-v="${k}">+ ${t.n}</button>`).join('')}</div></div>
   <h2>Как начать</h2><div class="card" id="wstart"></div>
   <h2>Подрезки и отверстия</h2><div class="card" id="wcuts"></div>
-  <div class="row" style="gap:8px"><button class="btn" style="flex:1" data-wact="wpng">Сохранить картинку</button><button class="btn sec" style="flex:1" data-wact="wtxt">Отправить текстом</button></div>`;
+  <div class="row" style="gap:8px"><button class="btn" style="flex:1" data-pdfs="walls">📄 Схема PDF</button><button class="btn sec" style="flex:1" data-wact="wpng">Картинка</button><button class="btn sec" style="flex:1" data-wact="wtxt">Текстом</button></div><div style="height:10px"></div>${smCard('walls')}`;
   wview={z:1,cx:null,cy:null};wDraw(true);WVARS=null;wVarsRefresh();
 }
 function slopeHtml(it,w){const T=W(it);T.slope=T.slope||{};const s=T.slope[w.idx]||{};const sl=wSl(it,w);
@@ -944,11 +944,11 @@ function wText(it){const A=lastWA;const {a,b,j}=wTile(it);const si=wStart(it);co
   t+='\nПодрезки:\n';for(const [k,n] of Object.entries(groups).sort((p,q)=>q[1]-p[1]))t+=`${k} мм — ${n} шт\n`;if(fig)t+=`с вырезом — ${fig} шт\n`;
   for(const {w,L} of A.ws)for(const x of L.tiles)for(const hh of x.holes)t+=`${OBJ[hh.o.type].n}, стена ${w.num}: ${Math.round(hh.dx)} мм слева, ${Math.round(hh.dy)} мм снизу плитки\n`;
   return t}
-function wPng(it){const {Wt,Hm}=wPano(it);const pad=Hm*0.15;const Wp=2400,sc=Wp/(Wt+2*pad),Hp=Math.round((Hm+2*pad)*sc)+80;
-  const cs=getComputedStyle(document.documentElement);const col=v=>cs.getPropertyValue(v).trim();
+function wPng(it,cb){const {Wt,Hm}=wPano(it);const pad=Hm*0.15;const Wp=2400,sc=Wp/(Wt+2*pad),Hp=Math.round((Hm+2*pad)*sc)+80;
+  const cs=getComputedStyle(document.documentElement);const col=v=>(PDFLIGHT&&LIGHTV[v])||cs.getPropertyValue(v).trim();
   let svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${Wp}" height="${Hp}" viewBox="${-pad} ${-pad} ${Wt+2*pad} ${Hp/sc}"><rect x="${-pad}" y="${-pad}" width="${Wt+2*pad}" height="${Hp/sc}" fill="#fff"/>${wSvg(it,{sc,labels:true,fs:14/sc,png:true}).s}<text x="${-pad+10/sc}" y="${Hm+pad+40/sc}" font-size="${22/sc}" font-family="Arial" fill="#222">${esc(it.name)} — стены · целых ${lastWA.full}, подрезок ${lastWA.cut}</text></svg>`;
   for(const v of ['--tile','--cut','--narrow','--grout','--line','--mute','--sel','--acc'])svg=svg.split(`var(${v})`).join(col(v));svg=svg.split('var(--ink)').join('#1d2328');
-  const img=new Image();img.onload=()=>{const c=document.createElement('canvas');c.width=Wp;c.height=Hp;c.getContext('2d').drawImage(img,0,0);c.toBlob(async bl=>{const f=new File([bl],'steny.png',{type:'image/png'});
+  const img=new Image();img.onload=()=>{const c=document.createElement('canvas');c.width=Wp;c.height=Hp;c.getContext('2d').drawImage(img,0,0);if(cb){cb(c);return}c.toBlob(async bl=>{const f=new File([bl],'steny.png',{type:'image/png'});
     try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f]});return}}catch(e){if(e.name==='AbortError')return}
     const u=URL.createObjectURL(bl);const a=document.createElement('a');a.href=u;a.download=f.name;document.body.appendChild(a);a.click();a.remove()},'image/png')};
   img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg)}
@@ -1290,7 +1290,7 @@ function renderFrame(){const it=cur();const f=F(it);if(!f.sel||!f.els.some(e=>e.
     <div id="stage"><svg id="fv" xmlns="http://www.w3.org/2000/svg"></svg></div>
     <div class="card" id="finfo" style="margin-top:8px;border-color:#f59e0b!important">${fInfoHtml()}</div>
     <div class="tools"><button data-fa="fzin">＋</button><button data-fa="fzout">－</button><button data-fa="fzfit">⤢</button><span class="small mute" style="align-self:center"><span class="leg" style="background:#55636f"></span>стойка <span class="leg" style="background:#1f6f5c"></span>у проёма <span class="leg" style="background:#c4572e"></span>коротыш <span class="leg" style="background:#b7791f"></span>сдвинута от трубы <span class="leg" style="background:#2563eb"></span>под шов листа <span class="leg" style="background:#3b82c4"></span>поперечина${f.slide?' <span class="leg" style="background:#16a34a"></span>скользящая опора':''} <span style="color:#0ea5e9">┆</span> шов 1-го слоя${+f.layers===2?' <span style="color:#a855f7">┆</span> шов 2-го':''}</span></div>`}
-  h+=`<h2>Материалы</h2><div class="card" id="fmat"></div>`;
+  h+=`<h2>Материалы</h2><div class="card" id="fmat"></div>${f.els.length?smCard('frame'):''}`;
   if(!f.els.length)h+=`<div class="empty">Добавьте стену, короб или колонну — каркас и материалы посчитаются сами.</div>`;
   $('#main').innerHTML=h;fDraw();
 }
@@ -1419,6 +1419,57 @@ document.addEventListener('wheel',e=>{const st=stageOf(e.target);if(!st)return;e
   const z=Math.max(1,Math.min(15,V.z*(e.deltaY<0?1.15:1/1.15)));const vw=bw/z,vh=bh/z;const vx=P[0]-(e.clientX-r.left)*vw/r.width,vy=P[1]-(e.clientY-r.top)*vh/r.height;
   V.z=z;V.cx=vx+vw/2;V.cy=vy+vh/2;redrawStage(st.el.id)},{passive:false});
 
+const LIGHTV={'--tile':'#f4efe6','--cut':'#f6c9a8','--narrow':'#ef8f87','--grout':'#9aa0a3','--line':'#e2ded6','--mute':'#6b7378','--sel':'#4b8bd6','--acc':'#c4572e','--card':'#ffffff','--soft2':'#e8f3ef','--bg':'#f3f1ec'};let PDFLIGHT=false;
+function pdfFromJpegs(imgs){// imgs: [{bytes:Uint8Array,w,h}] → Uint8Array PDF, страница A4
+  const enc=new TextEncoder();const parts=[];let len=0;const offs=[];
+  const put=x=>{const u=typeof x==='string'?enc.encode(x):x;parts.push(u);len+=u.length};
+  const obj=(id,body)=>{offs[id]=len;put(`${id} 0 obj\n`);body();put('\nendobj\n')};
+  put('%PDF-1.4\n%\xE2\xE3\xCF\xD3\n');const n=imgs.length;const kids=imgs.map((_,i)=>`${3+i*3} 0 R`).join(' ');
+  obj(1,()=>put('<< /Type /Catalog /Pages 2 0 R >>'));obj(2,()=>put(`<< /Type /Pages /Kids [${kids}] /Count ${n} >>`));
+  imgs.forEach((im,i)=>{const pid=3+i*3,cid=pid+1,iid=pid+2;const W=595.28,H=841.89;
+    obj(pid,()=>put(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${W} ${H}] /Resources << /XObject << /Im${i} ${iid} 0 R >> >> /Contents ${cid} 0 R >>`));
+    const cs=`q ${W} 0 0 ${H} 0 0 cm /Im${i} Do Q`;obj(cid,()=>put(`<< /Length ${cs.length} >>\nstream\n${cs}\nendstream`));
+    obj(iid,()=>{put(`<< /Type /XObject /Subtype /Image /Width ${im.w} /Height ${im.h} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${im.bytes.length} >>\nstream\n`);put(im.bytes);put('\nendstream')})});
+  const total=3+n*3;const xref=len;let x=`xref\n0 ${total}\n0000000000 65535 f \n`;for(let i=1;i<total;i++)x+=String(offs[i]).padStart(10,'0')+' 00000 n \n';
+  put(x+`trailer\n<< /Size ${total} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`);
+  const out=new Uint8Array(len);let o=0;for(const u of parts){out.set(u,o);o+=u.length}return out}
+
+// PDF со схемой: шапка, картинка, текст
+function schemePdf(title,sub,img,lines,fname){const PW=1240,PH=1754,M=80,R=PW-M;const F='-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif';const pages=[];let c,y;
+  const font=(sz,w)=>{c.font=`${w||400} ${sz}px ${F}`};const txt=(t,x,yy,al,col)=>{c.textAlign=al||'left';c.fillStyle=col||'#1d2328';c.fillText(t,x,yy)};
+  const wrap=(t,w)=>{const ws=String(t).split(/\s+/);const ls=[];let cur='';for(const x of ws){const tt=cur?cur+' '+x:x;if(c.measureText(tt).width>w&&cur){ls.push(cur);cur=x}else cur=tt}if(cur)ls.push(cur);return ls.length?ls:['']};
+  const page=first=>{const cv=document.createElement('canvas');cv.width=PW;cv.height=PH;c=cv.getContext('2d');c.fillStyle='#fff';c.fillRect(0,0,PW,PH);pages.push(cv);
+    if(first){c.fillStyle='#1f2a33';c.fillRect(0,0,PW,170);c.fillStyle='#c4572e';c.fillRect(0,170,PW,8);font(50,800);txt(title,M,88,'left','#fff');font(26);txt(sub,M,136,'left','#c9d0d4');y=215}else{font(22);txt(title+' (продолжение)',M,70,'left','#6b7378');y=110}};
+  page(true);
+  if(img){const maxH=950;const sc=Math.min((R-M)/img.width,maxH/img.height);const w=img.width*sc,h=img.height*sc;c.drawImage(img,M+(R-M-w)/2,y,w,h);c.strokeStyle='#e2ded6';c.strokeRect(M+(R-M-w)/2,y,w,h);y+=h+30}
+  for(const raw of lines){const bold=/^[А-ЯЁA-Z ]{4,}:/.test(raw)||/:$/.test(raw.trim());font(25,bold?700:400);const ls=wrap(raw,R-M);for(const l of ls){if(y+34>PH-90)page(false),font(25,bold?700:400);txt(l,M,y+28,'left',bold?'#c4572e':'#1d2328');y+=34}if(!raw.trim())y-=14}
+  pages.forEach((cv,i)=>{c=cv.getContext('2d');font(20);txt(`стр. ${i+1} из ${pages.length}`,R,PH-45,'right','#6b7378');txt('«Мастер плитки» · раскладка',M,PH-45,'left','#6b7378')});
+  const imgs=pages.map(cv=>{const b=atob(cv.toDataURL('image/jpeg',0.9).split(',')[1]);const u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return{bytes:u,w:cv.width,h:cv.height}});
+  const blob=new Blob([pdfFromJpegs(imgs)],{type:'application/pdf'});const f=new File([blob],fname.replace(/[\\/:*?"<>|]+/g,' ')+'.pdf',{type:'application/pdf'});
+  (async()=>{try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:f.name});return}}catch(e){if(e.name==='AbortError')return}
+    const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download=f.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),5000);toast('PDF сохранён')})()}
+function pdfScheme(kind){const it=cur();toast('Готовлю PDF…');PDFLIGHT=true;
+  if(kind==='floor'){const pat=pattern(it);sharePng(cv=>{PDFLIGHT=false;schemePdf('Схема раскладки — пол',`${it.name} · плитка ${pat.L}×${pat.W}, шов ${fq(it.tile.j,1)} мм`,cv,textReport(it).split('\n'),'Раскладка пол '+it.name)})}
+  else{const {a,b,j}=wTile(it);wPng(it,cv=>{PDFLIGHT=false;schemePdf('Схема раскладки — стены',`${it.name} · плитка ${a}×${b}, шов ${fq(j,1)} мм`,cv,wText(it).split('\n'),'Раскладка стены '+it.name)})}}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-pdfs]');if(b)pdfScheme(b.dataset.pdfs)});
+// ---- перенос в «Смету»
+function smJobs(){try{const d=JSON.parse(localStorage.getItem('smeta_plitka_v1')||'null');return(d&&d.jobs||[]).map(j=>({id:j.id,name:j.name||'Без названия'}))}catch(e){return[]}}
+function smCard(k){const js=smJobs();const it=cur();const pre=it.smJob&&js.some(j=>j.id===it.smJob)?it.smJob:(js[0]?.id||'');
+  const what={floor:'плитку на пол',walls:'плитку на стены',frame:'материалы каркаса и объёмы работ'}[k];
+  return`<div class="card"><b>→ В смету</b><div class="small mute" style="margin:4px 0 8px">Перенести ${what} в «Смету». Повторный перенос обновит те же строки, а не добавит новые.</div>
+  <div class="row" style="gap:8px"><select id="smj-${k}" style="flex:1">${js.map(j=>`<option value="${j.id}" ${j.id===pre?'selected':''}>${esc(j.name)}</option>`).join('')}<option value="__new">+ Новый объект «${esc(it.name)}»</option></select><button class="btn" data-tosm="${k}">Перенести</button></div></div>`}
+function smRows(k){const it=cur();
+  if(k==='floor'){const R=roomPoly(it);const L=layout(it,R.pts,pattern(it),n0(it.ox),n0(it.oy),true);const pat=pattern(it);const need=L.full+L.cuts;const wr=Math.ceil(need*(1+n0(it.reserve)/100));const pb=n0(it.perBox);
+    const area=Math.max(0,Math.abs(polyArea(tileArea(it,R.pts)))-fobjCutArea(it))/1e6;
+    return{rows:[pb>0?{name:`Плитка на пол ${pat.L}×${pat.W} — ${it.name} (${wr} шт, по раскладке)`,unit:'кор',qty:Math.ceil(wr/pb)}:{name:`Плитка на пол ${pat.L}×${pat.W} — ${it.name} (${fq(area,2)} м², по раскладке)`,unit:'шт',qty:wr}]}}
+  if(k==='walls'){const A=allWalls(it);const {a,b}=wTile(it);const need=A.full+A.cut;const wr=Math.ceil(need*(1+n0(it.reserve)/100));const pb=n0(it.perBox);
+    return{rows:[pb>0?{name:`Плитка на стены ${a}×${b} — ${it.name} (${wr} шт, по раскладке)`,unit:'кор',qty:Math.ceil(wr/pb)}:{name:`Плитка на стены ${a}×${b} — ${it.name} (${fq(A.area/1e6,2)} м², по раскладке)`,unit:'шт',qty:wr}]}}
+  const f=F(it);const C=frameCalc(it);const rows=[];for(const r of C.m){const m=String(r[1]).match(/^([\d.,]+)\s*(.*)$/);if(!m)continue;rows.push({name:r[0]+' — каркас '+it.name,unit:(m[2]||'шт').replace('листов','лист').replace('компл.','компл'),qty:parseFloat(m[1].replace(',','.'))})}
+  let face=0,nI=0;for(const E of C.els){for(const P of E.res)face+=P.area;nI+=f.ops.filter(o=>o.el===E.el.id&&o.type==='inst').length}
+  const qty={p52:face/1e6,p53:C.area*(+f.layers||1)/1e6};if(nI)qty.p57=nI;return{rows,qty}}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-tosm]');if(!b)return;const k=b.dataset.tosm;const it=cur();const sel=$('#smj-'+k);let jobId=sel?sel.value:'';
+  if(jobId!=='__new')it.smJob=jobId;save();const R=smRows(k);const payload={jobId:jobId==='__new'?null:jobId,jobName:it.name,src:`rask:${it.id}:${k}`,rows:R.rows,qty:R.qty};
+  if(window.parent&&window.parent!==window){window.parent.postMessage({type:'ext',app:'smeta',kind:'mats',payload},'*')}else toast('Перенос работает внутри «Мастера плитки»')});
 // помещение пришло из «Сметы»
 function addRoomItem(item){const n={...newItem(),...item};if(!n.walls)n.walls=[];S.items.unshift(n);S.cur=n.id;S.view='edit';S.tab='room';saveNow();render();scrollTo(0,0);toast('Помещение из сметы: проверьте размеры и выберите плитку')}
 window.addEventListener('message',e=>{if(e.origin!==location.origin)return;const d=e.data;if(d&&d.type==='addRoom'&&d.item)addRoomItem(d.item)});
