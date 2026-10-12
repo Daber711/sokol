@@ -1131,14 +1131,13 @@ function panelCalc(it,el,si,seg){
   String(el.cross||'').split(/[;,\s]+/).map(v=>parseFloat(v)).filter(v=>v>0&&v<maxTop).forEach(y=>full.forEach(([a,b])=>add(y,a,b,'ваша')));
   if(f.sys==='wb'){const hs=Math.max(300,n0(f.hstep)||1200);for(let y=hs;y<maxTop-200;y+=hs)full.forEach(([a,b])=>{if(!cross.some(c=>c.a===a&&c.b===b&&Math.abs(c.y-y)<300))add(y,a,b,'шаг')});
     // нижняя и верхняя обвязка (под край листа)
-    full.forEach(([a,b])=>{if(!fr.some(o=>n0(o.y)<5&&a>=n0(o.x)-pw-1&&b<=n0(o.x)+n0(o.w)+pw+1))add(pw/2,a,b,'низ');
-      if(Math.abs(topAt(a)-topAt(b))<3)add(Math.min(topAt(a),topAt(b))-gapTop(f)-pw/2,a,b,'верх')})}
+    full.forEach(([a,b])=>{if(Math.abs(topAt(a)-topAt(b))<3)add(Math.min(topAt(a),topAt(b))-gapTop(f)-pw/2,a,b,'верх')})}
   // 8) направляющие (Knauf): низ — кроме дверей и инсталляций, верх — по потолку
-  const railBot=[];{let segs=[[0,L]];for(const o of fr.filter(o=>n0(o.y)<5)){const a=n0(o.x),b=n0(o.x)+n0(o.w);segs=segs.flatMap(([p,q])=>{const r=[];if(a>p)r.push([p,Math.min(a,q)]);if(b<q)r.push([Math.max(b,p),q]);return r})}
-    for(const [p,q] of segs)if(q-p>40)railBot.push(q-p)}
+  const railBot=[],railSegs=[];{let segs=[[0,L]];for(const o of fr.filter(o=>n0(o.y)<5)){const a=n0(o.x),b=n0(o.x)+n0(o.w);segs=segs.flatMap(([p,q])=>{const r=[];if(a>p)r.push([p,Math.min(a,q)]);if(b<q)r.push([Math.max(b,p),q]);return r})}
+    for(const [p,q] of segs)if(q-p>40){railBot.push(q-p);railSegs.push([p,q])}}
   const railTopPts=SL?SL.pts:[[0,H],[L,H]];const railTop=[];for(let i=0;i<railTopPts.length-1;i++){const l=Math.hypot(railTopPts[i+1][0]-railTopPts[i][0],railTopPts[i+1][1]-railTopPts[i][1]);if(l>20)railTop.push(l)}
   const cutA=fr.filter(o=>FOP[o.type].cut).reduce((a,o)=>a+n0(o.w)*n0(o.h),0);
-  return{firstSheet,L,H,SL,topAt,pieces,heads,cross,hseams,vseams,railBot,railTop,area:(SL?Math.abs(polyArea(SL.poly)):L*H)-cutA,warn,ops,xs,pw}
+  return{firstSheet,L,H,SL,topAt,pieces,heads,cross,hseams,vseams,railBot,railSegs,onRail:x=>railSegs.some(([p,q])=>x>=p-1&&x<=q+1),railTop,area:(SL?Math.abs(polyArea(SL.poly)):L*H)-cutA,warn,ops,xs,pw}
 }
 const gapTop=f=>f.slide?Math.max(0,n0(isSet(f.slideGap)?f.slideGap:40)):(f.sys==='knauf'?10:5);
 // раскрой: первый подходящий по убыванию, пропил 3 мм; длинные куски — со стыком
@@ -1152,24 +1151,27 @@ function groupCuts(items){const m=new Map();for(const p of items){const k=p.name
   const ord=n=>/^(Стойка|Коротыш)/.test(n)?0:/^Направляющая/.test(n)?1:/^(Перемычка|Подоконная)/.test(n)?2:3;
   return[...m.values()].map(g=>{const ks=Object.keys(g.nc);const note=ks.length===1?ks[0]:ks.map(k=>`${k||'обычных'} — ${g.nc[k]}`).join(', ');return{...g,note}}).sort((a,b)=>ord(a.name)-ord(b.name)||a.name.localeCompare(b.name)||b.len-a.len)}
 // длины заготовок — одни и те же формулы для списка и для подсказки на схеме
-function studCut(f,P,p){const pw=PW(f);return Math.max(P.topAt(p.x-pw/2),P.topAt(p.x+pw/2))-gapTop(f)}
-function studCutShort(f,P,p){const pw=PW(f);return Math.min(P.topAt(p.x-pw/2),P.topAt(p.x+pw/2))-gapTop(f)}
-function cripCut(f,P,p){const pw=PW(f),kn=f.sys==='knauf';const top=P.topAt(p.x);let len=p.y1-p.y0;if(!kn){if(p.hb)len-=pw;if(p.ht)len-=pw}if(p.y1>=top-1)len-=gapTop(f);else if(kn)len-=5;return len}
+const onB=(f,P,p)=>f.sys!=='knauf'&&p.y0<1&&P.onRail&&P.onRail(p.x)?PW(f):0;// вертикаль стоит на нижнем профиле
+function studCut(f,P,p){const pw=PW(f);return Math.max(P.topAt(p.x-pw/2),P.topAt(p.x+pw/2))-gapTop(f)-onB(f,P,p)}
+function studCutShort(f,P,p){const pw=PW(f);return Math.min(P.topAt(p.x-pw/2),P.topAt(p.x+pw/2))-gapTop(f)-onB(f,P,p)}
+function cripCut(f,P,p){const pw=PW(f),kn=f.sys==='knauf';const top=P.topAt(p.x);let len=p.y1-p.y0;if(!kn){if(p.hb)len-=pw;if(p.ht)len-=pw}if(p.y1>=top-1)len-=gapTop(f);else if(kn)len-=5;return len-onB(f,P,p)}
 const crossCut=(f,c)=>f.sys==='knauf'?c.len-PW(f)+100:c.len-PW(f);
 const headCut=(f,h)=>f.sys==='knauf'?h.w+300:h.w;
 function frameCalc(it){const f=F(it);const out={els:[],warn:[]};const pw=PW(f);const gt=gapTop(f);const kn=f.sys==='knauf';
   const S1=[],S2=[];// S1 — стоечный (или весь WALLBOX), S2 — направляющий Knauf
-  let area=0,nStud=0,nCrip=0,nHead=0,nInst=0,nCross=0,railRun=0,edgeH=0,cripEnds=0;const slide=[];const fixFloor=[];const wallFix=[];
+  let area=0,nStud=0,nCrip=0,nHead=0,nInst=0,nCross=0,railRun=0,edgeH=0,cripEnds=0,nOnRail=0;const slide=[];const fixFloor=[];const wallFix=[];
   for(const el of f.els){const res=[];const H=n0(el.H)||n0(it.ceil)||2700;const nm=el.name||'Элемент';
     el.segs.forEach((s,si)=>{const P=panelCalc(it,el,si,s);res.push(P);const where=`${nm}, уч.${si+1}`;
       for(const p of P.pieces){const top=P.topAt(p.x);const slope=P.SL&&Math.abs(P.topAt(p.x-pw/2)-P.topAt(p.x+pw/2))>2;
         if(p.kind!=='crip'){nStud++;const len=studCut(f,P,p);S1.push({name:kn?'Стойка ПС':'Стойка (вертикаль)',len,note:slope?'верх под углом':'',where});
-          if(p.y1>=top-1)slide.push({where,x:Math.round(p.x),y:Math.round(top)});fixFloor.push({where,x:Math.round(p.x)})}
+          if(p.y1>=top-1)slide.push({where,x:Math.round(p.x),y:Math.round(top)});if(kn||!P.onRail(p.x))fixFloor.push({where,x:Math.round(p.x)});else nOnRail++}
         else{nCrip++;const len=cripCut(f,P,p);
-          if(p.y0<1)fixFloor.push({where,x:Math.round(p.x),crip:1});cripEnds+=(p.hb?1:0)+(p.ht?1:0);S1.push({name:kn?'Коротыш ПС':'Коротыш (вертикаль)',len,note:p.y0>0&&p.y1>=top-1?'над проёмом':p.y0<1?'под окном':'',where});if(p.y1>=top-1)slide.push({where,x:Math.round(p.x),y:Math.round(top)})}}
+          if(p.y0<1&&(kn||!P.onRail(p.x)))fixFloor.push({where,x:Math.round(p.x),crip:1});if(!kn&&p.y0<1&&P.onRail(p.x))nOnRail++;cripEnds+=(p.hb?1:0)+(p.ht?1:0);S1.push({name:kn?'Коротыш ПС':'Коротыш (вертикаль)',len,note:p.y0>0&&p.y1>=top-1?'над проёмом':p.y0<1?'под окном':'',where});if(p.y1>=top-1)slide.push({where,x:Math.round(p.x),y:Math.round(top)})}}
       for(const h of P.heads){nHead++;(kn?S2:S1).push({name:h.pos==='top'?(h.o.type==='inst'?(kn?'Поперечина ПН над инсталляцией':'Горизонталь над инсталляцией'):(kn?'Перемычка ПН над проёмом':'Перемычка над проёмом')):(kn?'Подоконная ПН':'Подоконная'),len:headCut(f,h),note:kn?'полки надрезать, концы загнуть по 150':'',where})}
       for(const c of P.cross){nCross++;const why={шов:'под шов ГКЛ',ваша:'',инсталляция:'над инсталляцией',шаг:'',низ:'по низу',верх:'по верху'}[c.why]||'';
         (kn?S2:S1).push({name:kn?'Поперечина ПН':'Горизонталь',len:crossCut(f,c),note:(why?why+(kn?', ':''):'')+(kn?'+50 на «ушки» с каждой стороны':''),where})}
+      if(!kn){for(const [a,b] of P.railSegs){S1.push({name:'Нижний профиль (по полу)',len:b-a,note:'цельный, разрыв только под инсталляцией / в дверях',where});railRun+=b-a;
+          const n=Math.max(2,Math.ceil((b-a)/600)+1);for(let k=0;k<n;k++)fixFloor.push({where,x:Math.round(a+Math.min(b-a,Math.max(0,(b-a)*k/(n-1))))+(k===0?50:k===n-1?-50:0),rail:1})}}
       if(kn){for(const l of P.railBot){S2.push({name:'Направляющая ПН — пол',len:l,note:'',where});railRun+=l}for(const l of P.railTop){S2.push({name:'Направляющая ПН — потолок',len:l,note:P.SL?'по скату':'',where});railRun+=l}}
       area+=P.area*(el.type==='wall'?(+el.sides===1?1:2):1);nInst+=P.ops.filter(o=>o.type==='inst').length;out.warn.push(...P.warn.map(w=>`${where}: ${w}`))});
     // крепления к стенам: крайние стойки элемента, примыкающие к стенам (не у колонны)
@@ -1190,10 +1192,10 @@ function frameCalc(it){const f=F(it);const out={els:[],warn:[]};const pw=PW(f);c
     m.push(['Саморез LN 3,5×9,5 «клоп»',`${(nStud+nCrip)*(f.slide?2:4)+nHead*4+nCross*4} шт`,f.slide?'стойки крепятся только к нижней ПН — сверху не крутить (усадка)':'по 2 с каждой стороны на конце стойки']);
     m.push(['Уплотнительная лента',`${fq((railRun+edgeH)/1000,1)} м`,'под ПН и крайние ПС'])}
   else{const bar=n0(f.wbBar)||3000;const pk=pack(S1,bar);out.packS=pk;out.barS=bar;out.nameS='WB90003 33×33×1,5';const free=f.mode==='free';
-    m.push([`Профиль WALLBOX WB90003 33×33×1,5, хлыст ${bar}`,`${pk.bars} шт`,`вертикалей ${nStud}, коротышей ${nCrip}, горизонталей ${nCross+nHead}${pk.splices?`, наращиваний ${pk.splices} (уголок WB90109)`:''}`]);
-    const cH=nCross*2,cHd=nHead*2,cM=nInst*2,cC=cripEnds,cAll=cH+cHd+cM+cC;
-    m.push(['Уголок соединительный WB90102',`${cAll} шт`,`горизонтали ${nCross} × 2 = ${cH}`+(nHead?` · перемычки ${nHead} × 2 = ${cHd}`:'')+(cC?` · коротыши к перемычкам ${cC}`:'')+(cM?` · модули ${nInst} × 2 = ${cM}`:'')+'; затяжка 10 Нм, ключ SW4']);
-    const nF=fixFloor.length;m.push(['Опора к полу WB90302 (крепление одинарное)',`${nF} шт`,`по одной под каждую стойку${fixFloor.some(x=>x.crip)?' и коротыш под окном':''}; к полу жёстко, анкер 10×60 — ${nF} шт`]);
+    m.push([`Профиль WALLBOX WB90003 33×33×1,5, хлыст ${bar}`,`${pk.bars} шт`,`вертикалей ${nStud}, коротышей ${nCrip}, горизонталей ${nCross+nHead}, нижний профиль ${fq(railRun/1000,2)} м${pk.splices?`, наращиваний ${pk.splices} (уголок WB90109)`:''}`]);
+    const cH=nCross*2,cHd=nHead*2,cM=nInst*2,cC=cripEnds,cR=nOnRail,cAll=cH+cHd+cM+cC+cR;
+    m.push(['Уголок соединительный WB90102',`${cAll} шт`,`горизонтали ${nCross} × 2 = ${cH}`+(nHead?` · перемычки ${nHead} × 2 = ${cHd}`:'')+(cR?` · стойки к нижнему профилю ${cR}`:'')+(cC?` · коротыши к перемычкам ${cC}`:'')+(cM?` · модули ${nInst} × 2 = ${cM}`:'')+'; затяжка 10 Нм, ключ SW4']);
+    const nF=fixFloor.length;m.push(['Опора к полу WB90302 (крепление одинарное)',`${nF} шт`,`нижний профиль к полу — шаг ≤600 мм и по краям${fixFloor.some(x=>!x.rail)?', плюс стойки не на профиле':''}; к полу жёстко, анкер 10×60 — ${nF} шт`]);
     if(!f.slide)m.push(['Крепление одинарное WB90302 к потолку',`${nStud} шт`,'по одной на верх каждой стойки']);
     if(pk.splices)m.push(['Уголок для наращивания WB90109',`${pk.splices*2} шт`,`${pk.splices} стыков профиля по длине, по 2 на стык`]);
     if(!free&&!f.slide)m.push(['Крепление двойное WB90311 / WB90313 (к несущей стене)',`${Math.ceil(nStud*Math.max(1,Math.ceil((n0(f.els[0]?.H)||2700)/1200)))} шт`,'по стойкам, шаг ≤1200 по высоте'])}
@@ -1217,8 +1219,9 @@ function frameSvg(it,el,sc){const f=F(it);const hits=[];const hit=(k,box,title,r
       s+=`<rect x="${X+n0(o.x)}" y="${fy(n0(o.y)+n0(o.h))}" width="${n0(o.w)}" height="${n0(o.h)}" fill="${t.col}" stroke="var(--ink)" stroke-width="${1/sc}"/>`;
       hit('op:'+o.id,[X+n0(o.x),fy(n0(o.y)+n0(o.h)),n0(o.w),n0(o.h)],o.type==='inst'?(INST[+o.preset||0]||INST[0])[0]:t.n,[['Размер',`${Math.round(n0(o.w))} × ${Math.round(n0(o.h))} мм`],['От начала участка',`${Math.round(n0(o.x))} мм`],['Низ от пола',`${Math.round(n0(o.y))} мм`],['Верх от пола',`${Math.round(n0(o.y)+n0(o.h))} мм`]]);const fs=Math.min(12/sc,n0(o.w)/6);s+=`<text x="${X+n0(o.x)+n0(o.w)/2}" y="${fy(n0(o.y)+n0(o.h)/2)}" font-size="${fs}" text-anchor="middle" fill="#334">${o.type==='inst'?(INST[+o.preset||0]||INST[0])[0].split(' · ')[0]:t.n}</text>`}
     // направляющие
-    const topPts=P.SL?P.SL.pts:[[0,P.H],[L,P.H]];s+=`<polyline points="${topPts.map(q=>(X+q[0])+','+(fy(q[1])-pw*0.3)).join(' ')}" fill="none" stroke="#7a8a99" stroke-width="${pw*0.6}" stroke-linejoin="round"/><rect x="${X}" y="${H}" width="${L}" height="${pw*0.6}" fill="#7a8a99"/>`;
-    if(f.sys==='knauf'){hit(`rb:${si}`,[X,H,L,pw*0.6],'Направляющая ПН — пол',[['Куски',P.railBot.map(v=>Math.round(v)).join(' + ')+' мм'],['Где','по полу, кроме дверей и инсталляций']]);hit(`rt:${si}`,[X,fy(P.H)-pw*0.6,L,pw*0.6],'Направляющая ПН — потолок',[['Куски',P.railTop.map(v=>Math.round(v)).join(' + ')+' мм']])}
+    const topPts=P.SL?P.SL.pts:[[0,P.H],[L,P.H]];s+=`<polyline points="${topPts.map(q=>(X+q[0])+','+(fy(q[1])-pw*0.3)).join(' ')}" fill="none" stroke="#7a8a99" stroke-width="${pw*0.6}" stroke-linejoin="round"/>`+P.railSegs.map(([a,b])=>`<rect x="${X+a}" y="${H-(f.sys==='knauf'?0:pw)}" width="${b-a}" height="${f.sys==='knauf'?pw*0.6:pw}" fill="${f.sys==='knauf'?'#7a8a99':'#475569'}"/>`).join('');
+    if(f.sys!=='knauf')P.railSegs.forEach(([a,b],k)=>hit(`rw:${si}:${k}`,[X+a,H-pw,b-a,pw],'Нижний профиль (по полу)',[['Отпилить',`${Math.round(b-a)} мм`+(b-a>(n0(f.wbBar)||3000)?' — длиннее хлыста, стык уголком WB90109':'')],['От начала участка',`${Math.round(a)} до ${Math.round(b)} мм`],['Как','цельный, разрыв только под инсталляцией / в дверях; к полу WB90302 шаг ≤600']]));
+    if(f.sys==='knauf'){hit(`rb:${si}`,[X,H,L,pw*0.6],'Направляющая ПН — пол',[['Куски',P.railBot.map(v=>Math.round(v)).join(' + ')+' мм'],['Где','по полу цельная, разрыв только под инсталляцией и в дверях']]);hit(`rt:${si}`,[X,fy(P.H)-pw*0.6,L,pw*0.6],'Направляющая ПН — потолок',[['Куски',P.railTop.map(v=>Math.round(v)).join(' + ')+' мм']])}
     if(P.SL)for(const g of P.SL.segs){const mx=X+(g.xa+g.xb)/2,my=fy((g.ha+g.hb)/2)+16/sc;s+=`<text x="${mx}" y="${my}" font-size="${12/sc}" text-anchor="middle" font-weight="800" fill="#d11" transform="rotate(${(g.up?-1:1)*g.ang} ${mx} ${my})">${fq(g.ang,1)}°</text>`}
     for(const h of P.heads){s+=`<rect x="${X+h.x0-20}" y="${fy(h.y)-pw*0.3}" width="${h.x1-h.x0+40}" height="${pw*0.6}" fill="#7a8a99"/>`;
       hit(`hd:${si}:${Math.round(h.x0)}:${h.pos}`,[X+h.x0,fy(h.y)-pw/2,h.w,pw],h.o.type==='inst'?'Горизонталь над инсталляцией':h.pos==='top'?'Перемычка над проёмом':'Подоконная',[['Отпилить',`${Math.round(headCut(f,h))} мм`],['Высота от пола',`${Math.round(h.y)} мм`],['Ширина проёма',`${Math.round(h.w)} мм`],...(f.sys==='knauf'?[['Как','полки надрезать, концы загнуть по 150 мм']]:[])])}
@@ -1233,7 +1236,7 @@ function frameSvg(it,el,sc){const f=F(it);const hits=[];const hit=(k,box,title,r
         const rows=crip?[['Отпилить',`${Math.round(cripCut(f,P,p))} мм`],['Ось от начала участка',`${Math.round(p.x)} мм`],['От пола',`${Math.round(p.y0)} до ${Math.round(Math.min(top,p.y1))} мм`]]
           :[['Отпилить',`${Math.round(studCut(f,P,p))} мм`+(P.SL&&Math.abs(studCut(f,P,p)-studCutShort(f,P,p))>1?` (короткая сторона ${Math.round(studCutShort(f,P,p))})`:'')],['Ось от начала участка',`${Math.round(p.x)} мм`],['Тип',why]];
         if(f.slide&&p.y1>=P.topAt(p.x)-1)rows.push(['Сверху','скользящая опора, зазор '+gt+' мм']);
-        if(!crip&&f.sys==='wb')rows.push(['Снизу','опора к полу WB90302']);
+        if(f.sys==='wb'&&p.y0<1)rows.push(['Снизу',P.onRail(p.x)?'стоит на нижнем профиле, уголок WB90102':'опора к полу WB90302']);
         hit(`st:${si}:${Math.round(p.x)}:${Math.round(p.y0)}`,[X+p.x-pw/2,fy(top),pw,Math.max(1,top-p.y0)],crip?(kn?'Коротыш ПС':'Коротыш'):(kn?'Стойка ПС':'Стойка'),rows)}
       if(f.slide&&p.y1>=P.topAt(p.x)-1){const y=fy(p.y1);s+=`<path d="M${X+p.x-pw} ${y} h${pw*2} l${-pw*0.5} ${pw*1.4} h${-pw} z" fill="#16a34a" opacity=".85"/>`}}
     // подписи позиций стоек
@@ -1334,7 +1337,7 @@ function fopsHtml(it,el){const f=F(it);const list=f.ops.filter(o=>o.el===el.id);
 function fDraw(){const it=cur();const f=F(it);const el=f.els.find(e=>e.id===f.sel);const C=frameCalc(it);
   const m=$('#fmat');if(m){const cutT=(title,list)=>list.length?`<div class="cutsh">${title}</div><table class="cuts">${list.map(g=>`<tr><td><b>${g.name}</b>${g.note?`<div class="small mute">${esc(g.note)}</div>`:''}</td><td class="n"><b class="cutlen">${g.len}</b>&nbsp;мм</td><td class="n cnt">×&nbsp;<b>${g.n}</b></td></tr>`).join('')}</table>`:'';
     const binT=(pk,bar,nm)=>pk&&pk.bins.length?`<details class="bins"><summary>Раскрой хлыстов ${nm} по ${bar} мм — ${pk.bars} шт</summary>${pk.bins.map((b,i)=>`<div class="bin"><span class="mute">${i+1}.</span> ${b.list.map(p=>`<span class="pc" style="flex:${p.len}">${Math.round(p.len)}</span>`).join('')}<span class="pc rest" style="flex:${Math.max(0,bar-b.used)}">${Math.max(0,Math.round(bar-b.used))}</span></div>`).join('')}<div class="small mute">Пропил 3 мм учтён. Серым — остаток.</div></details>`:'';
-    const floorT=F(it).sys==='wb'&&C.floor&&C.floor.length?`<h3 style="margin-top:14px">Опоры к полу WB90302 — где ставить (${C.floor.length} шт)</h3><div class="small">${[...new Set(C.floor.map(s=>s.where))].map(w=>`<div style="margin:4px 0"><b>${esc(w)}:</b> ${C.floor.filter(s=>s.where===w).map(s=>s.x+(s.crip?' (коротыш)':'')).join(' · ')} <span class="mute">мм от начала до оси стойки</span></div>`).join('')}</div>`:'';
+    const floorT=F(it).sys==='wb'&&C.floor&&C.floor.length?`<h3 style="margin-top:14px">Опоры к полу WB90302 — где ставить (${C.floor.length} шт)</h3><div class="small">${[...new Set(C.floor.map(s=>s.where))].map(w=>`<div style="margin:4px 0"><b>${esc(w)}:</b> ${C.floor.filter(s=>s.where===w).map(s=>s.x+(s.crip?' (коротыш)':'')).join(' · ')} <span class="mute">мм от начала участка, по нижнему профилю</span></div>`).join('')}</div>`:'';
     const slideT=C.slide.length?`<h3 style="margin-top:14px">Скользящие опоры — где ставить</h3><div class="small">${[...new Set(C.slide.map(s=>s.where))].map(w=>`<div style="margin:4px 0"><b>${esc(w)}:</b> ${C.slide.filter(s=>s.where===w).map(s=>s.x).join(' · ')} <span class="mute">мм от начала, по одной на каждую стойку у потолка</span></div>`).join('')}
       ${C.wallFix.map(w=>`<div style="margin:4px 0"><b>${esc(w.where)}:</b> на высоте ${w.ys.join(' · ')} мм</div>`).join('')}</div>`:'';
     m.innerHTML=`<table class="cuts">${C.m.map(r=>`<tr><td>${r[0]}${r[2]?`<div class="small mute">${r[2]}</div>`:''}</td><td class="n"><b>${r[1]}</b></td></tr>`).join('')}</table>
