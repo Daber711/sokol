@@ -729,14 +729,20 @@ const wH0=(it,w)=>{const T=W(it);return isSet(T.wh[w.idx])?n0(T.wh[w.idx]):wHH(i
 function wSl(it,w){const T=W(it);T.slope=T.slope||{};return slProf(T.slope[w.idx],w.len,wH0(it,w))}
 function slProf(s,L,H0){if(!s||!s.on)return null;const cl=v=>Math.max(0,Math.min(L,v));
   let pts;// точки верхнего контура слева направо
-  if(s.mode==='two'){const hL=n0(isSet(s.hL)?s.hL:H0),hR=n0(isSet(s.hR)?s.hR:H0),xm=cl(isSet(s.xm)?n0(s.xm):L/2),hm=n0(isSet(s.hm)?s.hm:H0);
+  if(s.mode==='free'){pts=slFreePts(s,L,H0)}
+  else if(s.mode==='two'){const hL=n0(isSet(s.hL)?s.hL:H0),hR=n0(isSet(s.hR)?s.hR:H0),xm=cl(isSet(s.xm)?n0(s.xm):L/2),hm=n0(isSet(s.hm)?s.hm:H0);
     const xa=Math.min(xm,cl(n0(s.xa))),xb=Math.max(xm,cl(isSet(s.xb)?n0(s.xb):L));pts=[[0,hL],[xa,hL],[xm,hm],[xb,hR],[L,hR]]}
   else{const x1=cl(n0(s.x1)),x2=Math.max(x1,cl(isSet(s.x2)?n0(s.x2):L)),h1=n0(isSet(s.h1)?s.h1:H0),h2=n0(isSet(s.h2)?s.h2:H0);pts=[[0,h1],[x1,h1],[x2,h2],[L,h2]]}
-  const segs=[];for(let i=0;i<pts.length-1;i++){const [xa,ha]=pts[i],[xb,hb]=pts[i+1];const dx=xb-xa,dh=hb-ha;if(dx<0.5||Math.abs(dh)<0.5)continue;segs.push({xa,ha,xb,hb,ang:Math.atan2(Math.abs(dh),dx)*180/Math.PI,len:Math.hypot(dx,dh),up:dh>0})}
+  const segs=[],steps=[],flats=[];for(let i=0;i<pts.length-1;i++){const [xa,ha]=pts[i],[xb,hb]=pts[i+1];const dx=xb-xa,dh=hb-ha;if(dx<0.5){if(Math.abs(dh)>=0.5)steps.push({x:xa,ha,hb});continue}if(Math.abs(dh)<0.5){flats.push({xa,xb,h:ha});continue}segs.push({xa,ha,xb,hb,ang:Math.atan2(Math.abs(dh),dx)*180/Math.PI,len:Math.hypot(dx,dh),up:dh>0})}
   const top=x=>{for(let i=0;i<pts.length-1;i++){const [xa,ha]=pts[i],[xb,hb]=pts[i+1];if(x>=xa&&x<=xb)return xb-xa<1e-9?Math.max(ha,hb):ha+(hb-ha)*(x-xa)/(xb-xa)}return pts[pts.length-1][1]};
   const poly=[[0,0],[L,0],...pts.slice().reverse()].filter((q,i,a)=>i===0||Math.hypot(q[0]-a[i-1][0],q[1]-a[i-1][1])>0.1);
   let tl=0;for(let i=0;i<pts.length-1;i++)tl+=Math.hypot(pts[i+1][0]-pts[i][0],pts[i+1][1]-pts[i][1]);
-  return{segs,top,poly,pts,topLen:tl,mode:s.mode||'one',maxH:Math.max(...pts.map(q=>q[1]))}}
+  return{segs,steps,flats,top,poly,pts,topLen:tl,mode:s.mode||'one',maxH:Math.max(...pts.map(q=>q[1])),minH:Math.min(...pts.map(q=>q[1]))}}
+// свободная форма верха стены: точки излома слева направо. Каждая точка — расстояние от левого угла + высота, либо + угол ската от предыдущей точки (+ вверх, − вниз)
+function slFreePts(s,L,H0){const cl=v=>Math.max(0,Math.min(L,v));const pts=[[0,n0(isSet(s.hl)?s.hl:H0)]];
+  const one=(x,h,a)=>{const [px,ph]=pts[pts.length-1];x=Math.max(px,cl(x));let y;if(isSet(h))y=n0(h);else if(isSet(a)){const an=Math.max(-89,Math.min(89,n0(a)));y=ph+Math.tan(an*Math.PI/180)*(x-px)}else y=ph;pts.push([x,Math.max(0,y)])};
+  for(const q of (s.fp||[])){if(!isSet(q.x))continue;one(n0(q.x),q.h,q.a);if(isSet(q.h2))pts.push([pts[pts.length-1][0],Math.max(0,n0(q.h2))])}
+  one(L,s.hr,s.ar);return pts}
 const wH=(it,w)=>{const sl=wSl(it,w);return sl?sl.maxH:wH0(it,w)};
 const wX=(it,w)=>n0(W(it).wx[w.idx]);
 function ovl(r,c){const x=Math.max(0,Math.min(r[2],c[2])-Math.max(r[0],c[0])),y=Math.max(0,Math.min(r[3],c[3])-Math.max(r[1],c[1]));return x*y}
@@ -868,15 +874,37 @@ function slopeHtml(it,w){const T=W(it);T.slope=T.slope||{};const s=T.slope[w.idx
   let h=`<label class="row" style="gap:8px;font-size:15px"><input type="checkbox" data-sl="on" ${s.on?'checked':''} style="width:22px;height:22px"> <b>Стена под скосом</b> <span class="small mute">(мансарда, короб под крышей)</span></label>`;
   if(!s.on)return h;
   const f=(k,l,v,ph)=>`<label class="f">${l}<input data-sl="${k}" inputmode="decimal" value="${isSet(v)?String(v).replace('.',','):''}" placeholder="${ph}"></label>`;
-  const two=s.mode==='two';const H0=wH0(it,w);
-  h+=`<div class="chips" style="margin:8px 0"><button data-slm="one" class="${two?'':'on'}">Один скат</button><button data-slm="two" class="${two?'on':''}">Два ската (конёк)</button></div>`;
-  if(!two)h+=`<div class="small mute" style="margin-bottom:6px">Отметьте начало и конец скоса: расстояние от левого угла и высоту от пола в этих точках.</div>
+  const two=s.mode==='two',fr=s.mode==='free';const H0=wH0(it,w);
+  h+=`<div class="chips" style="margin:8px 0"><button data-slm="one" class="${two||fr?'':'on'}">Один скат</button><button data-slm="two" class="${two?'on':''}">Два ската (конёк)</button><button data-slm="free" class="${fr?'on':''}">✏️ Своя форма</button></div>`;
+  if(fr)h+=slFreeHtml(it,w,s,f,H0);
+  else if(!two)h+=`<div class="small mute" style="margin-bottom:6px">Отметьте начало и конец скоса: расстояние от левого угла и высоту от пола в этих точках.</div>
   <div class="grid2">${f('x1','Начало скоса: от левого угла',s.x1,'0')}${f('h1','Высота в начале',s.h1,H0)}${f('x2','Конец скоса: от левого угла',s.x2,Math.round(w.len))}${f('h2','Высота в конце',s.h2,H0)}</div>`;
   else h+=`<div class="small mute" style="margin-bottom:6px">Замерьте высоту у левого угла, у правого угла и в коньке (самая высокая точка) — и где конёк от левого угла.</div>
   <div class="grid2">${f('hL','Высота у левого угла',s.hL,H0)}${f('hR','Высота у правого угла',s.hR,H0)}${f('xm','Конёк: от левого угла',s.xm,Math.round(w.len/2))}${f('hm','Высота в коньке',s.hm,H0)}</div>
   <details style="margin-top:8px"><summary class="small mute">Скат начинается не от угла (есть прямой участок)</summary><div class="grid2" style="margin-top:6px">${f('xa','Левый скат начинается: от левого угла',s.xa,'0')}${f('xb','Правый скат кончается: от левого угла',s.xb,Math.round(w.len))}</div></details>`;
   h+=`<div id="slinfo" style="margin-top:8px">${slInfo(sl)}</div>`;return h}
+function slFreeHtml(it,w,s,f,H0){const L=Math.round(w.len);const fp=s.fp=s.fp||[];
+  const pf=(i,k,ph,wd)=>`<input data-slp="${i}" data-f="${k}" inputmode="decimal" value="${isSet(fp[i][k])?String(fp[i][k]).replace('.',','):''}" placeholder="${ph}" style="flex:${wd||1};min-width:0;padding:8px 6px">`;
+  let h=`<div class="small mute" style="margin-bottom:6px">Рисуйте верх стены слева направо по точкам излома. У каждой точки — расстояние от левого угла и <b>высота</b> от пола <b>или угол</b> ската от предыдущей точки (+ вверх, − вниз). Уступ (короб, ступень) — заполните «высота после уступа».</div>
+  <div class="grid2">${f('hl','Высота у левого угла',s.hl,H0)}</div>
+  <div class="row small mute" style="gap:6px;margin:8px 0 2px"><span style="width:18px"></span><span style="flex:1.2">от угла</span><span style="flex:1">высота</span><span style="flex:.8">или угол°</span><span style="flex:1">после уступа</span><span style="width:30px"></span></div>`;
+  fp.forEach((q,i)=>{h+=`<div class="row" style="gap:6px;margin-bottom:6px"><span class="small mute" style="width:18px">${i+1}</span>${pf(i,'x','мм',1.2)}${pf(i,'h','мм')}${pf(i,'a','±°',.8)}${pf(i,'h2','—')}<button class="x" data-slpa="del" data-i="${i}" style="width:30px">✕</button></div>`});
+  h+=`<button class="btn sm sec" data-slpa="add" style="margin:2px 0 8px">+ Точка излома</button>
+  <div class="row small mute" style="gap:6px;margin:4px 0 2px"><span style="flex:1">Правый угол (${L} мм): высота</span><span style="flex:1">или угол°</span></div>
+  <div class="row" style="gap:6px"><input data-sl="hr" inputmode="decimal" value="${isSet(s.hr)?String(s.hr).replace('.',','):''}" placeholder="${H0}" style="flex:1"><input data-sl="ar" inputmode="decimal" value="${isSet(s.ar)?String(s.ar).replace('.',','):''}" placeholder="±°" style="flex:1"></div>
+  <div class="row" style="gap:6px;margin-top:8px;flex-wrap:wrap">${[['Мансарда','att'],['Конёк','gable'],['Короб сверху','box'],['Ступенька','step']].map(([t,v])=>`<button class="btn sm sec" data-slpa="tpl" data-v="${v}">${t}</button>`).join('')}</div>
+  <div id="slfree" style="margin-top:10px">${slFreeSvg(it,w)}</div>`;return h}
+function slFreeSvg(it,w){const sl=wSl(it,w);if(!sl)return'';const L=w.len||1,Hm=Math.max(sl.maxH,1);const sc=300/Math.max(L,Hm);const pad=34;const Wd=L*sc+pad*2,Hd=Hm*sc+pad*2;const X=x=>pad+x*sc,Y=y=>Hd-pad-y*sc;
+  let g=`<polygon points="${sl.poly.map(q=>X(q[0])+','+Y(q[1])).join(' ')}" fill="var(--soft2)" stroke="var(--acc)" stroke-width="2"/>`;
+  sl.pts.forEach((q,i)=>{g+=`<circle cx="${X(q[0])}" cy="${Y(q[1])}" r="3.5" fill="var(--acc)"/><text x="${X(q[0])}" y="${Y(q[1])-7}" font-size="10" text-anchor="middle" fill="var(--ink)">${Math.round(q[1])}</text>`});
+  sl.segs.forEach(sg=>{const mx=X((sg.xa+sg.xb)/2),my=Y((sg.ha+sg.hb)/2)+14;g+=`<text x="${mx}" y="${my}" font-size="11" font-weight="800" text-anchor="middle" fill="#d11">${fq(sg.ang,1)}°</text>`});
+  g+=`<text x="${X(L/2)}" y="${Hd-10}" font-size="11" text-anchor="middle" fill="var(--mute)">${Math.round(L)} мм</text>`;
+  return`<svg viewBox="0 0 ${Wd} ${Hd}" style="width:100%;max-height:300px;display:block">${g}</svg>`}
 function slInfo(sl){if(!sl)return'';if(!sl.segs.length)return'<div class="small mute">Скоса нет — высоты одинаковые.</div>';
+  if(sl.mode==='free'){let h=sl.segs.map((g,i)=>`<div style="font-size:14.5px;margin-bottom:4px">Скат ${i+1} (${Math.round(g.xa)}–${Math.round(g.xb)} мм): <b>${fq(g.ang,1)}°</b> ${g.up?'вверх':'вниз'} (${fq(90-g.ang,1)}° к вертикали) · длина <b>${Math.round(g.len)} мм</b> · перепад ${Math.round(Math.abs(g.hb-g.ha))} мм</div>`).join('');
+    h+=sl.steps.map(t=>`<div style="font-size:14.5px;margin-bottom:4px">Уступ на ${Math.round(t.x)} мм: ${Math.round(t.ha)} → ${Math.round(t.hb)} мм</div>`).join('');
+    for(let i=0;i<sl.segs.length-1;i++){const a=sl.segs[i],b=sl.segs[i+1];if(Math.abs(a.xb-b.xa)<1&&Math.abs(a.hb-b.ha)<1){const d=(a.up?a.ang:-a.ang)-(b.up?b.ang:-b.ang);h+=`<div class="small mute">Излом на ${Math.round(a.xb)} мм: ${fq(180-Math.abs(d),1)}° между скатами</div>`}}
+    return(h||'<div class="small mute">Скатов нет — только прямые участки.</div>')+`<div class="small mute" style="margin-top:4px">Площадь стены ${fq(Math.abs(polyArea(sl.poly))/1e6,2)} м² · высота от ${Math.round(sl.minH)} до ${Math.round(sl.maxH)} мм</div>`}
   const nm=sl.segs.length>1?['Левый скат','Правый скат']:['Скат'];
   return sl.segs.map((g,i)=>`<div style="font-size:14.5px;margin-bottom:4px">${nm[i]||'Скат'}: <b>${fq(g.ang,1)}°</b> к горизонту (${fq(90-g.ang,1)}° к вертикали) · длина <b>${Math.round(g.len)} мм</b> · перепад ${Math.round(Math.abs(g.hb-g.ha))} мм на ${Math.round(g.xb-g.xa)} мм</div>`).join('')+(sl.segs.length>1?`<div class="small mute">Угол в коньке: ${fq(180-sl.segs[0].ang-sl.segs[1].ang,1)}°</div>`:'')}
 function wf(k,label,v,ph=''){return`<label class="f">${label}<input data-wk="${k}" inputmode="decimal" value="${isSet(v)?String(v).replace('.',','):''}" placeholder="${ph}"></label>`}
@@ -984,11 +1012,22 @@ document.addEventListener('input',e=>{const el=e.target,d=el.dataset;const it=cu
     else if(k==='wy0')T.y0=v;else if(k==='wx')T.wx[wsel]=v;else if(k==='whh'){if(String(v).trim()==='')delete T.wh[wsel];else T.wh[wsel]=v}
     else if(k==='skip'){T.skip[wsel]=v;save();renderWalls();return}
     save();if(k==='wH'||k==='whh'){const el2=$('#wv');if(el2)el2._h=0}wDraw(true);if(k!=='wy0'&&k!=='wx')wVarsRefresh();return}
-  if(d.sl){T.slope=T.slope||{};const s=T.slope[wsel]=T.slope[wsel]||{};s[d.sl]=el.type==='checkbox'?el.checked:el.value;save();const e2=$('#wv');if(e2)e2._h=0;
-    if(d.sl==='on'){$('#slcard').innerHTML=slopeHtml(it,wallList(it).find(w=>w.idx===wsel))}else{const si=$('#slinfo');if(si)si.innerHTML=slInfo(wSl(it,wallList(it).find(w=>w.idx===wsel)))}
+  if(d.sl){T.slope=T.slope||{};const s=T.slope[wsel]=T.slope[wsel]||{};s[d.sl]=el.type==='checkbox'?el.checked:el.value;const pair={hr:'ar',ar:'hr'}[d.sl];if(pair&&isSet(el.value)){s[pair]='';const o=$(`[data-sl="${pair}"]`);if(o)o.value=''}save();const e2=$('#wv');if(e2)e2._h=0;
+    if(d.sl==='on'){$('#slcard').innerHTML=slopeHtml(it,wallList(it).find(w=>w.idx===wsel))}else slRefresh(it);
     wDraw(true);wVarsRefresh();return}
+  if(d.slp!==undefined){const s=(T.slope||{})[wsel];if(!s||!s.fp||!s.fp[+d.slp])return;s.fp[+d.slp][d.f]=el.value;{const pr={h:'a',a:'h'}[d.f];if(pr&&isSet(el.value)){s.fp[+d.slp][pr]='';const o=$(`[data-slp="${d.slp}"][data-f="${pr}"]`);if(o)o.value=''}}save();const e2=$('#wv');if(e2)e2._h=0;slRefresh(it);wDraw(true);wVarsRefresh();return}
   if(d.ob){const o=T.objs.find(x=>x.id===d.ob);if(!o)return;o[d.f]=el.type==='checkbox'?el.checked:el.value;save();wDraw(true);wVarsRefresh()}
 });
+function slRefresh(it){const w=wallList(it).find(w=>w.idx===wsel);if(!w)return;const si=$('#slinfo');if(si)si.innerHTML=slInfo(wSl(it,w));const sv=$('#slfree');if(sv)sv.innerHTML=slFreeSvg(it,w)}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-slpa]');if(!b)return;const it=cur();const T=W(it);T.slope=T.slope||{};const s=T.slope[wsel]=T.slope[wsel]||{};const w=wallList(it).find(w=>w.idx===wsel);if(!w)return;const L=Math.round(w.len),H0=Math.round(wH0(it,w));s.fp=s.fp||[];const v=b.dataset.slpa;
+  if(v==='add'){const last=s.fp.filter(q=>isSet(q.x)).map(q=>n0(q.x));const px=last.length?Math.max(...last):0;s.fp.push({x:Math.round(px+(L-px)/2),h:'',a:'',h2:''})}
+  else if(v==='del')s.fp.splice(+b.dataset.i,1);
+  else if(v==='tpl'){const t=b.dataset.v;s.hr='';s.ar='';
+    if(t==='att'){s.hl=Math.round(H0*0.5);s.fp=[{x:Math.round(L*0.4),h:H0,a:'',h2:''}];s.hr=H0}
+    if(t==='gable'){s.hl=Math.round(H0*0.6);s.fp=[{x:Math.round(L/2),h:H0,a:'',h2:''}];s.hr=Math.round(H0*0.6)}
+    if(t==='box'){s.hl=H0;s.fp=[{x:Math.round(L*0.6),h:H0,a:'',h2:H0-300}];s.hr=H0-300}
+    if(t==='step'){s.hl=H0;s.fp=[{x:Math.round(L*0.5),h:H0,a:'',h2:Math.round(H0*0.75)}];s.hr=Math.round(H0*0.75)}}
+  s.on=true;s.mode='free';save();const e2=$('#wv');if(e2)e2._h=0;$('#slcard').innerHTML=slopeHtml(it,w);wDraw(true);wVarsRefresh()});
 document.addEventListener('click',e=>{const b=e.target.closest('[data-slm]');if(!b)return;const it=cur();const T=W(it);T.slope=T.slope||{};const s=T.slope[wsel]=T.slope[wsel]||{};s.mode=b.dataset.slm;s.on=true;save();const e2=$('#wv');if(e2)e2._h=0;
   $('#slcard').innerHTML=slopeHtml(it,wallList(it).find(w=>w.idx===wsel));wDraw(true)});
 document.addEventListener('toggle',e=>{if(e.target.id==='wset'){const it=cur();if(it)W(it)._open=e.target.open}},true);
