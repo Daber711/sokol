@@ -851,6 +851,7 @@ function renderWalls(){
   <div class="tools"><button data-wmode="move" class="${wmode==='move'?'on':''}">✋ Двигать</button><button data-wmode="look" class="${wmode==='look'?'on':''}">👁 Смотреть</button><button data-wact="zin">＋</button><button data-wact="zout">－</button><button data-wact="zall" title="Все стены">⤢ Все</button><button data-wact="zwall">◻ Эта стена</button></div>
   <label class="row" style="margin:2px 0 6px;gap:8px;font-size:14px"><input type="checkbox" data-k="center" ${it.center?'checked':''} style="width:auto"> <span>Показать центр стен <span style="color:#8e44ad">┄┄</span></span></label>
   <div class="chips" style="margin:6px 0">${ws.map(w=>`<button data-wact="selw" data-i="${w.idx}" class="${w.idx===wsel?'on':''}">Стена ${w.num}${T.skip[w.idx]?' ✕':''}</button>`).join('')}</div>
+  <div class="card" id="slcard" style="border:2px solid var(--acc)">${slopeHtml(it,sw)}</div>
   <div class="info" id="winfo"><span class="mute">Тяните вверх-вниз — двигаются ряды на всех стенах, влево-вправо — плитка на этой стене. Двумя пальцами — приближение. Нажмите на подрезку — увидите размер.</span></div>
   <div class="kpi" id="wkpi"></div>
   <h2>Варианты раскладки</h2><div class="vars" id="wvars">${wVarsHtml(it)}</div>
@@ -861,7 +862,7 @@ function renderWalls(){
   <div class="card"><div class="chips">${[['auto','Без узких'],['left','От левого угла'],['right','От правого угла'],['ctile','Плитка по центру'],['cjoint','Шов по центру']].map(([k,t])=>`<button data-wact="xpre" data-v="${k}">${t}</button>`).join('')}<button data-wact="xall">Все стены: без узких</button></div>
    <div class="grid2" style="margin-top:8px">${wf('wx','Сдвиг плитки, мм',Math.round(wX(it,sw)))}${wf('whh','Высота этой стены, мм',T.wh[sw.idx],wHH(it))}</div>
    <label class="row" style="margin-top:8px;gap:8px;font-size:14px"><input type="checkbox" data-wk="skip" ${T.skip[sw.idx]?'checked':''} style="width:auto"> Эту стену не облицовываем</label></div>
-  <div class="card" id="slcard">${slopeHtml(it,sw)}</div>
+
   <div class="card"><b>Что на стене ${sw.num}</b><div class="small mute" style="margin:2px 0 8px">Расстояния: от левого угла (стоя лицом к стене) и от чистого пола.</div>
    <div id="wobjs">${objsHtml(it,sw)}</div>
    <div class="chips" style="margin-top:8px">${Object.entries(OBJ).map(([k,t])=>`<button data-wact="addobj" data-v="${k}">+ ${t.n}</button>`).join('')}</div></div>
@@ -871,11 +872,10 @@ function renderWalls(){
   wview={z:1,cx:null,cy:null};wDraw(true);WVARS=null;wVarsRefresh();
 }
 function slopeHtml(it,w){const T=W(it);T.slope=T.slope||{};const s=T.slope[w.idx]||{};const sl=wSl(it,w);
-  let h=`<label class="row" style="gap:8px;font-size:15px"><input type="checkbox" data-sl="on" ${s.on?'checked':''} style="width:22px;height:22px"> <b>Стена под скосом</b> <span class="small mute">(мансарда, короб под крышей)</span></label>`;
-  if(!s.on)return h;
+  const two=s.on&&s.mode==='two',fr=s.on&&s.mode==='free',one=s.on&&!two&&!fr;const H0=wH0(it,w);
+  let h=`<b style="font-size:16px">Форма стены ${w.num}</b><div class="chips" style="margin:8px 0"><button data-slm="none" class="${s.on?'':'on'}">▭ Прямая</button><button data-slm="one" class="${one?'on':''}">◺ Один скат</button><button data-slm="two" class="${two?'on':''}">⌂ Два ската</button><button data-slm="free" class="${fr?'on':''}">✏️ Сложная (своя форма)</button></div>`;
+  if(!s.on)return h+`<div class="small mute">Стена со скосом, мансардой, коробом или ступенькой — выберите «Сложная» и задайте верх по точкам.</div>`;
   const f=(k,l,v,ph)=>`<label class="f">${l}<input data-sl="${k}" inputmode="decimal" value="${isSet(v)?String(v).replace('.',','):''}" placeholder="${ph}"></label>`;
-  const two=s.mode==='two',fr=s.mode==='free';const H0=wH0(it,w);
-  h+=`<div class="chips" style="margin:8px 0"><button data-slm="one" class="${two||fr?'':'on'}">Один скат</button><button data-slm="two" class="${two?'on':''}">Два ската (конёк)</button><button data-slm="free" class="${fr?'on':''}">✏️ Своя форма</button></div>`;
   if(fr)h+=slFreeHtml(it,w,s,f,H0);
   else if(!two)h+=`<div class="small mute" style="margin-bottom:6px">Отметьте начало и конец скоса: расстояние от левого угла и высоту от пола в этих точках.</div>
   <div class="grid2">${f('x1','Начало скоса: от левого угла',s.x1,'0')}${f('h1','Высота в начале',s.h1,H0)}${f('x2','Конец скоса: от левого угла',s.x2,Math.round(w.len))}${f('h2','Высота в конце',s.h2,H0)}</div>`;
@@ -1028,7 +1028,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-slpa]');if
     if(t==='box'){s.hl=H0;s.fp=[{x:Math.round(L*0.6),h:H0,a:'',h2:H0-300}];s.hr=H0-300}
     if(t==='step'){s.hl=H0;s.fp=[{x:Math.round(L*0.5),h:H0,a:'',h2:Math.round(H0*0.75)}];s.hr=Math.round(H0*0.75)}}
   s.on=true;s.mode='free';save();const e2=$('#wv');if(e2)e2._h=0;$('#slcard').innerHTML=slopeHtml(it,w);wDraw(true);wVarsRefresh()});
-document.addEventListener('click',e=>{const b=e.target.closest('[data-slm]');if(!b)return;const it=cur();const T=W(it);T.slope=T.slope||{};const s=T.slope[wsel]=T.slope[wsel]||{};s.mode=b.dataset.slm;s.on=true;save();const e2=$('#wv');if(e2)e2._h=0;
+document.addEventListener('click',e=>{const b=e.target.closest('[data-slm]');if(!b)return;const it=cur();const T=W(it);T.slope=T.slope||{};const s=T.slope[wsel]=T.slope[wsel]||{};if(b.dataset.slm==='none')s.on=false;else{s.mode=b.dataset.slm;s.on=true;if(s.mode==='free'&&!(s.fp&&s.fp.length)){const w0=wallList(it).find(w=>w.idx===wsel);const H0=Math.round(wH0(it,w0));s.hl=H0;s.hr=H0;s.fp=[{x:Math.round(w0.len/2),h:H0,a:'',h2:''}]}}save();const e2=$('#wv');if(e2)e2._h=0;
   $('#slcard').innerHTML=slopeHtml(it,wallList(it).find(w=>w.idx===wsel));wDraw(true)});
 document.addEventListener('toggle',e=>{if(e.target.id==='wset'){const it=cur();if(it)W(it)._open=e.target.open}},true);
 let wdrag=null,wraf=0;
