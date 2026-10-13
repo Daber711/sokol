@@ -50,6 +50,8 @@ html,body{margin:0;height:100%;background:var(--bar);font:16px/1.4 -apple-system
   <button class="b" data-m="export">Сохранить копию всего</button>
   <button class="b sec" data-m="import">Загрузить копию</button>
   <p style="margin-top:12px">Перенос со старых отдельных сайтов: в старой «Смете» и «Планёрке» нажмите «Сохранить копию» (раздел «Ещё»), потом здесь — «Загрузить копию» и выберите тот файл.</p>
+  <button class="b sec" data-m="upd">🔄 Обновить приложение</button>
+  <p style="margin-top:6px;text-align:center">Версия <b id="ver"></b></p>
   <button class="b ghost" data-m="close">Закрыть</button>
   <input type="file" id="imp" accept=".json,application/json" hidden>
 </div></div>
@@ -94,7 +96,7 @@ function importFile(file){const r=new FileReader();r.onload=()=>{let o;try{o=JSO
   document.querySelectorAll('#frames iframe').forEach(f=>{try{f.contentWindow.location.reload()}catch(e){}});
   $('#menu').classList.remove('on');toast('Копия загружена')};r.readAsText(file)}
 $('#menu').addEventListener('click',e=>{const b=e.target.closest('[data-m]');if(e.target.id==='menu'){$('#menu').classList.remove('on');return}if(!b)return;
-  const m=b.dataset.m;if(m==='close')$('#menu').classList.remove('on');else if(m==='export')exportAll();else if(m==='import')$('#imp').click()});
+  const m=b.dataset.m;if(m==='close')$('#menu').classList.remove('on');else if(m==='export')exportAll();else if(m==='import')$('#imp').click();else if(m==='upd')forceUpdate()});
 $('#imp').addEventListener('change',e=>{if(e.target.files[0])importFile(e.target.files[0]);e.target.value=''});
 window.addEventListener('message',e=>{if(e.origin!==location.origin)return;const d=e.data;if(!d||d.type!=='toRask'||!d.item)return;
   const f=document.getElementById('f-rask');
@@ -115,7 +117,14 @@ window.addEventListener('message',async e=>{if(e.origin!==location.origin)return
   const w=await ensureApp(d.app);if(!w||!w.extIn){toast('Не удалось открыть приложение');return}
   try{const r=w.extIn(d.kind,p);open(d.app);toast(d.app==='plan'?'Список покупок добавлен в план на завтра':'Перенесено в смету «'+(r||'')+'»')}catch(err){toast('Ошибка переноса')}});
 open(cur);
-if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{})}
+// обновления: проверяем при запуске и каждый раз, когда приложение снова открыли; новая версия включается сама
+const VER='19 · 13.10.2026';$('#ver').textContent=VER;
+async function forceUpdate(){toast('Скачиваю свежую версию…');try{const ks=await caches.keys();await Promise.all(ks.filter(k=>k.startsWith('master-plitki')).map(k=>caches.delete(k)));
+  const r=await navigator.serviceWorker?.getRegistration();if(r)await r.update()}catch(_){}setTimeout(()=>location.reload(),600)}
+if('serviceWorker' in navigator){const had=!!navigator.serviceWorker.controller;let reloading=false;
+  navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>{r.update().catch(()=>{});
+    document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')r.update().catch(()=>{})})}).catch(()=>{});
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!had||reloading)return;reloading=true;toast('Приложение обновлено');setTimeout(()=>location.reload(),800)})}
 </script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 // Мастер плитки: открывается из памяти телефона (без интернета и без входа),
 // обновления скачиваются тихо в фоне и применяются при следующем запуске.
 // Страницы входа/ошибок с сервера никогда не попадают в приложение.
-const C="master-plitki-v18";
+const C="master-plitki-v19";
 const F=["./","index.html","uchet.html","smeta.html","planerka.html","raskladka.html","calc.html","manifest.json","icon-180.png","icon-192.png","icon-512.png"];
 self.addEventListener("install",e=>{e.waitUntil(caches.open(C).then(c=>Promise.all(F.map(u=>fetch(u,{cache:"no-store"}).then(r=>{if(r.ok&&!r.redirected)return c.put(u,r)}).catch(()=>{})))));self.skipWaiting()});
 self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==C&&x.startsWith("master-plitki")).map(x=>caches.delete(x)))).then(()=>self.clients.claim()))});
