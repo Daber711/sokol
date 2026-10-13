@@ -1192,7 +1192,7 @@ function groupCuts(items){const m=new Map();for(const p of items){const k=p.name
 // длины заготовок — одни и те же формулы для списка и для подсказки на схеме
 const onB=(f,P,p)=>f.sys!=='knauf'&&p.y0<1&&P.onRail&&P.onRail(p.x)?PW(f):0;// вертикаль стоит на нижнем профиле
 // верхний профиль WALLBOX по потолку: вертикаль упирается в него снизу (на скате — толщина по вертикали больше)
-const onT=(f,P,p)=>{if(f.sys==='knauf'||p.y1<P.topAt(p.x)-1)return 0;const k=(P.topAt(p.x+5)-P.topAt(p.x-5))/10;return PW(f)*Math.sqrt(1+k*k)};
+const onT=(f,P,p)=>{if(f.sys==='knauf'||p.y1<P.topAt(p.x)-1)return 0;const k=Math.min(3,Math.abs(P.topAt(p.x+5)-P.topAt(p.x-5))/10);return PW(f)*Math.sqrt(1+k*k)};
 function studCut(f,P,p){const pw=PW(f);return Math.max(P.topAt(p.x-pw/2),P.topAt(p.x+pw/2))-gapTop(f)-onB(f,P,p)-onT(f,P,p)}
 function studCutShort(f,P,p){const pw=PW(f);return Math.min(P.topAt(p.x-pw/2),P.topAt(p.x+pw/2))-gapTop(f)-onB(f,P,p)-onT(f,P,p)}
 function cripCut(f,P,p){const pw=PW(f),kn=f.sys==='knauf';const top=P.topAt(p.x);let len=p.y1-p.y0;if(!kn){if(p.hb)len-=pw;if(p.ht)len-=pw}if(p.y1>=top-1)len-=gapTop(f);else if(kn)len-=5;return len-onB(f,P,p)-onT(f,P,p)}
@@ -1353,15 +1353,20 @@ function renderFrame(){const it=cur();const f=F(it);if(!f.sel||!f.els.some(e=>e.
   if(!f.els.length)h+=`<div class="empty">Добавьте стену, короб или колонну — каркас и материалы посчитаются сами.</div>`;
   $('#main').innerHTML=h;fDraw();
 }
-const SLICON={none:'<svg viewBox="0 0 40 26" width="40" height="26"><rect x="3" y="6" width="34" height="18" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
+const SLICON={free:'<svg viewBox="0 0 40 26" width="40" height="26"><path d="M3 24V14L12 6L18 12L24 4L30 10V16H37V24Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>',none:'<svg viewBox="0 0 40 26" width="40" height="26"><rect x="3" y="6" width="34" height="18" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
   one:'<svg viewBox="0 0 40 26" width="40" height="26"><path d="M3 24 V12 L37 4 V24 Z" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
   two:'<svg viewBox="0 0 40 26" width="40" height="26"><path d="M3 24 V12 L20 3 L37 12 V24 Z" fill="none" stroke="currentColor" stroke-width="2"/></svg>'};
-function fslHtml(el,k){const g=el.segs[k];const s=g.sl||{};const mode=s.on?(s.mode==='two'?'two':'one'):'none';const H0=n0(el.H)||2700;const L=n0(g.len);
+function fslHtml(el,k){const g=el.segs[k];const s=g.sl||{};const mode=s.on?(s.mode==='two'?'two':s.mode==='free'?'free':'one'):'none';const H0=n0(el.H)||2700;const L=n0(g.len);
   const chip=(v,t)=>`<button data-fa="slmode" data-k="${k}" data-v="${v}" class="${mode===v?'on':''}" style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px">${SLICON[v]}${t}</button>`;
-  let h=`<div style="margin:0 0 10px 24px"><div class="small mute" style="margin-bottom:4px">Верх участка ${k+1}:</div><div class="chips">${chip('none','Ровный')}${chip('one','Один скат')}${chip('two','Два ската')}</div>`;
+  let h=`<div style="margin:0 0 10px 24px"><div class="small mute" style="margin-bottom:4px">Верх участка ${k+1}:</div><div class="chips">${chip('none','Ровный')}${chip('one','Один скат')}${chip('two','Два ската')}${chip('free','Сложная')}</div>`;
   if(mode==='none')return h+'</div>';
   const f=(q,l,ph)=>`<label class="f">${l}<input data-fsl="${k}" data-f="${q}" inputmode="decimal" value="${isSet(s[q])?s[q]:''}" placeholder="${ph}"></label>`;
-  if(mode==='one')h+=`<div class="grid2" style="margin-top:8px">${f('h1','① Высота у начала участка, мм',H0)}${f('h2','② Высота в конце участка, мм',H0)}</div>
+  if(mode==='free'){const fp=s.fp=s.fp||[];const pf=(i,q,ph,wd)=>`<input data-fslp="${k}" data-i="${i}" data-f="${q}" inputmode="decimal" value="${isSet(fp[i][q])?fp[i][q]:''}" placeholder="${ph}" style="flex:${wd||1};min-width:0;padding:8px 6px">`;
+    h+=`<div class="small mute" style="margin:8px 0 6px">Верх по точкам излома слева направо: расстояние от начала участка и высота — или угол ската от предыдущей точки (+ вверх, − вниз). Уступ (короб, ступень) — «после уступа».</div><div class="grid2">${f('hl','Высота у начала участка',H0)}</div>
+    <div class="row small mute" style="gap:6px;margin:8px 0 2px"><span style="width:16px"></span><span style="flex:1.2">от начала</span><span style="flex:1">высота</span><span style="flex:.8">или угол°</span><span style="flex:1">после уступа</span><span style="width:30px"></span></div>`;
+    fp.forEach((q,i)=>{h+=`<div class="row" style="gap:6px;margin-bottom:6px"><span class="small mute" style="width:16px">${i+1}</span>${pf(i,'x','мм',1.2)}${pf(i,'h','мм')}${pf(i,'a','±°',.8)}${pf(i,'h2','—')}<button class="x" data-fa="slpdel" data-k="${k}" data-i="${i}" style="width:30px">✕</button></div>`});
+    h+=`<button class="btn sm sec" data-fa="slpadd" data-k="${k}" style="margin:2px 0 8px">+ Точка излома</button><div class="grid2">${f('hr','Высота в конце участка',H0)}${f('ar','или угол в конце, ±°','')}</div>`}
+  else if(mode==='one')h+=`<div class="grid2" style="margin-top:8px">${f('h1','① Высота у начала участка, мм',H0)}${f('h2','② Высота в конце участка, мм',H0)}</div>
     <details style="margin-top:6px"><summary class="small mute">Скат идёт не по всей длине участка</summary><div class="grid2" style="margin-top:6px">${f('x1','Скат начинается: от начала, мм',0)}${f('x2','Скат кончается: от начала, мм',Math.round(L))}</div></details>`;
   else h+=`<div class="grid2" style="margin-top:8px">${f('hL','① Высота у начала участка',H0)}${f('hR','② Высота в конце участка',H0)}${f('xm','③ Конёк: от начала участка',Math.round(L/2))}${f('hm','④ Высота в коньке',H0)}</div>
     <details style="margin-top:6px"><summary class="small mute">Есть прямые участки стены до ската</summary><div class="grid2" style="margin-top:6px">${f('xa','Левый скат начинается: от начала',0)}${f('xb','Правый скат кончается: от начала',Math.round(L))}</div></details>`;
@@ -1375,6 +1380,7 @@ function slPreview(el,k){const g=el.segs[k];const H0=n0(el.H)||2700;const L=n0(g
   const lab=(x,y,t,dx=0,anchor='middle')=>`<text x="${X(x)+dx}" y="${Y(y)-6}" font-size="11" text-anchor="${anchor}" fill="#d11" font-weight="700">${t}</text>`;
   const s0=g.sl;const two=s0.mode==='two';
   s+=lab(0,P.top(0),`① ${Math.round(P.top(0))}`,-4,'end')+lab(L,P.top(L),`② ${Math.round(P.top(L))}`,4,'start');
+  if(s0.mode==='free')P.pts.slice(1,-1).forEach(q=>{s+=`<circle cx="${X(q[0])}" cy="${Y(q[1])}" r="3" fill="#d11"/>`+lab(q[0],q[1],Math.round(q[1]))});
   if(two){const pk=P.pts[2];s+=lab(pk[0],pk[1],`④ ${Math.round(pk[1])}`);s+=`<line x1="${X(pk[0])}" y1="${Y(0)}" x2="${X(pk[0])}" y2="${Y(pk[1])}" stroke="#d11" stroke-dasharray="3 3"/><text x="${X(pk[0])}" y="${Hs-4}" font-size="10" text-anchor="middle" fill="#d11">③ ${Math.round(pk[0])}</text>`}
   s+=`<text x="${X(L/2)}" y="${Hs-4}" font-size="10" text-anchor="${two?'start':'middle'}" fill="var(--mute)" dx="${two?18:0}">длина ${Math.round(L)}</text>`;
   for(const q of P.segs){const mx=(X(q.xa)+X(q.xb))/2,my=(Y(q.ha)+Y(q.hb))/2+14;s+=`<text x="${mx}" y="${my}" font-size="12" text-anchor="middle" font-weight="800" fill="var(--acc2)">${fq(q.ang,1)}°</text>`}
@@ -1422,7 +1428,9 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-fset],[dat
   else if(a==='addwall'||a==='addbox'||a==='addcol'){newEl(it,a==='addwall'?'wall':a==='addbox'?'box':'col');fview={z:1,cx:null,cy:null}}
   else if(a==='delel'){if(!confirm('Удалить элемент?'))return;f.ops=f.ops.filter(o=>o.el!==f.sel);f.els=f.els.filter(x=>x.id!==f.sel);f.sel=null}
   else if(a==='addseg'){el.segs.push({len:'',dir:+b.dataset.d})}
-  else if(a==='slmode'){const g=el.segs[+b.dataset.k];g.sl=g.sl||{};const v=b.dataset.v;if(v==='none')g.sl.on=false;else{g.sl.on=true;g.sl.mode=v}const cv=$('#fv');if(cv)cv._h=0}
+  else if(a==='slmode'){const g=el.segs[+b.dataset.k];g.sl=g.sl||{};const v=b.dataset.v;if(v==='none')g.sl.on=false;else{g.sl.on=true;g.sl.mode=v;if(v==='free'&&!(g.sl.fp&&g.sl.fp.length)){const H0=n0(el.H)||2700,L=n0(g.len);g.sl.hl=H0;g.sl.hr=H0;g.sl.fp=[{x:Math.round(L/2),h:H0,a:'',h2:''}]}}const cv=$('#fv');if(cv)cv._h=0}
+  else if(a==='slpadd'){const g=el.segs[+b.dataset.k];const L=n0(g.len);const xs=(g.sl.fp||[]).filter(q=>isSet(q.x)).map(q=>n0(q.x));const px=xs.length?Math.max(...xs):0;(g.sl.fp=g.sl.fp||[]).push({x:Math.round(px+(L-px)/2),h:'',a:'',h2:''});const cv=$('#fv');if(cv)cv._h=0}
+  else if(a==='slpdel'){const g=el.segs[+b.dataset.k];g.sl.fp.splice(+b.dataset.i,1);const cv=$('#fv');if(cv)cv._h=0}
   else if(a==='delseg'){const k=+b.dataset.k;el.segs.splice(k,1);f.ops=f.ops.filter(o=>!(o.el===el.id&&+o.seg===k)).map(o=>o.el===el.id&&+o.seg>k?{...o,seg:+o.seg-1}:o)}
   else if(a==='addop'){const t=FOP[b.dataset.v];const L=n0(el.segs[0]?.len)||1000;const o={id:uid(),el:el.id,seg:0,type:b.dataset.v,y:t.y};
     if(t.hole){o.x=Math.round(L/2);o.d=t.d}else{o.w=t.w;o.h=t.h;o.x=Math.max(0,Math.round((L-t.w)/2))}if(o.type==='inst'){o.preset=0}if(o.type==='wbhatch')o.hinge='L';f.ops.push(o)}
@@ -1433,9 +1441,10 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-fset],[dat
   else if(a==='fhitx'){FSEL=null;fDraw();return}
   save();renderFrame()});
 document.addEventListener('change',e=>{const c=e.target;if(!c.dataset||!c.dataset.fchk)return;const f=F(cur());f[c.dataset.fchk]=c.checked;save();renderFrame()});
-document.addEventListener('input',e=>{const el2=e.target,d=el2.dataset;if(!(d.fk||d.fel||d.fseg!==undefined||d.fop||d.fsl!==undefined))return;const it=cur();const f=F(it);const el=f.els.find(x=>x.id===f.sel);
+document.addEventListener('input',e=>{const el2=e.target,d=el2.dataset;if(!(d.fk||d.fel||d.fseg!==undefined||d.fop||d.fsl!==undefined||d.fslp!==undefined))return;const it=cur();const f=F(it);const el=f.els.find(x=>x.id===f.sel);
   if(d.fk){f[d.fk]=el2.value}
   else if(d.fel){el[d.fel]=el2.type==='checkbox'?el2.checked:el2.value;if(d.fel==='name'){save();const c=document.querySelector(`[data-fa="sel"][data-id="${el.id}"]`);if(c)c.textContent=el2.value;return}}
+  else if(d.fslp!==undefined){const g=el.segs[+d.fslp];const q=g.sl&&g.sl.fp&&g.sl.fp[+d.i];if(!q)return;q[d.f]=el2.value;const pr={h:'a',a:'h'}[d.f];if(pr&&isSet(el2.value)){q[pr]='';const o=document.querySelector(`[data-fslp="${d.fslp}"][data-i="${d.i}"][data-f="${pr}"]`);if(o)o.value=''}save();const pv=document.getElementById('slp-'+d.fslp);if(pv)pv.innerHTML=slPreview(el,+d.fslp);const cv=$('#fv');if(cv)cv._h=0;fDraw();return}
   else if(d.fsl!==undefined){el.segs[+d.fsl].sl[d.f]=el2.value;save();const pv=document.getElementById('slp-'+d.fsl);if(pv)pv.innerHTML=slPreview(el,+d.fsl);const cv=$('#fv');if(cv)cv._h=0;fDraw();return}
   else if(d.fseg!==undefined){el.segs[+d.fseg][d.f]=d.f==='dir'?+el2.value:el2.value;const p=$('#fplan');if(p)p.innerHTML=framePlan(el)}
   else if(d.fop){const o=f.ops.find(x=>x.id===d.fop);if(!o)return;o[d.f]=el2.value;if(d.f==='preset'){const p=INST[+el2.value];if(p&&p[0]!=='Своя'){o.w=p[1];o.h=p[2]};save();$('#fops').innerHTML=fopsHtml(it,el)}

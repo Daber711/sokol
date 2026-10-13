@@ -57,6 +57,7 @@ html,body{margin:0;height:100%;background:var(--bar);font:16px/1.4 -apple-system
 </div></div>
 <div class="toast" id="toast"></div>
 <script>
+const VER='21 · 13.10.2026';
 const APPS=[
   {id:'uchet',n:'Учёт',i:'✎',src:'uchet.html',key:'plitka'},
   {id:'smeta',n:'Смета',i:'₽',src:'smeta.html',key:'smeta_plitka_v1'},
@@ -72,7 +73,7 @@ if(!APPS.some(a=>a.id===cur))cur=APPS[0].id;
 $('#bar').innerHTML=APPS.map(a=>`<button data-app="${a.id}"><b>${a.i}</b>${a.n}</button>`).join('')+`<button class="more" data-app="_menu"><b>⋯</b>Ещё</button>`;
 function open(id){cur=id;try{localStorage.setItem(LAST,id)}catch(e){}
   for(const a of APPS){let f=document.getElementById('f-'+a.id);
-    if(a.id===id&&!f){f=document.createElement('iframe');f.id='f-'+a.id;f.src=a.src;f.title=a.n;f.setAttribute('allow','web-share; clipboard-write; fullscreen');$('#frames').appendChild(f)}
+    if(a.id===id&&!f){f=document.createElement('iframe');f.id='f-'+a.id;f.src=a.src+'?v='+encodeURIComponent(VER);f.title=a.n;f.setAttribute('allow','web-share; clipboard-write; fullscreen');$('#frames').appendChild(f)}
     if(f)f.classList.toggle('on',a.id===id)}
   document.querySelectorAll('#bar [data-app]').forEach(b=>b.classList.toggle('on',b.dataset.app===id))}
 $('#bar').addEventListener('click',e=>{const b=e.target.closest('[data-app]');if(!b)return;if(b.dataset.app==='_menu'){$('#menu').classList.add('on');return}open(b.dataset.app)});
@@ -105,7 +106,7 @@ window.addEventListener('message',e=>{if(e.origin!==location.origin)return;const
     open('rask');toast('Помещение перенесено в «Раскладку»')}});
 // обмен данными между приложениями
 function ensureApp(id){return new Promise(res=>{const a=APPS.find(x=>x.id===id);let f=document.getElementById('f-'+id);
-  if(!f){f=document.createElement('iframe');f.id='f-'+id;f.src=a.src;f.title=a.n;f.setAttribute('allow','web-share; clipboard-write; fullscreen');$('#frames').appendChild(f)}
+  if(!f){f=document.createElement('iframe');f.id='f-'+id;f.src=a.src+'?v='+encodeURIComponent(VER);f.title=a.n;f.setAttribute('allow','web-share; clipboard-write; fullscreen');$('#frames').appendChild(f)}
   let n=0;const t=setInterval(()=>{n++;try{if(f.contentWindow&&f.contentWindow.extIn){clearInterval(t);res(f.contentWindow)}}catch(e){}if(n>100){clearInterval(t);res(null)}},50)})}
 window.addEventListener('message',async e=>{if(e.origin!==location.origin)return;const d=e.data;if(!d||d.type!=='ext')return;const p=d.payload||{};
   if(d.app==='uchet'){const f=document.getElementById('f-uchet');if(f)f.remove();
@@ -118,7 +119,7 @@ window.addEventListener('message',async e=>{if(e.origin!==location.origin)return
   try{const r=w.extIn(d.kind,p);open(d.app);toast(d.app==='plan'?'Список покупок добавлен в план на завтра':'Перенесено в смету «'+(r||'')+'»')}catch(err){toast('Ошибка переноса')}});
 open(cur);
 // обновления: проверяем при запуске и каждый раз, когда приложение снова открыли; новая версия включается сама
-const VER='20 · 13.10.2026';$('#ver').textContent=VER;
+$('#ver').textContent=VER;
 async function forceUpdate(){toast('Скачиваю свежую версию…');try{const ks=await caches.keys();await Promise.all(ks.filter(k=>k.startsWith('master-plitki')).map(k=>caches.delete(k)));
   const r=await navigator.serviceWorker?.getRegistration();if(r)await r.update()}catch(_){}setTimeout(()=>location.reload(),600)}
 if('serviceWorker' in navigator){const had=!!navigator.serviceWorker.controller;let reloading=false;
