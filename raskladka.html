@@ -1594,16 +1594,31 @@ function trayGeo(it){const t=it.tray;if(!t)return null;trayFix(t);const P=roomPo
 function trayEdge(TP,k){const n=TP.length;const a=TP[k],b=TP[(k+1)%n];const L=Math.hypot(b[0]-a[0],b[1]-a[1])||1;const u=[(b[0]-a[0])/L,(b[1]-a[1])/L];const sg=polyArea(TP)>0?1:-1;return{a,b,L,u,ni:[sg*-u[1],sg*u[0]]}}
 function drainGeo(it,TP){const t=it.tray,d=t.drain;const n=TP.length;
   if(d.type==='line'||d.type==='wall'){const k=Math.min(n-1,Math.max(0,+d.edge||0));const E=trayEdge(TP,k);
-    const wid=Math.max(10,n0(isSet(d.wid)?d.wid:(d.type==='wall'?30:70)));const len=Math.min(E.L,Math.max(100,n0(isSet(d.len)?d.len:600)));const off=d.type==='wall'?0:Math.max(0,n0(isSet(d.off)?d.off:50));
-    const s0=Math.max(0,Math.min(E.L-len,isSet(d.at)?n0(d.at):(E.L-len)/2));
+    const cs=(t.curbs&&t.curbs.sides)||{};const cw=n0(isSet(t.curbs&&t.curbs.w)?t.curbs.w:60);const RP=roomPoly(it).pts,wf=Math.max(0,n0(t.wf));const onW=i=>onRoomWall(TP[i],TP[(i+1)%n],RP);const gapS=i=>cs[i]?cw+20:(onW(i)?wf+10:0);
+    const lo=gapS((k-1+n)%n),hi=Math.max(lo+100,E.L-gapS((k+1)%n));
+    const wid=Math.max(10,n0(isSet(d.wid)?d.wid:(d.type==='wall'?30:70)));const len=Math.min(hi-lo,Math.max(100,n0(isSet(d.len)?d.len:600)));const off=Math.max(cs[k]?cw+10:(onW(k)?wf:0),d.type==='wall'?0:Math.max(0,n0(isSet(d.off)?d.off:50)));
+    const s0=Math.max(lo,Math.min(hi-len,isSet(d.at)?n0(d.at):lo+(hi-lo-len)/2));
     const A0=[E.a[0]+E.u[0]*s0+E.ni[0]*off,E.a[1]+E.u[1]*s0+E.ni[1]*off],A1=[A0[0]+E.u[0]*len,A0[1]+E.u[1]*len];
     const poly=[A0,A1,[A1[0]+E.ni[0]*wid,A1[1]+E.ni[1]*wid],[A0[0]+E.ni[0]*wid,A0[1]+E.ni[1]*wid]];
     const lp=[A0[0]+E.ni[0]*wid/2,A0[1]+E.ni[1]*wid/2];const c=[lp[0]+E.u[0]*len/2,lp[1]+E.u[1]*len/2];
-    return{kind:'line',poly,c,u:E.u,ni:E.ni,lp,len,wid,edge:k}}
+    return{kind:'line',poly,c,u:E.u,ni:E.ni,lp,len,wid,edge:k,s0,off,EL:E.L}}
   let c;if(d.center!==false){c=polyCentroid(TP);if(!pip(c,TP))c=insidePt(TP)}else c=Array.isArray(d.pt)?[n0(d.pt[0]),n0(d.pt[1])]:cornerPt(roomPoly(it).pts,t.wA,n0(d.dA),t.wB,n0(d.dB)).p;
   const round=d.type==='round';const s=round?(n0(d.d)||110):(n0(d.size)||100);const u=trayEdge(TP,0).u,v=[-u[1],u[0]],h=s/2;
   const poly=round?Array.from({length:28},(_,i)=>[c[0]+h*Math.cos(i/28*2*Math.PI),c[1]+h*Math.sin(i/28*2*Math.PI)]):[[-1,-1],[1,-1],[1,1],[-1,1]].map(([a,b])=>[c[0]+(u[0]*a+v[0]*b)*h,c[1]+(u[1]*a+v[1]*b)*h]);
   return{kind:'point',c,s,round,poly,u,v}}
+function sideRef(it,C,k){const t=it.tray;const TP=C.TP;const P=roomPoly(it).pts;const a=TP[k],b=TP[(k+1)%TP.length];const wf=Math.max(0,n0(t.wf));
+  if(C.curbOn.includes(k))return{kind:'curb',sub:C.cwid,txt:'до бортика'};
+  for(let i=0;i<P.length;i++){const c=P[i],d=P[(i+1)%P.length];const dd=p=>{const dx=d[0]-c[0],dy=d[1]-c[1],L2=dx*dx+dy*dy||1;const u=((p[0]-c[0])*dx+(p[1]-c[1])*dy)/L2;if(u<-0.01||u>1.01)return 1e9;return Math.abs((p[0]-c[0])*dy-(p[1]-c[1])*dx)/Math.sqrt(L2)};
+    if(dd(a)<3&&dd(b)<3)return{kind:'wall',sub:wf,txt:`до стены ${i+1}`+(wf?' (чистовой)':'')}}
+  return{kind:'edge',sub:0,txt:'до края поддона'}}
+// расстояние от трапа до стороны: точечный — до центра, линейный — до ближнего края решётки
+function drainDist(C,k){const D=C.D;if(D.kind==='point')return sideDist(C.TP,k,D.c);return Math.min(...D.poly.map(q=>sideDist(C.TP,k,q)))}
+function drainRef(C,k){const D=C.D;if(D.kind==='point')return D.c;let b=D.poly[0],bd=1e18;for(const q of D.poly){const v=sideDist(C.TP,k,q);if(v<bd){bd=v;b=q}}return b}
+function drainMove(it,C,v){const d=it.tray.drain;const D=C.D;
+  if(D.kind==='point'){d.center=false;d.pt=[Math.round(D.c[0]+v[0]),Math.round(D.c[1]+v[1])];return}
+  const along=v[0]*D.u[0]+v[1]*D.u[1],across=v[0]*D.ni[0]+v[1]*D.ni[1];
+  d.at=Math.round(D.s0+along);
+  if(d.type==='wall'){if(across>2){d.type='line';d.off=Math.round(Math.max(0,D.off+across))}}else d.off=Math.round(Math.max(0,D.off+across))}
 function sideDist(TP,k,p){const E=trayEdge(TP,k);return(p[0]-E.a[0])*E.ni[0]+(p[1]-E.a[1])*E.ni[1]}
 function bary(p,A,B,C){const den=(B[1]-C[1])*(A[0]-C[0])+(C[0]-B[0])*(A[1]-C[1]);if(Math.abs(den)<1e-9)return null;const la=((B[1]-C[1])*(p[0]-C[0])+(C[0]-B[0])*(p[1]-C[1]))/den;const lb=((C[1]-A[1])*(p[0]-C[0])+(A[0]-C[0])*(p[1]-C[1]))/den;return[la,lb,1-la-lb]}
 // главный расчёт поддона
@@ -1725,8 +1740,8 @@ function traySvg(it,sc,opts={}){const t=it.tray;if(!t)return'';const Gm=trayGeo(
   if(C){for(const k of C.curbOn){const E=trayEdge(TP,k);const w=C.cwid;s+=`<polygon points="${ptsStr([E.a,E.b,[E.b[0]+E.ni[0]*w,E.b[1]+E.ni[1]*w],[E.a[0]+E.ni[0]*w,E.a[1]+E.ni[1]*w]])}" fill="#b9b2a6" stroke="#6b645a" stroke-width="${sw*0.6}"/>`}
     if(C.mode==='env')for(const p of TP)s+=`<line x1="${C.D.c[0]}" y1="${C.D.c[1]}" x2="${p[0]}" y2="${p[1]}" stroke="#2b6cb0" stroke-width="${sw*0.6}" stroke-dasharray="${3/sc} ${3/sc}"/>`;
     s+=`<polygon points="${ptsStr(C.D.poly)}" fill="#8f99a3" stroke="#2c3338" stroke-width="${sw*0.8}"/>`}
-  if(opts.dims&&C&&C.D.kind==='point'){const fs=10.5/sc;TP.forEach((a,k)=>{const dd=sideDist(TP,k,C.D.c);const E=trayEdge(TP,k);const q=[C.D.c[0]-E.ni[0]*dd,C.D.c[1]-E.ni[1]*dd];
-      s+=`<line x1="${C.D.c[0]}" y1="${C.D.c[1]}" x2="${q[0]}" y2="${q[1]}" stroke="#c0392b" stroke-width="${sw*0.8}"/>`;const m=[(C.D.c[0]+q[0])/2,(C.D.c[1]+q[1])/2];const tx=String(Math.round(dd));const bw=(tx.length*6.2+6)/sc;
+  if(opts.dims&&C){const fs=10.5/sc;TP.forEach((a,k)=>{const rf=sideRef(it,C,k);const p0=drainRef(C,k);const dd=sideDist(TP,k,p0)-rf.sub;if(dd<1&&C.D.kind!=='point')return;const E=trayEdge(TP,k);const q=[p0[0]-E.ni[0]*dd,p0[1]-E.ni[1]*dd];
+      s+=`<line x1="${p0[0]}" y1="${p0[1]}" x2="${q[0]}" y2="${q[1]}" stroke="#c0392b" stroke-width="${sw*0.8}"/>`;const m=[(p0[0]+q[0])/2,(p0[1]+q[1])/2];const tx=String(Math.round(dd));const bw=(tx.length*6.2+6)/sc;
       s+=`<rect x="${m[0]-bw/2}" y="${m[1]-7/sc}" width="${bw}" height="${14/sc}" rx="${3/sc}" fill="#fff" stroke="#c0392b" stroke-width="${0.8/sc}"/><text x="${m[0]}" y="${m[1]+3.6/sc}" font-size="${fs}" text-anchor="middle" fill="#c0392b" font-weight="700">${tx}</text>`})}
   if(opts.nums){const fs=11/sc;TP.forEach((a,k)=>{const E=trayEdge(TP,k);const m=[(E.a[0]+E.b[0])/2+E.ni[0]*16/sc,(E.a[1]+E.b[1])/2+E.ni[1]*16/sc];
     s+=`<circle cx="${m[0]}" cy="${m[1]}" r="${8.5/sc}" fill="#2b6cb0"/><text x="${m[0]}" y="${m[1]+3.8/sc}" font-size="${fs}" text-anchor="middle" fill="#fff" font-weight="700">${k+1}</text>`})}
@@ -1767,15 +1782,15 @@ function renderTray(){const it=cur();const R=roomPoly(it);
   h+=`<div class="card"><b style="font-size:17px">Трап</b><div class="chips" style="margin:8px 0">${Object.entries(DRAINS).map(([k,v])=>chip('dtype',k,v,d.type===k)).join('')}</div>`;
   if(d.type==='sq')h+=`<div class="chips">${[100,150,200,300].map(s=>chip('dsize',s,s+'×'+s,n0(d.size)===s)).join('')}</div><div style="margin-top:8px">${trf('drain.size','Размер решётки, мм',d.size,'100')}</div>`;
   if(d.type==='round')h+=`<div class="chips">${[50,100,110,150].map(s=>chip('dd',s,'Ø'+s,n0(d.d)===s)).join('')}</div><div style="margin-top:8px">${trf('drain.d','Диаметр решётки, мм',d.d,'110')}</div>`;
-  if(d.type==='sq'||d.type==='round'){h+=`<div class="small mute" style="margin-top:10px">Место трапа — расстояние от центра трапа до каждой стороны поддона (красные размеры на схеме). Трап можно и перетащить пальцем на схеме.</div>
-    <div class="chips" style="margin:6px 0">${chip('dcenter','1','⊕ По центру',d.center!==false)}${chip('dmanual','1','✎ Задать расстояния',d.center===false)}</div>
-    <div class="grid2" id="trdists">${TP.map((a,k)=>`<label class="f">До стороны ${k+1}, мм<input data-trdist="${k}" inputmode="decimal" value="${C0?Math.round(sideDist(TP,k,C0.D.c)):''}"></label>`).join('')}</div>
-    <div class="tools" style="margin-top:6px"><span class="small mute" style="align-self:center">Сдвиг трапа:</span>${[['←',-10,0],['→',10,0],['↑',0,-10],['↓',0,10]].map(([t2,x,y])=>`<button data-tra="dnudge" data-v="${x},${y}">${t2}</button>`).join('')}<span class="small mute" style="align-self:center">по 10 мм</span></div>`}
-  if(d.type==='line'||d.type==='wall'){const nE=TP.length||4;h+=`<div class="small mute" style="margin-bottom:4px">${d.type==='wall'?'Щель вплотную к стороне поддона (обычно у стены).':'Трап параллельно стороне поддона.'}</div>
+  if(d.type==='line'||d.type==='wall'){const nE=TP.length||4;h+=`<div class="small mute" style="margin:8px 0 4px">${d.type==='wall'?'Щель вплотную к стороне поддона (обычно у стены).':'Трап параллельно стороне поддона.'}</div>
     <label class="f">Вдоль стороны поддона<select data-trf="drain.edge">${Array.from({length:nE},(_,i)=>`<option value="${i}" ${+d.edge===i?'selected':''}>сторона ${i+1}</option>`).join('')}</select></label>
     <div class="chips" style="margin-top:8px">${[300,500,600,700,800,900,1000,1200].map(s=>chip('dlen',s,s,n0(d.len)===s)).join('')}</div>
-    <div class="grid2" style="margin-top:8px">${trf('drain.len','Длина решётки, мм',d.len,'600')}${trf('drain.wid','Ширина, мм',d.wid,d.type==='wall'?'30':'70')}</div>
-    <div class="grid2" style="margin-top:8px">${d.type==='line'?trf('drain.off','От края стороны, мм',d.off,'50'):''}${trf('drain.at','От начала стороны, мм',d.at,'по центру')}</div>`}
+    <div class="grid2" style="margin-top:8px">${trf('drain.len','Длина решётки, мм',d.len,'600')}${trf('drain.wid','Ширина, мм',d.wid,d.type==='wall'?'30':'70')}</div>`}
+  if(TP.length&&C0){h+=`<div style="margin-top:12px"><b>Положение трапа</b></div><div class="small mute" style="margin:2px 0 6px">${C0.D.kind==='point'?'От центра трапа':'От края решётки'} до стен, бортиков и краёв поддона (красные размеры на схеме). Меняете одно — трап сдвигается. Можно перетащить трап пальцем на схеме.</div>
+    ${C0.D.kind==='point'?`<div class="chips" style="margin:6px 0">${chip('dcenter','1','⊕ По центру',d.center!==false)}${chip('dmanual','1','✎ Свои размеры',d.center===false)}</div>`:`<div class="chips" style="margin:6px 0">${chip('dcenter','1','⊕ По центру стороны',!isSet(d.at))}</div>`}
+    <div class="grid2" id="trdists">${TP.map((a,k)=>{const rf=sideRef(it,C0,k);return`<label class="f">${rf.kind==='curb'?'🧱':rf.kind==='wall'?'▮':'┊'} ${rf.txt} <span class="mute">(стор. ${k+1})</span>, мм<input data-trdist="${k}" inputmode="decimal" value="${Math.round(drainDist(C0,k)-rf.sub)}"></label>`}).join('')}</div>
+    <div class="tools" style="margin-top:6px"><span class="small mute" style="align-self:center">Сдвиг:</span>${[['←',-10,0],['→',10,0],['↑',0,-10],['↓',0,10]].map(([t2,x,y])=>`<button data-tra="dnudge" data-v="${x},${y}">${t2}</button>`).join('')}<span class="small mute" style="align-self:center">по 10 мм</span></div>
+    <div style="margin-top:8px">${trf('wf','Плитка+клей на стенах, мм (размеры от чистовой стены)',t.wf,'0 — от черновой')}</div>`}
   h+=`<div class="grid2" style="margin-top:10px">${trf('drain.hmin','Монтажная высота трапа, мм',d.hmin,'70')}${trf('drain.hmax','Макс. с надставкой, мм',d.hmax,'нет')}</div>
   <div style="margin-top:8px">${trf('drain.hout','Центр выхода трапа над его низом, мм',d.hout,'30')}</div>
   <div class="small mute" style="margin-top:6px">Берите из паспорта трапа: «монтажная высота» — от низа корпуса до верха решётки, «выход» — центр патрубка.</div></div>`;
@@ -1838,12 +1853,12 @@ function trText(it){const C=trayCalc(it);if(!C)return'';const r=x=>Math.round(x)
   if(C.curbOn.length)x+=`• бортики (стороны ${C.curbOn.map(k=>k+1).join(', ')}): верх ${r(C.curbTop)} мм, ширина ${r(C.cwid)}\n`;
   x+=`Труба: выход трапа ${r(C.outC)} мм → вывод ${r(C.Hs)} мм, ${r(C.Lp)} мм, уклон ${fq(C.pipeI*100,1)}%\nРаствор ≈ ${fq(C.Vl,0)} л (~${C.bags} меш. ЦПС)\nГидроизоляция на стены не ниже ${r(Math.max(C.Hmax,C.curbTop||0)+200)} мм от стяжки\n`;
   for(const w of C.warn)x+=`! ${w}\n`;return x}
-function trRefresh(){const it=cur();const p=$('#trplan');if(p)p.innerHTML=trayMini(it);const c=$('#trcalc');if(c)c.innerHTML=trCalcHtml(it);const C=it.tray?trayCalc(it):null;if(C)document.querySelectorAll('[data-trdist]').forEach(el=>{if(el!==document.activeElement)el.value=Math.round(sideDist(C.TP,+el.dataset.trdist,C.D.c))});document.querySelectorAll('[data-tra="dcenter"],[data-tra="dmanual"]').forEach(b=>b.classList.toggle('on',(b.dataset.tra==='dcenter')===(it.tray.drain.center!==false)))}
+function trRefresh(){const it=cur();const p=$('#trplan');if(p)p.innerHTML=trayMini(it);const c=$('#trcalc');if(c)c.innerHTML=trCalcHtml(it);const C=it.tray?trayCalc(it):null;if(C)document.querySelectorAll('[data-trdist]').forEach(el=>{if(el!==document.activeElement){const k=+el.dataset.trdist;el.value=Math.round(drainDist(C,k)-sideRef(it,C,k).sub)}});document.querySelectorAll('[data-tra="dcenter"],[data-tra="dmanual"]').forEach(b=>b.classList.toggle('on',(b.dataset.tra==='dcenter')===(it.tray.drain.center!==false)))}
 let trDrag=null;
-document.addEventListener('pointerdown',e=>{const sv=e.target.closest&&e.target.closest('#trsvg');if(!sv)return;const it=cur();if(!it||!it.tray)return;const C=trayCalc(it);if(!C||C.D.kind!=='point')return;
+document.addEventListener('pointerdown',e=>{const sv=e.target.closest&&e.target.closest('#trsvg');if(!sv)return;const it=cur();if(!it||!it.tray)return;const C=trayCalc(it);if(!C)return;
   const m=sv.getScreenCTM();if(!m)return;const pt=new DOMPoint(e.clientX,e.clientY).matrixTransform(m.inverse());const sc=m.a||1;if(Math.hypot(pt.x-C.D.c[0],pt.y-C.D.c[1])*sc>36)return;
-  trDrag={sv,m:m.inverse(),dx:C.D.c[0]-pt.x,dy:C.D.c[1]-pt.y};sv.setPointerCapture&&sv.setPointerCapture(e.pointerId);e.preventDefault()});
-document.addEventListener('pointermove',e=>{if(!trDrag)return;const it=cur();const pt=new DOMPoint(e.clientX,e.clientY).matrixTransform(trDrag.m);it.tray.drain.center=false;it.tray.drain.pt=[Math.round(pt.x+trDrag.dx),Math.round(pt.y+trDrag.dy)];
+  trDrag={sv,m:m.inverse(),p0:[pt.x,pt.y],C0:C,d0:JSON.parse(JSON.stringify(it.tray.drain))};sv.setPointerCapture&&sv.setPointerCapture(e.pointerId);e.preventDefault()});
+document.addEventListener('pointermove',e=>{if(!trDrag)return;const it=cur();const pt=new DOMPoint(e.clientX,e.clientY).matrixTransform(trDrag.m);it.tray.drain=JSON.parse(JSON.stringify(trDrag.d0));drainMove(it,trDrag.C0,[pt.x-trDrag.p0[0],pt.y-trDrag.p0[1]]);
   if(!trDrag.raf)trDrag.raf=requestAnimationFrame(()=>{if(!trDrag)return;trDrag.raf=0;trRefresh();const s2=$('#trsvg');if(s2){trDrag.sv=s2;const m=s2.getScreenCTM();if(m)trDrag.m=m.inverse()}})});
 document.addEventListener('pointerup',()=>{if(trDrag){trDrag=null;save();trRefresh()}});
 function setPath(o,path,v){const ks=path.split('.');let x=o;for(let i=0;i<ks.length-1;i++){x[ks[i]]=x[ks[i]]||{};x=x[ks[i]]}x[ks[ks.length-1]]=v}
@@ -1865,9 +1880,9 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-tra]');if(
       if(v==='edge'){d.type='line';d.edge=pick(false);d.wid=70;d.off=Math.max(n0(t.curbs.sides[d.edge]?t.curbs.w:0),0)+30;d.len=Math.round(Math.min(lens[d.edge]-100,1200)/50)*50;d.at=''}
       if(v==='two'){d.type='line';d.edge=pick(true);d.wid=70;const E=trayEdge(TP,d.edge);const depth=Math.max(...TP.map(p=>(p[0]-E.a[0])*E.ni[0]+(p[1]-E.a[1])*E.ni[1]));d.off=Math.round(depth/2-35);d.len=Math.round(Math.min(lens[d.edge]-100,1200)/50)*50;d.at=''}
       break}
-    case'dcenter':d.center=true;break;
+    case'dcenter':d.center=true;d.at='';break;
     case'dmanual':{const C=trayCalc(it);d.center=false;if(C)d.pt=C.D.c.slice();break}
-    case'dnudge':{const C=trayCalc(it);if(!C)break;const [x,y]=v.split(',').map(Number);d.center=false;d.pt=[C.D.c[0]+x,C.D.c[1]+y];break}
+    case'dnudge':{const C=trayCalc(it);if(!C)break;const [x,y]=v.split(',').map(Number);drainMove(it,C,[x,y]);break}
     case'talign':t.tile.align=v;t.tile.ox=0;t.tile.oy=0;break;
     case'cti':t.curbs.ti=+v;break;
     case'ctmode':t.curbs.tile=t.curbs.tile||{};t.curbs.tile.mode=v;break;
@@ -1884,10 +1899,11 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-tra]');if(
   save();renderTray()});
 document.addEventListener('input',e=>{const el=e.target;const ds=el.dataset||{};if(!ds.trf&&ds.trseg===undefined&&ds.trcurb===undefined&&ds.trdist===undefined)return;const it=cur();if(!it||!it.tray)return;const t=trayFix(it.tray);
   if(ds.trcurb!==undefined){t.curbs.sides[+ds.trcurb]=el.checked;save();trRefresh();return}
-  if(ds.trdist!==undefined){const C=trayCalc(it);if(!C||!isSet(el.value))return;const k=+ds.trdist;const E=trayEdge(C.TP,k);const cur0=sideDist(C.TP,k,C.D.c);const dv=n0(el.value)-cur0;t.drain.center=false;t.drain.pt=[C.D.c[0]+E.ni[0]*dv,C.D.c[1]+E.ni[1]*dv];save();trRefresh();return}
+  if(ds.trdist!==undefined){const C=trayCalc(it);if(!C||!isSet(el.value))return;const k=+ds.trdist;const rf=sideRef(it,C,k);const E=trayEdge(C.TP,k);const dv=n0(el.value)+rf.sub-drainDist(C,k);drainMove(it,C,[E.ni[0]*dv,E.ni[1]*dv]);save();trRefresh();return}
   if(ds.trseg!==undefined){const g=t.segs[+ds.trseg];if(!g)return;if(ds.f==='dir'){g.dir=+el.value;if(g.dir===8&&!isSet(g.ang))g.ang=0;save();renderTray();return}g[ds.f]=el.value;save();trRefresh();return}
   const k=ds.trf;const v=el.type==='checkbox'?el.checked:el.value;setPath(t,k,v);save();
   if(el.tagName==='SELECT'||el.type==='checkbox'){renderTray();return}
+  if(k==='wf'){clearTimeout(window._wfT);window._wfT=setTimeout(()=>{const y=scrollY;renderTray();scrollTo(0,y)},900)}
   trRefresh()});
 
 // ================== 3D-ВИД ==================
