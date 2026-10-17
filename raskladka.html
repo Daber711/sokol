@@ -485,17 +485,40 @@ function patIcon(p){
   const P=[[0,0],[112,0],[112,80],[0,80]];const L=layout(it,P,pat,3,3,true);
   return`<svg viewBox="0 0 112 80"><rect width="112" height="80" fill="var(--grout)"/>${tilesSvg(it,L,[3,3]).replace(/var\(--cut\)|var\(--narrow\)/g,'var(--tile)')}</svg>`;
 }
+let tileFor='floor';
+function tforHtml(){return`<div class="chips" style="margin:0 0 10px"><button data-act="tfor" data-v="floor" class="${tileFor==='floor'?'on':''}" style="flex:1">▦ Плитка на пол</button><button data-act="tfor" data-v="walls" class="${tileFor==='walls'?'on':''}" style="flex:1">▥ Плитка на стены</button></div>`}
 function renderTile(){
+  if(tileFor==='walls')return renderTileWalls();
   const it=cur();const isH=it.pat.startsWith('herr');
-  $('#main').innerHTML=`<div class="card"><h2 style="margin:0 0 8px">Размер плитки и шов, мм</h2>
+  $('#main').innerHTML=tforHtml()+`<div class="card"><h2 style="margin:0 0 8px">Плитка на пол: размер и шов, мм</h2>
   <div class="grid3">${fld('ta','Длина',it.tile.a,'600')}${fld('tb','Ширина',it.tile.b,'300')}${fld('tj','Шов',it.tile.j,'2')}</div>
   <div class="chips" style="margin-top:8px">${[[600,600],[600,300],[600,1200],[1200,1200],[300,300],[200,200],[750,150],[200,100]].map(([a,b])=>`<button data-act="size" data-a="${a}" data-b="${b}">${a/10}×${b/10}</button>`).join('')}</div>
   ${isH?'':`<label class="row" style="margin-top:10px;gap:8px;font-size:14px"><input type="checkbox" data-k="swap" ${it.swap?'checked':''} style="width:auto"> Повернуть плитку на 90°</label>`}</div>
   <div class="card"><h2 style="margin:0 0 8px">Укладка</h2><div class="pat">${PATS.map(([k,t])=>`<button data-act="pat" data-v="${k}" class="${it.pat===k?'on':''}">${patIcon(k)}${t}</button>`).join('')}</div>
   ${isH?'<p class="small mute">Ёлочка: длинная сторона — длина «дощечки», короткая — ширина. Чаще всего 1:3…1:6.</p>':''}</div>
   <div class="card"><div class="grid2">${fld('reserve','Запас, %',it.reserve,'10')}${fld('perBox','Штук в коробке',it.perBox,'необязательно')}</div></div>
-  <button class="btn wide" data-tab="lay">Дальше: раскладка →</button>`;
+  <button class="btn wide" data-tab="lay">Дальше: раскладка пола →</button>`;
 }
+// плитка на стены (те же настройки, что в шапке вкладки «Стены»)
+function renderTileWalls(){
+  const it=cur();const T=W(it);const tw=(k,l,v,ph)=>`<label class="f">${l}<input data-tw="${k}" inputmode="decimal" value="${isSet(v)?String(v).replace('.',','):''}" placeholder="${ph}"></label>`;
+  $('#main').innerHTML=tforHtml()+`<div class="card"><h2 style="margin:0 0 8px">Плитка на стены: размер и шов, мм</h2>
+  <div class="grid3">${tw('a','Длина',T.tile.a,'600')}${tw('b','Ширина',T.tile.b,'300')}${tw('j','Шов',T.tile.j,'2')}</div>
+  <div class="chips" style="margin-top:8px">${[[600,300],[300,600],[600,1200],[1200,600],[250,400],[200,200],[100,300],[75,150]].map(([a,b])=>`<button data-act="twsize" data-a="${a}" data-b="${b}" class="${n0(T.tile.a)===a&&n0(T.tile.b)===b?'on':''}">${a/10}×${b/10}</button>`).join('')}</div>
+  <label class="row" style="margin-top:10px;gap:8px;font-size:14px"><input type="checkbox" data-tw="swap" ${T.swap?'checked':''} style="width:auto"> Плитка вертикально (повернуть на 90°)</label>
+  <button class="btn sm sec" data-act="twcopy" style="margin-top:10px">Взять как на полу (${n0(it.tile.a)}×${n0(it.tile.b)})</button></div>
+  <div class="card"><h2 style="margin:0 0 8px">Укладка на стенах</h2><div class="pat">${PATS.map(([k,t])=>`<button data-act="twpat" data-v="${k}" class="${T.pat===k?'on':''}">${patIcon(k)}${t}</button>`).join('')}</div></div>
+  <div class="card">${tw('H','Высота облицовки, мм (пусто = до потолка)',T.H,wHH(it))}<div class="small mute" style="margin-top:6px">Высоту отдельной стены, окна, ванну и люк задайте на вкладке «Стены».</div></div>
+  <div class="grid2"><button class="btn" data-tab="walls">Раскладка стен →</button><button class="btn sec" data-tab="3d">Смотреть в 3D</button></div>`;
+}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-act="tfor"],[data-act="twsize"],[data-act="twpat"],[data-act="twcopy"]');if(!b)return;const it=cur();if(!it)return;const T=W(it);
+  const a=b.dataset.act;if(a==='tfor')tileFor=b.dataset.v;
+  else if(a==='twsize'){T.tile.a=+b.dataset.a;T.tile.b=+b.dataset.b;WVARS=null;save()}
+  else if(a==='twpat'){T.pat=b.dataset.v;WVARS=null;save()}
+  else if(a==='twcopy'){T.tile={a:it.tile.a,b:it.tile.b,j:it.tile.j};WVARS=null;save();toast('Плитка стен = как на полу')}
+  renderTile()});
+document.addEventListener('input',e=>{const el=e.target;if(!el.dataset||!el.dataset.tw)return;const it=cur();if(!it)return;const T=W(it);const k=el.dataset.tw;
+  if(k==='swap')T.swap=el.checked;else if(k==='H')T.H=el.value;else T.tile[k]=el.value;WVARS=null;save()});
 // ----- раскладка
 let lastSI=null,view={z:1,cx:null,cy:null},mode='move',sel=-1,VARS=null,lastL=null;
 function renderLay(){
