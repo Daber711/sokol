@@ -1600,10 +1600,11 @@ function drainGeo(it,TP){const t=it.tray,d=t.drain;const n=TP.length;
     const poly=[A0,A1,[A1[0]+E.ni[0]*wid,A1[1]+E.ni[1]*wid],[A0[0]+E.ni[0]*wid,A0[1]+E.ni[1]*wid]];
     const lp=[A0[0]+E.ni[0]*wid/2,A0[1]+E.ni[1]*wid/2];const c=[lp[0]+E.u[0]*len/2,lp[1]+E.u[1]*len/2];
     return{kind:'line',poly,c,u:E.u,ni:E.ni,lp,len,wid,edge:k}}
-  let c;if(d.center!==false){c=polyCentroid(TP);if(!pip(c,TP))c=insidePt(TP)}else c=cornerPt(roomPoly(it).pts,t.wA,n0(d.dA),t.wB,n0(d.dB)).p;
+  let c;if(d.center!==false){c=polyCentroid(TP);if(!pip(c,TP))c=insidePt(TP)}else c=Array.isArray(d.pt)?[n0(d.pt[0]),n0(d.pt[1])]:cornerPt(roomPoly(it).pts,t.wA,n0(d.dA),t.wB,n0(d.dB)).p;
   const round=d.type==='round';const s=round?(n0(d.d)||110):(n0(d.size)||100);const u=trayEdge(TP,0).u,v=[-u[1],u[0]],h=s/2;
   const poly=round?Array.from({length:28},(_,i)=>[c[0]+h*Math.cos(i/28*2*Math.PI),c[1]+h*Math.sin(i/28*2*Math.PI)]):[[-1,-1],[1,-1],[1,1],[-1,1]].map(([a,b])=>[c[0]+(u[0]*a+v[0]*b)*h,c[1]+(u[1]*a+v[1]*b)*h]);
   return{kind:'point',c,s,round,poly,u,v}}
+function sideDist(TP,k,p){const E=trayEdge(TP,k);return(p[0]-E.a[0])*E.ni[0]+(p[1]-E.a[1])*E.ni[1]}
 function bary(p,A,B,C){const den=(B[1]-C[1])*(A[0]-C[0])+(C[0]-B[0])*(A[1]-C[1]);if(Math.abs(den)<1e-9)return null;const la=((B[1]-C[1])*(p[0]-C[0])+(C[0]-B[0])*(p[1]-C[1]))/den;const lb=((C[1]-A[1])*(p[0]-C[0])+(A[0]-C[0])*(p[1]-C[1]))/den;return[la,lb,1-la-lb]}
 // главный расчёт поддона
 function trayCalc(it){const t=it.tray;if(!t)return null;const Gm=trayGeo(it);if(!Gm||!Gm.closed||Gm.pts.length<3)return null;const TP=Gm.pts;const D=drainGeo(it,TP);const d=t.drain;
@@ -1613,7 +1614,7 @@ function trayCalc(it){const t=it.tray;if(!t)return null;const Gm=trayGeo(it);if(
   const hmin=Math.max(10,v(d.hmin,70)),hmax=isSet(d.hmax)?n0(d.hmax):null,hout=v(d.hout,30);
   const warn=[],info=[];const sg=polyArea(TP)>0?1:-1;
   let mode,Dm,per=null,dist=null;
-  if(D.kind==='line'){dist=p=>(p[0]-D.lp[0])*D.ni[0]+(p[1]-D.lp[1])*D.ni[1];const ds=TP.map(dist);const two=ds.some(x=>x<-1)&&ds.some(x=>x>1);mode=two?'two':'plane';Dm=Math.max(...ds.map(Math.abs))}
+  if(D.kind==='line'){dist=p=>(p[0]-D.lp[0])*D.ni[0]+(p[1]-D.lp[1])*D.ni[1];const ds=TP.map(dist);const neg=Math.max(0,...ds.map(x=>-x)),pos=Math.max(0,...ds);const two=neg>150&&pos>150;mode=two?'two':'plane';Dm=Math.max(...ds.map(Math.abs))}
   else{const c=D.c;let star=pip(c,TP);per=[];
     for(let k=0;k<TP.length;k++){const a=TP[k],b=TP[(k+1)%TP.length];const cr=((a[0]-c[0])*(b[1]-c[1])-(a[1]-c[1])*(b[0]-c[0]))*sg;if(cr<=1)star=false;per.push(Math.abs(cr)/(Math.hypot(b[0]-a[0],b[1]-a[1])||1))}
     if(star){mode='env';Dm=Math.max(...per)}else{mode='cone';Dm=Math.max(...TP.map(p=>Math.hypot(p[0]-c[0],p[1]-c[1])));per=null}}
@@ -1653,7 +1654,43 @@ function trayCalc(it){const t=it.tray;if(!t)return null;const Gm=trayGeo(it);if(
     lower.push(`или поднять пол в комнате на ${Math.ceil(Hp-F)} мм`)}
   if(flush)info.push('Поддон получился ниже пола — сделали край вровень с полом (без порога), уклон чуть больше.');
   if(G-tg<0)warn.push('У трапа не хватает высоты под плитку с клеем.');
-  return{lower,imp,TP,D,mode,Dm,per,G,Hp,Hb,Hb0,HbReq,raise,hmin,hmax,hout,outC,drop,pipeI,F,tg,is,sEff,hf,parts,area,Vl,kg,bags:Math.ceil(kg/25),edgeH,Hmax,Hmin,curbOn,ch,cwid,curbTop,warn,info,flush,manual,Lp,Hs,ip,dist}}
+  const res={lower,imp,TP,D,mode,Dm,per,G,Hp,Hb,Hb0,HbReq,raise,hmin,hmax,hout,outC,drop,pipeI,F,tg,is,sEff,hf,parts,area,Vl,kg,bags:Math.ceil(kg/25),edgeH,Hmax,Hmin,curbOn,ch,cwid,curbTop,warn,info,flush,manual,Lp,Hs,ip,dist};try{res.curb=curbGeo(it,res);if(res.curb)res.curbTop=Math.max(...res.curb.chains.map(c=>c.Htop))}catch(e){res.curb=null}return res}
+// бортики: непрерывные цепочки сторон, наружная и внутренняя линии, плитка с запилами 45°
+function lineX(p1,u1,p2,u2){const den=u1[0]*u2[1]-u1[1]*u2[0];if(Math.abs(den)<1e-9)return null;const t=((p2[0]-p1[0])*u2[1]-(p2[1]-p1[1])*u2[0])/den;return[p1[0]+u1[0]*t,p1[1]+u1[1]*t]}
+function curbGeo(it,C){const t=it.tray;const TP=C.TP;const n=TP.length;const on=new Set(C.curbOn);if(!on.size)return null;const P=roomPoly(it).pts;
+  const w=C.cwid,ti=Math.max(0,n0(t.curbs.ti))/100;const ct=t.curbs.tile||{};
+  const srcA=t.tile.mode==='own'?n0(t.tile.a):n0(it.tile.a),srcB=t.tile.mode==='own'?n0(t.tile.b):n0(it.tile.b),srcJ=t.tile.mode==='own'?n0(isSet(t.tile.j)?t.tile.j:2):n0(it.tile.j);
+  const A=ct.mode==='own'?(n0(ct.a)||600):(Math.max(srcA,srcB)||600),B=ct.mode==='own'?(n0(ct.b)||300):(Math.min(srcA,srcB)||300),J=ct.mode==='own'?n0(isSet(ct.j)?ct.j:2):srcJ;
+  const pitch=A+J,off=n0(ct.off);const sg=polyArea(TP)>0?1:-1;
+  let starts=[...on].filter(k=>!on.has((k-1+n)%n)).sort((a,b)=>a-b);let closed=false;if(!starts.length){starts=[0];closed=true}
+  const chains=[];
+  for(const k0 of starts){const sides=[];let k=k0;do{sides.push(k);k=(k+1)%n}while(on.has(k)&&k!==k0&&sides.length<n);
+    const E=sides.map(k=>trayEdge(TP,k));const out=sides.map(k=>TP[k]);if(!closed)out.push(TP[(sides[sides.length-1]+1)%n]);
+    const inn=[];for(let i=0;i<out.length;i++){const ePrev=closed?E[(i-1+E.length)%E.length]:E[i-1],eNext=closed?E[i%E.length]:E[i];
+      if(ePrev&&eNext){const x=lineX([ePrev.a[0]+ePrev.ni[0]*w,ePrev.a[1]+ePrev.ni[1]*w],ePrev.u,[eNext.a[0]+eNext.ni[0]*w,eNext.a[1]+eNext.ni[1]*w],eNext.u);inn.push(x||[out[i][0]+eNext.ni[0]*w,out[i][1]+eNext.ni[1]*w])}
+      else{const e=eNext||ePrev;inn.push([out[i][0]+e.ni[0]*w,out[i][1]+e.ni[1]*w])}}
+    // углы: выпуклые (запил по вертикальному ребру снаружи) и диагональ на верху
+    const corners=[];for(let i=0;i<out.length;i++){const ePrev=closed?E[(i-1+E.length)%E.length]:E[i-1],eNext=closed?E[i%E.length]:E[i];if(!ePrev||!eNext)continue;const cr=(ePrev.u[0]*eNext.u[1]-ePrev.u[1]*eNext.u[0])*sg;corners.push({i,convex:cr>0})}
+    const Htop=Math.max(...out.map(p=>C.hf(p)))+C.ch;const Hin=Htop-w*ti;
+    // концы бортика: упирается в стену или открытый торец
+    const ends=[];if(!closed){const kb=(sides[0]-1+n)%n,ka=(sides[sides.length-1]+1)%n;
+      if(!onRoomWall(TP[kb],TP[(kb+1)%n],P))ends.push({o:out[0],i:inn[0]});if(!onRoomWall(TP[ka],TP[(ka+1)%n],P))ends.push({o:out[out.length-1],i:inn[inn.length-1]})}
+    // развёртка по наружной линии и швы
+    const segs=[];let S0=0;for(let i=0;i<E.length;i++){const a=out[i],b=out[(i+1)%out.length];const L=Math.hypot(b[0]-a[0],b[1]-a[1]);segs.push({a,b,ia:inn[i],ib:inn[(i+1)%inn.length],s0:S0,L,E:E[i]});S0+=L}
+    const Lout=S0,Lin=segs.reduce((x,g)=>x+Math.hypot(g.ib[0]-g.ia[0],g.ib[1]-g.ia[1]),0);
+    const joints=[];const first=((off%pitch)+pitch)%pitch;for(let s=first;s<Lout-0.5;s+=pitch){if(s>0.5)joints.push(s);if(s+A<Lout-0.5&&A>0.5)joints.push(s+A)}
+    const cutsAt=[0,...joints,...segs.slice(1).map(g=>g.s0),Lout].sort((a,b)=>a-b).filter((v,i,arr)=>i===0||v-arr[i-1]>0.5);
+    const pieces=cutsAt.length-1;
+    let hiMin=1e9,hiMax=-1e9;for(const g of segs)for(let k=0;k<=4;k++){const p=[g.ia[0]+(g.ib[0]-g.ia[0])*k/4,g.ia[1]+(g.ib[1]-g.ia[1])*k/4];const h=Hin-C.hf(p);hiMin=Math.min(hiMin,h);hiMax=Math.max(hiMax,h)}
+    chains.push({sides,closed,out,inn,segs,corners,ends,Htop,Hin,Lout,Lin,joints,pieces,hiMin,hiMax,ho:Htop-C.F})}
+  // раскрой
+  const kerf=3;const rowsOf=h=>h+kerf>B?Math.ceil((h+J)/(B+J)):1;const strips=h=>h+kerf>B?1:Math.max(1,Math.floor((B+kerf)/(h+kerf)));let tot={top:0,out:0,inn:0,tiles:0,bevel:0,diag:0,vconv:0};
+  for(const c of chains){tot.top+=c.pieces;tot.out+=c.pieces;tot.inn+=c.pieces;
+    tot.bevel+=2*(c.Lout+c.Lin);for(const k of c.corners){tot.diag+=2;if(k.convex){tot.vconv++;tot.bevel+=2*c.ho}}
+    for(const e of c.ends)tot.bevel+=2*(c.ho+w)}
+  const hoMax=Math.max(...chains.map(c=>c.ho)),hiMx=Math.max(...chains.map(c=>c.hiMax));
+  tot.tiles=Math.ceil(tot.top*rowsOf(w)/strips(w))+Math.ceil(tot.out*rowsOf(hoMax)/strips(hoMax))+Math.ceil(tot.inn*rowsOf(hiMx)/strips(hiMx));
+  return{chains,w,A,B,J,pitch,off,ti,tot,hoMax,hiMx,sw:{top:strips(w),out:strips(hoMax),inn:strips(hiMx)},rows:{top:rowsOf(w),out:rowsOf(hoMax),inn:rowsOf(hiMx)}}}
 // вычитание поддона из плиток пола и разбиение плиток поддона на плоские части
 function clipSide(P,a,b,sgn){const out=[];if(!P.length)return out;const side=p=>((b[0]-a[0])*(p[1]-a[1])-(b[1]-a[1])*(p[0]-a[0]))*sgn;let S=P[P.length-1],ss=side(S);
   for(const E of P){const se=side(E);if(se>=0){if(ss<0){const t=ss/(ss-se);out.push([S[0]+(E[0]-S[0])*t,S[1]+(E[1]-S[1])*t])}out.push(E)}else if(ss>=0){const t=ss/(ss-se);out.push([S[0]+(E[0]-S[0])*t,S[1]+(E[1]-S[1])*t])}S=E;ss=se}return out}
@@ -1671,7 +1708,9 @@ function onRoomWall(a,b,P){for(let k=0;k<P.length;k++){const c=P[k],d=P[(k+1)%P.
 // плитки на поддоне: та же сетка, что на полу, или своя — от трапа
 function trayTiles(it,C){const t=it.tray;const TP=C.TP;let fake,o,pat;
   if(t.tile.mode==='own'){const a=n0(t.tile.a)||300,b=n0(t.tile.b)||300;fake={...it,tile:{a,b,j:isSet(t.tile.j)?t.tile.j:2},swap:false,pat:'grid',doors:[],gapOn:false,fobjs:[]};pat=pattern(fake);
-    const u=C.D.u;const ang=Math.atan2(u[1],u[0]);const off=rot([-a/2,-b/2],ang);o=[C.D.c[0]+off[0],C.D.c[1]+off[1]];pat={...pat,ang:ang*180/Math.PI}}
+    const u=C.D.kind==='line'?C.D.u:trayEdge(TP,0).u;const ang=Math.atan2(u[1],u[0]);const al=t.tile.align||'drain';const j=n0(isSet(t.tile.j)?t.tile.j:2);
+    let base;if(al==='corner')base=TP[0];else if(al==='joint'){const q=rot([-j/2,-j/2],ang);base=[C.D.c[0]+q[0],C.D.c[1]+q[1]]}else{const q=rot([-a/2,-b/2],ang);base=[C.D.c[0]+q[0],C.D.c[1]+q[1]]}
+    o=[base[0]+n0(t.tile.ox),base[1]+n0(t.tile.oy)];pat={...pat,ang:ang*180/Math.PI}}
   else{fake={...it,doors:[],gapOn:false,fobjs:[]};pat=pattern(it);o=[n0(it.ox),n0(it.oy)]}
   const L=layout(fake,TP,pat,o[0],o[1],true);return{L,o,ang:L.ang}}
 function splitPiece(c,C){if(C.mode==='env'){const out=[];for(const tri of C.parts){const q=clipConvex(c,tri);if(q.length>2&&Math.abs(polyArea(q))>0.5)out.push(q)}return out}
@@ -1686,6 +1725,9 @@ function traySvg(it,sc,opts={}){const t=it.tray;if(!t)return'';const Gm=trayGeo(
   if(C){for(const k of C.curbOn){const E=trayEdge(TP,k);const w=C.cwid;s+=`<polygon points="${ptsStr([E.a,E.b,[E.b[0]+E.ni[0]*w,E.b[1]+E.ni[1]*w],[E.a[0]+E.ni[0]*w,E.a[1]+E.ni[1]*w]])}" fill="#b9b2a6" stroke="#6b645a" stroke-width="${sw*0.6}"/>`}
     if(C.mode==='env')for(const p of TP)s+=`<line x1="${C.D.c[0]}" y1="${C.D.c[1]}" x2="${p[0]}" y2="${p[1]}" stroke="#2b6cb0" stroke-width="${sw*0.6}" stroke-dasharray="${3/sc} ${3/sc}"/>`;
     s+=`<polygon points="${ptsStr(C.D.poly)}" fill="#8f99a3" stroke="#2c3338" stroke-width="${sw*0.8}"/>`}
+  if(opts.dims&&C&&C.D.kind==='point'){const fs=10.5/sc;TP.forEach((a,k)=>{const dd=sideDist(TP,k,C.D.c);const E=trayEdge(TP,k);const q=[C.D.c[0]-E.ni[0]*dd,C.D.c[1]-E.ni[1]*dd];
+      s+=`<line x1="${C.D.c[0]}" y1="${C.D.c[1]}" x2="${q[0]}" y2="${q[1]}" stroke="#c0392b" stroke-width="${sw*0.8}"/>`;const m=[(C.D.c[0]+q[0])/2,(C.D.c[1]+q[1])/2];const tx=String(Math.round(dd));const bw=(tx.length*6.2+6)/sc;
+      s+=`<rect x="${m[0]-bw/2}" y="${m[1]-7/sc}" width="${bw}" height="${14/sc}" rx="${3/sc}" fill="#fff" stroke="#c0392b" stroke-width="${0.8/sc}"/><text x="${m[0]}" y="${m[1]+3.6/sc}" font-size="${fs}" text-anchor="middle" fill="#c0392b" font-weight="700">${tx}</text>`})}
   if(opts.nums){const fs=11/sc;TP.forEach((a,k)=>{const E=trayEdge(TP,k);const m=[(E.a[0]+E.b[0])/2+E.ni[0]*16/sc,(E.a[1]+E.b[1])/2+E.ni[1]*16/sc];
     s+=`<circle cx="${m[0]}" cy="${m[1]}" r="${8.5/sc}" fill="#2b6cb0"/><text x="${m[0]}" y="${m[1]+3.8/sc}" font-size="${fs}" text-anchor="middle" fill="#fff" font-weight="700">${k+1}</text>`})}
   return s}
@@ -1693,7 +1735,7 @@ function trayMini(it){const R=roomPoly(it);const P=R.pts;if(P.length<3)return'';
   let s=`<svg viewBox="${x0-pad} ${y0-pad} ${w+2*pad} ${h+2*pad}" style="width:100%;max-height:300px;display:block"><polygon points="${ptsStr(P)}" fill="var(--soft2)" stroke="var(--ink)" stroke-width="${2/sc}"/>`;
   s+=doorsSvg(it,P,sc);
   for(const o of (it.fobjs||[])){if(o.type!=='sewer'&&o.type!=='wc')continue;const g=fobjGeom(it,o);if(g&&g.pt)s+=`<circle cx="${g.pt[0]}" cy="${g.pt[1]}" r="${Math.max((n0(o.d)||110)/2,4/sc)}" fill="#fff" stroke="#d11" stroke-width="${2/sc}"/>`}
-  s+=traySvg(it,sc,{nums:true,fill:'rgba(43,108,176,.16)'})+wallNums(P,sc);return s+'</svg>'}
+  s+=traySvg(it,sc,{nums:true,dims:true,fill:'rgba(43,108,176,.16)'})+wallNums(P,sc);return s.replace('<svg ','<svg id="trsvg" style="touch-action:none" ')+'</svg>'}
 
 // ---------- вкладка «Поддон»
 function trf(k,l,v,ph){return`<label class="f">${l}<input data-trf="${k}" inputmode="decimal" value="${isSet(v)?String(v).replace('.',','):''}" placeholder="${ph??''}"></label>`}
@@ -1717,12 +1759,18 @@ function renderTray(){const it=cur();const R=roomPoly(it);
       if(Gm&&!Gm.closed&&Gm.gap)h+=`<div class="small" style="color:var(--bad);margin-top:6px">Контур не замкнут: не хватает ${Math.round(Math.hypot(...Gm.gap))} мм.</div>`}}
   else h+=`<div class="small mute">Уклон к трапу делается на всём полу помещения — душ без поддона и без порога.</div>`;
   h+=`<div id="trplan" style="margin-top:10px">${trayMini(it)}</div><div class="small mute">Синие цифры — стороны поддона, оранжевые — стены. Красный кружок — канализация с вкладки «Пол».</div></div>`;
+  // схема уклона
+  const C0=TP.length?trayCalc(it):null;const sch=d.type==='sq'||d.type==='round'?'env':(C0&&C0.mode==='two'?'two':(t.scheme==='edge'?'edge':'wall'));
+  h+=`<div class="card"><b style="font-size:17px">Схема уклона</b><div class="small mute" style="margin:2px 0 8px">Как вода бежит к трапу — от этого зависит раскрой плитки и высота поддона.</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${[['env','◇ Конверт','4 ската к точечному трапу'],['wall','◢ Один скат к стене','линейный/щелевой трап у стены'],['edge','◣ Один скат от стены','трап у края поддона, у входа'],['two','⋁ Два ската','линейный трап посередине']].map(([k,tt,sub])=>`<button data-tra="scheme" data-v="${k}" class="var ${sch===k?'on':''}" style="width:auto"><b>${tt}</b><span>${sub}</span></button>`).join('')}</div></div>`;
   // трап
   h+=`<div class="card"><b style="font-size:17px">Трап</b><div class="chips" style="margin:8px 0">${Object.entries(DRAINS).map(([k,v])=>chip('dtype',k,v,d.type===k)).join('')}</div>`;
   if(d.type==='sq')h+=`<div class="chips">${[100,150,200,300].map(s=>chip('dsize',s,s+'×'+s,n0(d.size)===s)).join('')}</div><div style="margin-top:8px">${trf('drain.size','Размер решётки, мм',d.size,'100')}</div>`;
   if(d.type==='round')h+=`<div class="chips">${[50,100,110,150].map(s=>chip('dd',s,'Ø'+s,n0(d.d)===s)).join('')}</div><div style="margin-top:8px">${trf('drain.d','Диаметр решётки, мм',d.d,'110')}</div>`;
-  if(d.type==='sq'||d.type==='round'){h+=`<label class="row" style="margin-top:10px;gap:8px;font-size:15px"><input type="checkbox" data-trf="drain.center" ${d.center!==false?'checked':''} style="width:22px;height:22px"> По центру поддона</label>`;
-    if(d.center===false)h+=`<div class="grid2" style="margin-top:8px">${trf('drain.dA',`Центр трапа от стены ${+t.wA+1}, мм`,d.dA,'450')}${trf('drain.dB',`от стены ${+t.wB+1}, мм`,d.dB,'450')}</div>`}
+  if(d.type==='sq'||d.type==='round'){h+=`<div class="small mute" style="margin-top:10px">Место трапа — расстояние от центра трапа до каждой стороны поддона (красные размеры на схеме). Трап можно и перетащить пальцем на схеме.</div>
+    <div class="chips" style="margin:6px 0">${chip('dcenter','1','⊕ По центру',d.center!==false)}${chip('dmanual','1','✎ Задать расстояния',d.center===false)}</div>
+    <div class="grid2" id="trdists">${TP.map((a,k)=>`<label class="f">До стороны ${k+1}, мм<input data-trdist="${k}" inputmode="decimal" value="${C0?Math.round(sideDist(TP,k,C0.D.c)):''}"></label>`).join('')}</div>
+    <div class="tools" style="margin-top:6px"><span class="small mute" style="align-self:center">Сдвиг трапа:</span>${[['←',-10,0],['→',10,0],['↑',0,-10],['↓',0,10]].map(([t2,x,y])=>`<button data-tra="dnudge" data-v="${x},${y}">${t2}</button>`).join('')}<span class="small mute" style="align-self:center">по 10 мм</span></div>`}
   if(d.type==='line'||d.type==='wall'){const nE=TP.length||4;h+=`<div class="small mute" style="margin-bottom:4px">${d.type==='wall'?'Щель вплотную к стороне поддона (обычно у стены).':'Трап параллельно стороне поддона.'}</div>
     <label class="f">Вдоль стороны поддона<select data-trf="drain.edge">${Array.from({length:nE},(_,i)=>`<option value="${i}" ${+d.edge===i?'selected':''}>сторона ${i+1}</option>`).join('')}</select></label>
     <div class="chips" style="margin-top:8px">${[300,500,600,700,800,900,1000,1200].map(s=>chip('dlen',s,s,n0(d.len)===s)).join('')}</div>
@@ -1746,10 +1794,19 @@ function renderTray(){const it=cur();const R=roomPoly(it);
   h+=`<div class="card"><b style="font-size:17px">Бортики</b><div class="small mute" style="margin:2px 0 8px">Отметьте стороны поддона с бортиком (номера — синие на схеме).</div>
   <div class="chips">${Array.from({length:nE},(_,k)=>`<label class="row" style="gap:6px;border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:14.5px"><input type="checkbox" data-trcurb="${k}" ${t.curbs.sides[k]?'checked':''} style="width:20px;height:20px;min-height:0"> ${k+1}</label>`).join('')}</div>
   <button class="btn sm sec" data-tra="curbfree" data-v="1" style="margin-top:8px">На всех свободных сторонах</button>
-  <div class="grid2" style="margin-top:8px">${trf('curbs.h','Высота над поддоном, мм',t.curbs.h,'50')}${trf('curbs.w','Ширина, мм',t.curbs.w,'60')}</div></div>`;
-  // плитка
-  h+=`<div class="card"><b style="font-size:17px">Плитка на поддоне</b><div class="chips" style="margin:8px 0">${chip('tmode','floor','Как на полу (та же сетка)',t.tile.mode!=='own')}${chip('tmode','own','Своя — от трапа',t.tile.mode==='own')}</div>
-  ${t.tile.mode==='own'?`<div class="chips">${[[50,50],[100,100],[150,150],[200,200],[300,300],[600,600]].map(([a,b])=>chip('tsize',a,a+'×'+b,n0(t.tile.a)===a&&n0(t.tile.b)===b)).join('')}</div><div class="grid3" style="margin-top:8px">${trf('tile.a','Длина',t.tile.a,'300')}${trf('tile.b','Ширина',t.tile.b,'300')}${trf('tile.j','Шов',t.tile.j,'2')}</div>`:''}</div>`;
+  <div class="grid2" style="margin-top:8px">${trf('curbs.h','Высота над поддоном, мм',t.curbs.h,'50')}${trf('curbs.w','Ширина, мм',t.curbs.w,'60')}</div>
+  <div class="small mute" style="margin-top:10px">Уклон верха бортика внутрь поддона</div><div class="chips">${[0,1,2,3].map(v=>chip('cti',v,v?v+'%':'ровно',n0(t.curbs.ti)===v)).join('')}</div>
+  <div style="margin-top:12px"><b>Плитка на бортике</b></div>
+  <div class="chips" style="margin:6px 0">${chip('ctmode','same','Из той же плитки',(t.curbs.tile||{}).mode!=='own')}${chip('ctmode','own','Своя плитка',(t.curbs.tile||{}).mode==='own')}</div>
+  ${(t.curbs.tile||{}).mode==='own'?`<div class="grid3">${trf('curbs.tile.a','Длина',(t.curbs.tile||{}).a,'600')}${trf('curbs.tile.b','Ширина',(t.curbs.tile||{}).b,'300')}${trf('curbs.tile.j','Шов',(t.curbs.tile||{}).j,'2')}</div>`:''}
+  <div class="row" style="margin-top:8px;gap:8px">${trf('curbs.tile.off','Сдвиг плитки по бортику, мм',(t.curbs.tile||{}).off,'0')}<button class="btn sm ghost" data-tra="coff" data-v="-50" style="flex:none;margin-top:18px">−50</button><button class="btn sm ghost" data-tra="coff" data-v="50" style="flex:none;margin-top:18px">+50</button></div>
+  <div class="small mute" style="margin-top:4px">Углы и рёбра бортика — с запилом 45°. Плитку на бортике можно двигать пальцем в 3D («Двигать плитку» → «Бортик»).</div></div>`;
+  // плитка поддона
+  const al=t.tile.align||'drain';
+  h+=`<div class="card"><b style="font-size:17px">Плитка на поддоне</b><div class="chips" style="margin:8px 0">${chip('tmode','floor','Как на полу (та же сетка)',t.tile.mode!=='own')}${chip('tmode','own','Своя раскладка',t.tile.mode==='own')}</div>
+  ${t.tile.mode==='own'?`<div class="chips">${[[50,50],[100,100],[150,150],[200,200],[300,300],[600,600],[600,300]].map(([a,b])=>`<button data-tra="tsize" data-v="${a}x${b}" class="${n0(t.tile.a)===a&&n0(t.tile.b)===b?'on':''}">${a}×${b}</button>`).join('')}</div><div class="grid3" style="margin-top:8px">${trf('tile.a','Длина',t.tile.a,'300')}${trf('tile.b','Ширина',t.tile.b,'300')}${trf('tile.j','Шов',t.tile.j,'2')}</div>
+  <div class="small mute" style="margin-top:10px">Откуда начинать раскладку</div><div class="chips">${chip('talign','drain','Трап в центре плитки',al==='drain')}${chip('talign','joint','Швы сходятся на трапе',al==='joint')}${chip('talign','corner','Целая от угла (от стены)',al==='corner')}</div>
+  <div class="grid2" style="margin-top:8px">${trf('tile.ox','Сдвиг X, мм',t.tile.ox,'0')}${trf('tile.oy','Сдвиг Y, мм',t.tile.oy,'0')}</div><div class="small mute" style="margin-top:4px">Плитку поддона можно двигать и пальцем в 3D (режим «Двигать плитку» → «Поддон»).</div>`:'<div class="small mute">Сетка совпадает с полом: двигаете плитку пола — двигается и на поддоне.</div>'}</div>`;
   h+=`<h2>Расчёт</h2><div class="card" id="trcalc">${trCalcHtml(it)}</div>
   <div class="grid2"><button class="btn" data-tab="3d">Смотреть в 3D</button><button class="btn sec" data-tra="txt" data-v="1">Текстом</button></div>`;
   $('#main').innerHTML=h}
@@ -1763,7 +1820,10 @@ function trCalcHtml(it){const C=trayCalc(it);if(!C)return'<div class="mute">За
   <div style="margin-top:8px"><b>2. Поддон.</b> Верх у края — <b>${r(C.Hp)} мм</b> от стяжки, это ${b((above>=0?'+':'−')+Math.abs(r(above))+' мм над чистым полом',okH)}. Уклон к трапу <b>${fq(C.sEff*100,2)}%</b>${C.mode==='env'?' — «конверт» (4 ската, режем по диагоналям)':C.mode==='plane'?' — одна плоскость к линейному трапу':C.mode==='two'?' — два ската к линейному трапу':' — воронка к трапу'}.</div>`;
   if(C.mode==='env'&&C.per){s+=`<div class="small">${C.per.map((p,k)=>`к стороне ${k+1}: ${fq((C.Hp-C.G)/p*100,2)}% (${r(p)} мм)`).join(' · ')}</div>`}
   if(C.mode!=='env'&&C.Hmax-C.Hmin>1)s+=`<div class="small">Края поддона: от ${r(C.Hmin)} до ${r(C.Hmax)} мм от стяжки.</div>`;
-  if(C.curbOn.length)s+=`<div style="margin-top:8px"><b>3. Бортики</b> на сторонах ${C.curbOn.map(k=>k+1).join(', ')}: верх — <b>${r(C.curbTop)} мм</b> от стяжки (${sgnMM(C.curbTop-F)} мм от пола), ширина ${r(C.cwid)} мм.</div>`;
+  if(C.curbOn.length){s+=`<div style="margin-top:8px"><b>3. Бортики</b> на сторонах ${C.curbOn.map(k=>k+1).join(', ')}: верх — <b>${r(C.curbTop)} мм</b> от стяжки (${sgnMM(C.curbTop-F)} мм от пола), ширина ${r(C.cwid)} мм.</div>`;
+    const K=C.curb;if(K){s+=`<div class="small">Плитка ${r(K.A)}×${r(K.B)}, шов ${fq(K.J,1)}. Полосы: верх — <b>${r(K.w)} мм</b>${K.ti>0?` (уклон внутрь ${fq(K.ti*100,0)}%)`:''}, снаружи — <b>${r(K.hoMax)} мм</b>, внутри — <b>${K.chains.map(c=>Math.abs(c.hiMax-c.hiMin)<1?r(c.hiMax):r(c.hiMin)+'–'+r(c.hiMax)).join(' / ')} мм</b> (по уклону поддона).<br>
+      Кусков: верх ${K.tot.top}, снаружи ${K.tot.out}${K.rows.out>1?` (в ${K.rows.out} ряда)`:''}, внутри ${K.tot.inn}${K.rows.inn>1?` (в ${K.rows.inn} ряда)`:''}; полос из одной плитки: ${K.sw.top} / ${K.sw.out} / ${K.sw.inn} → нужно ≈ <b>${K.tot.tiles} шт</b>.<br>
+      Запил 45°: ≈ <b>${fq(K.tot.bevel/1000,1)} м.п.</b> кромок${K.tot.diag?`, на углах верха — ${K.tot.diag} диагональных реза 45°`:''}${K.tot.vconv?`, наружных вертикальных углов — ${K.tot.vconv}`:''}.</div>`}}
   s+=`<div style="margin-top:8px"><b>${C.curbOn.length?4:3}. Раствор на уклон.</b> Под плитку у трапа ${r(C.G-C.tg)} мм, у края ${r(C.Hp-C.tg)} мм. Площадь ${fq(C.area,2)} м², объём ≈ <b>${fq(C.Vl,0)} л</b> ≈ ${fq(C.kg,0)} кг ЦПС (~${C.bags} меш. по 25 кг).</div>
   <div style="margin-top:8px"><b>${C.curbOn.length?5:4}. Разметка.</b> Линия верха поддона на стенах — <b>${r(C.Hmax)} мм</b> от стяжки. Гидроизоляция на стены в душе — не ниже <b>${r(Math.max(C.Hmax,C.curbTop||0)+200)} мм</b> от стяжки, в зоне лейки — 1800–2000 мм; ленту — в углы и вокруг трапа.</div>`;
   try{const TT=trayTiles(it,C);let env=0;if(C.mode==='env'||C.mode==='two'){for(const t of TT.L.tiles){const c=(t.full?[[t.x0,t.y0],[t.x0+t.w,t.y0],[t.x0+t.w,t.y0+t.h],[t.x0,t.y0+t.h]]:t.piece).map(p=>tp(p,TT.o,TT.ang));if(splitPiece(c,C).length>1)env++}}
@@ -1778,7 +1838,14 @@ function trText(it){const C=trayCalc(it);if(!C)return'';const r=x=>Math.round(x)
   if(C.curbOn.length)x+=`• бортики (стороны ${C.curbOn.map(k=>k+1).join(', ')}): верх ${r(C.curbTop)} мм, ширина ${r(C.cwid)}\n`;
   x+=`Труба: выход трапа ${r(C.outC)} мм → вывод ${r(C.Hs)} мм, ${r(C.Lp)} мм, уклон ${fq(C.pipeI*100,1)}%\nРаствор ≈ ${fq(C.Vl,0)} л (~${C.bags} меш. ЦПС)\nГидроизоляция на стены не ниже ${r(Math.max(C.Hmax,C.curbTop||0)+200)} мм от стяжки\n`;
   for(const w of C.warn)x+=`! ${w}\n`;return x}
-function trRefresh(){const it=cur();const p=$('#trplan');if(p)p.innerHTML=trayMini(it);const c=$('#trcalc');if(c)c.innerHTML=trCalcHtml(it)}
+function trRefresh(){const it=cur();const p=$('#trplan');if(p)p.innerHTML=trayMini(it);const c=$('#trcalc');if(c)c.innerHTML=trCalcHtml(it);const C=it.tray?trayCalc(it):null;if(C)document.querySelectorAll('[data-trdist]').forEach(el=>{if(el!==document.activeElement)el.value=Math.round(sideDist(C.TP,+el.dataset.trdist,C.D.c))});document.querySelectorAll('[data-tra="dcenter"],[data-tra="dmanual"]').forEach(b=>b.classList.toggle('on',(b.dataset.tra==='dcenter')===(it.tray.drain.center!==false)))}
+let trDrag=null;
+document.addEventListener('pointerdown',e=>{const sv=e.target.closest&&e.target.closest('#trsvg');if(!sv)return;const it=cur();if(!it||!it.tray)return;const C=trayCalc(it);if(!C||C.D.kind!=='point')return;
+  const m=sv.getScreenCTM();if(!m)return;const pt=new DOMPoint(e.clientX,e.clientY).matrixTransform(m.inverse());const sc=m.a||1;if(Math.hypot(pt.x-C.D.c[0],pt.y-C.D.c[1])*sc>36)return;
+  trDrag={sv,m:m.inverse(),dx:C.D.c[0]-pt.x,dy:C.D.c[1]-pt.y};sv.setPointerCapture&&sv.setPointerCapture(e.pointerId);e.preventDefault()});
+document.addEventListener('pointermove',e=>{if(!trDrag)return;const it=cur();const pt=new DOMPoint(e.clientX,e.clientY).matrixTransform(trDrag.m);it.tray.drain.center=false;it.tray.drain.pt=[Math.round(pt.x+trDrag.dx),Math.round(pt.y+trDrag.dy)];
+  if(!trDrag.raf)trDrag.raf=requestAnimationFrame(()=>{if(!trDrag)return;trDrag.raf=0;trRefresh();const s2=$('#trsvg');if(s2){trDrag.sv=s2;const m=s2.getScreenCTM();if(m)trDrag.m=m.inverse()}})});
+document.addEventListener('pointerup',()=>{if(trDrag){trDrag=null;save();trRefresh()}});
 function setPath(o,path,v){const ks=path.split('.');let x=o;for(let i=0;i<ks.length-1;i++){x[ks[i]]=x[ks[i]]||{};x=x[ks[i]]}x[ks[ks.length-1]]=v}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-tra]');if(!b)return;const it=cur();if(!it)return;const a=b.dataset.tra,v=b.dataset.v;
   if(a==='new'){it.tray=newTray(it,v);save();renderTray();return}
@@ -1790,18 +1857,34 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-tra]');if(
     case'delseg':t.segs.splice(+v,1);break;
     case'closeseg':{const Gm=trayGeo(it);if(!Gm||!Gm.gap)break;const [gx,gy]=Gm.gap;const L=Math.hypot(gx,gy);if(L<1)break;const ang=Math.atan2(gy,gx)*180/Math.PI;const di=DIRS.findIndex(dd=>Math.abs(((ang-Math.atan2(dd[1],dd[0])*180/Math.PI+540)%360)-180)<0.05);
       t.segs.push(di>=0?{dir:di,len:Math.round(L*10)/10}:{dir:8,ang:Math.round(((ang+360)%360)*100)/100,len:Math.round(L*10)/10});break}
+    case'scheme':{t.scheme=v;const Gm=trayGeo(it);const TP=Gm&&Gm.closed?Gm.pts:[];const P=roomPoly(it).pts;
+      if(v==='env'){if(d.type!=='sq'&&d.type!=='round')d.type='sq';break}
+      if(!TP.length)break;const wallS=TP.map((p,k)=>onRoomWall(p,TP[(k+1)%TP.length],P));const lens=TP.map((p,k)=>trayEdge(TP,k).L);
+      const pick=(want)=>{let b=-1;for(let k=0;k<TP.length;k++)if(wallS[k]===want&&(b<0||lens[k]>lens[b]))b=k;if(b<0)b=lens.indexOf(Math.max(...lens));return b};
+      if(v==='wall'){d.type='wall';d.edge=pick(true);d.wid=30;d.len=Math.round(Math.min(lens[d.edge],1200)/50)*50;d.at=''}
+      if(v==='edge'){d.type='line';d.edge=pick(false);d.wid=70;d.off=Math.max(n0(t.curbs.sides[d.edge]?t.curbs.w:0),0)+30;d.len=Math.round(Math.min(lens[d.edge]-100,1200)/50)*50;d.at=''}
+      if(v==='two'){d.type='line';d.edge=pick(true);d.wid=70;const E=trayEdge(TP,d.edge);const depth=Math.max(...TP.map(p=>(p[0]-E.a[0])*E.ni[0]+(p[1]-E.a[1])*E.ni[1]));d.off=Math.round(depth/2-35);d.len=Math.round(Math.min(lens[d.edge]-100,1200)/50)*50;d.at=''}
+      break}
+    case'dcenter':d.center=true;break;
+    case'dmanual':{const C=trayCalc(it);d.center=false;if(C)d.pt=C.D.c.slice();break}
+    case'dnudge':{const C=trayCalc(it);if(!C)break;const [x,y]=v.split(',').map(Number);d.center=false;d.pt=[C.D.c[0]+x,C.D.c[1]+y];break}
+    case'talign':t.tile.align=v;t.tile.ox=0;t.tile.oy=0;break;
+    case'cti':t.curbs.ti=+v;break;
+    case'ctmode':t.curbs.tile=t.curbs.tile||{};t.curbs.tile.mode=v;break;
+    case'coff':t.curbs.tile=t.curbs.tile||{};t.curbs.tile.off=n0(t.curbs.tile.off)+(+v);break;
     case'dtype':d.type=v;if(v==='wall'&&!isSet(d.wid))d.wid=30;if(v==='wall'&&n0(d.wid)>=60)d.wid=30;if(v==='line'&&n0(d.wid)<50)d.wid=70;break;
     case'dsize':d.size=+v;break;case'dd':d.d=+v;break;case'dlen':d.len=+v;break;
     case'ip':t.sw.i=+v;break;case'is':t.slope=+v;break;
     case'top':t.top=v==='flush'?n0(isSet(t.ff)?t.ff:16):'';break;
     case'curbfree':{const Gm=trayGeo(it);if(!Gm||!Gm.closed)break;const P=roomPoly(it).pts;t.curbs.sides={};Gm.pts.forEach((p,k)=>{if(!onRoomWall(p,Gm.pts[(k+1)%Gm.pts.length],P))t.curbs.sides[k]=true});break}
-    case'tmode':t.tile.mode=v;break;case'tsize':t.tile.a=+v;t.tile.b=+v;break;
+    case'tmode':t.tile.mode=v;break;case'tsize':{const [a,b]=v.split('x').map(Number);t.tile.a=a;t.tile.b=b;break}
     case'sewer':{const C=trayCalc(it);const o=(it.fobjs||[]).find(x=>x.type==='sewer');const g=o&&fobjGeom(it,o);if(C&&g&&g.pt){t.sw.L=Math.round(Math.hypot(g.pt[0]-C.D.c[0],g.pt[1]-C.D.c[1]));toast('Длина по прямой: '+t.sw.L+' мм')}break}
     case'txt':{const x=trText(it);(async()=>{try{if(navigator.share){await navigator.share({text:x});return}}catch(e){if(e.name==='AbortError')return}try{await navigator.clipboard.writeText(x);toast('Скопировано')}catch(e){prompt('Скопируйте',x)}})();return}
   }
   save();renderTray()});
-document.addEventListener('input',e=>{const el=e.target;const ds=el.dataset||{};if(!ds.trf&&ds.trseg===undefined&&ds.trcurb===undefined)return;const it=cur();if(!it||!it.tray)return;const t=trayFix(it.tray);
+document.addEventListener('input',e=>{const el=e.target;const ds=el.dataset||{};if(!ds.trf&&ds.trseg===undefined&&ds.trcurb===undefined&&ds.trdist===undefined)return;const it=cur();if(!it||!it.tray)return;const t=trayFix(it.tray);
   if(ds.trcurb!==undefined){t.curbs.sides[+ds.trcurb]=el.checked;save();trRefresh();return}
+  if(ds.trdist!==undefined){const C=trayCalc(it);if(!C||!isSet(el.value))return;const k=+ds.trdist;const E=trayEdge(C.TP,k);const cur0=sideDist(C.TP,k,C.D.c);const dv=n0(el.value)-cur0;t.drain.center=false;t.drain.pt=[C.D.c[0]+E.ni[0]*dv,C.D.c[1]+E.ni[1]*dv];save();trRefresh();return}
   if(ds.trseg!==undefined){const g=t.segs[+ds.trseg];if(!g)return;if(ds.f==='dir'){g.dir=+el.value;if(g.dir===8&&!isSet(g.ang))g.ang=0;save();renderTray();return}g[ds.f]=el.value;save();trRefresh();return}
   const k=ds.trf;const v=el.type==='checkbox'?el.checked:el.value;setPath(t,k,v);save();
   if(el.tagName==='SELECT'||el.type==='checkbox'){renderTray();return}
@@ -1884,14 +1967,36 @@ function build3d(it){
           quad3(g,[p[0]*K,FL*K,p[1]*K],[q[0]*K,FL*K,q[1]*K],[q[0]*K,hq*K,q[1]*K],[p[0]*K,hp*K,p[1]*K],col);
           seg(g,p,q,(x,y,o)=>[x*K,(C.hf([x,y])+o)*K,y*K],1.2,lc);seg(g,p,q,F,1.2,lc)}}
       // бортики
-      for(const k of C.curbOn){const E=trayEdge(TP,k);const w=C.cwid;const top=Math.max(C.edgeH[k],C.edgeH[(k+1)%TP.length])+C.ch;
-        box(g,[E.a,E.b,[E.b[0]+E.ni[0]*w,E.b[1]+E.ni[1]*w],[E.a[0]+E.ni[0]*w,E.a[1]+E.ni[1]*w]],0,top+0.8,FT)}
+      if(C.curb){const CB=C.curb;const CT=FT;const P3=(p,h)=>[p[0]*K,h*K,p[1]*K];const L3=(A,B,col)=>g.l.push(A[0],A[1],A[2],col[0],col[1],col[2],B[0],B[1],B[2],col[0],col[1],col[2]);
+        const cl=mul(GR,0.7);const lo=0.6;
+        for(const ch of CB.chains){const Ht=ch.Htop+0.8,Hi=ch.Hin+0.8;const topN=[0,1,0];
+          for(const sg of ch.segs){const nOut=[-sg.E.ni[0],0,-sg.E.ni[1]],nIn=[sg.E.ni[0],0,sg.E.ni[1]];
+            quad3(g,P3(sg.a,Ht),P3(sg.b,Ht),P3(sg.ib,Hi),P3(sg.ia,Hi),mul(CT,sh(topN)));
+            quad3(g,P3(sg.a,FL),P3(sg.b,FL),P3(sg.b,Ht),P3(sg.a,Ht),mul(CT,sh(nOut)));
+            const Li=Math.hypot(sg.ib[0]-sg.ia[0],sg.ib[1]-sg.ia[1]);const nS=Math.max(1,Math.ceil(Li/150));
+            for(let j=0;j<nS;j++){const p=[sg.ia[0]+(sg.ib[0]-sg.ia[0])*j/nS,sg.ia[1]+(sg.ib[1]-sg.ia[1])*j/nS],q=[sg.ia[0]+(sg.ib[0]-sg.ia[0])*(j+1)/nS,sg.ia[1]+(sg.ib[1]-sg.ia[1])*(j+1)/nS];
+              quad3(g,P3(p,C.hf(p)+0.8),P3(q,C.hf(q)+0.8),P3(q,Hi),P3(p,Hi),mul(CT,sh(nIn)));L3(P3(p,C.hf(p)+1.2),P3(q,C.hf(q)+1.2),cl)}
+            // рёбра с запилом 45°
+            const o1=[sg.a[0]-sg.E.ni[0]*lo,sg.a[1]-sg.E.ni[1]*lo],o2=[sg.b[0]-sg.E.ni[0]*lo,sg.b[1]-sg.E.ni[1]*lo];
+            L3(P3(o1,Ht+0.4),P3(o2,Ht+0.4),cl);L3(P3(sg.ia,Hi+0.4),P3(sg.ib,Hi+0.4),cl);L3(P3(o1,FL+1.2),P3(o2,FL+1.2),cl)}
+          // швы плитки на бортике
+          for(const sj of ch.joints){const sg=ch.segs.find(x=>sj>=x.s0-1e-6&&sj<=x.s0+x.L+1e-6);if(!sg)continue;const t0=sj-sg.s0;const u=sg.E.u,ni=sg.E.ni;
+            const po=[sg.a[0]+u[0]*t0-ni[0]*lo,sg.a[1]+u[1]*t0-ni[1]*lo];L3(P3(po,FL),P3(po,Ht+0.4),cl);
+            if(t0>CB.w*1.05&&sg.L-t0>CB.w*1.05||(ch.segs.length===1)){const pi=[sg.a[0]+u[0]*t0+ni[0]*CB.w,sg.a[1]+u[1]*t0+ni[1]*CB.w];const pt=[sg.a[0]+u[0]*t0,sg.a[1]+u[1]*t0];
+              L3(P3(pt,Ht+0.4),P3([pi[0]-ni[0]*0,pi[1]-ni[1]*0],Hi+0.4),cl);const pin=[pi[0]+ni[0]*lo,pi[1]+ni[1]*lo];L3(P3(pin,C.hf(pi)+0.8),P3(pin,Hi),cl)}}
+          // углы: диагональ 45° на верху и рёбра
+          for(const k of ch.corners){const a=ch.out[k.i],b=ch.inn[k.i];L3(P3(a,Ht+0.4),P3(b,Hi+0.4),cl);L3(P3(a,FL),P3(a,Ht),cl);L3(P3(b,C.hf(b)+0.8),P3(b,Hi),cl)}
+          // открытые торцы
+          for(const e of ch.ends){const n2=[e.i[0]-e.o[0],e.i[1]-e.o[1]];const nn=[n2[1],0,-n2[0]];const l=Math.hypot(...nn)||1;
+            quad3(g,P3(e.o,FL),P3(e.i,C.hf(e.i)+0.8),P3(e.i,Hi),P3(e.o,Ht),mul(CT,sh(nn.map(x=>Math.abs(x)/l))));L3(P3(e.o,Ht+0.4),P3(e.i,Hi+0.4),cl);L3(P3(e.o,FL),P3(e.o,Ht),cl);L3(P3(e.i,C.hf(e.i)),P3(e.i,Hi),cl)}
+          if(SEL3==='curb')for(const sg of ch.segs){L3(P3(sg.a,Ht+3),P3(sg.b,Ht+3),ACC);L3(P3(sg.ia,Hi+3),P3(sg.ib,Hi+3),ACC);g.ol.push(...P3(sg.a,Ht+3),...ACC,...P3(sg.b,Ht+3),...ACC)}}}
       // трап
       const D=C.D;const gz=x=>C.hf(x)+1.6;const Fg=(x,y,o)=>[x*K,(C.G+o)*K,y*K];const MET=hex3('#a9b1b8'),DK=hex3('#4b5359');
       poly(g,D.poly,Fg,1.8,mul(MET,0.97),'o');lines(g,D.poly,Fg,3,DK,'ol');
       if(D.kind==='point'){if(D.round){for(const r of [0.33,0.66])lines(g,circ(D.c[0],D.c[1],D.s/2*r,20),Fg,3,DK,'ol')}
         else{const h=D.s/2;for(let j=1;j<5;j++){const t=-h+2*h*j/5;const a=[D.c[0]+D.u[0]*t-D.v[0]*h*0.8,D.c[1]+D.u[1]*t-D.v[1]*h*0.8],b=[D.c[0]+D.u[0]*t+D.v[0]*h*0.8,D.c[1]+D.u[1]*t+D.v[1]*h*0.8];seg(g,a,b,Fg,3,DK,'ol')}}}
       else{const nL=Math.max(2,Math.floor(D.len/40));for(let j=1;j<nL;j++){const a=[D.poly[0][0]+D.u[0]*D.len*j/nL+D.ni[0]*D.wid*0.2,D.poly[0][1]+D.u[1]*D.len*j/nL+D.ni[1]*D.wid*0.2];const b=[a[0]+D.ni[0]*D.wid*0.6,a[1]+D.ni[1]*D.wid*0.6];seg(g,a,b,Fg,3,DK,'ol')}}
+      if(SEL3==='tray')for(let k=0;k<TP.length;k++){const a=TP[k],b=TP[(k+1)%TP.length];const nS=Math.max(1,Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])/80));for(let j=0;j<nS;j++){const p=[a[0]+(b[0]-a[0])*j/nS,a[1]+(b[1]-a[1])*j/nS],q=[a[0]+(b[0]-a[0])*(j+1)/nS,a[1]+(b[1]-a[1])*(j+1)/nS];seg(g,p,q,Ft,4,ACC,'ol')}}
       g.tray={TP}}
     if(SEL3==='floor')lines(g,P,F,4,ACC,'ol');
     groups.push(g)}
@@ -1930,7 +2035,7 @@ function build3d(it){
   for(const key of ['t','l','o','ol'])for(const g of groups){g[key+'0']=o/6;buf.set(g[key],o);o+=g[key].length;g[key+'n']=g[key].length/6}
   for(const g of groups)for(const key of ['t','l','o','ol'])delete g[key];
   const [x0,y0,x1,y1]=bbox(P);
-  return{buf,groups,st,box:[x0*K,y0*K,x1*K,y1*K],H:Math.max(Hc,...ws.map(w=>wH(it,w)))*K,P,own:!!T.own,FL:FL*K};
+  return{buf,groups,st,box:[x0*K,y0*K,x1*K,y1*K],H:Math.max(Hc,...ws.map(w=>wH(it,w)))*K,P,own:!!T.own,FL:FL*K,TC};
 }
 // ---- матрицы (по столбцам, как в WebGL)
 const m4={
@@ -1943,7 +2048,9 @@ function insidePt(P){const [x0,y0,x1,y1]=bbox(P);const c=[(x0+x1)/2,(y0+y1)/2];i
   return best||c}
 const HINT3={rot:'Крутите одним пальцем, двумя — приблизить и сдвинуть. Стена, которая загораживает вид, прячется сама.',in:'Вы стоите в помещении: ведите пальцем, чтобы осмотреться, двумя пальцами — приблизить.'};
 function hint3(){const h=$('#h3');if(!h||!G3)return;if(MODE3==='move'){h.innerHTML=moveInfo3();return}h.textContent=G3.cam&&G3.cam.mode==='in'?HINT3.in:HINT3.rot}
-function moveInfo3(){const it=cur();const T=W(it);if(SEL3==='floor')return`<b>Двигаете плитку пола</b> — ведите пальцем по полу. Сдвиг: X ${Math.round(n0(it.ox))}, Y ${Math.round(n0(it.oy))} мм.`;
+function moveInfo3(){const it=cur();const T=W(it);if(SEL3==='floor')return`<b>Двигаете плитку пола</b>${it.tray&&(it.tray.tile||{}).mode!=='own'?' (и поддона — сетка общая)':''} — ведите пальцем по полу. Сдвиг: X ${Math.round(n0(it.ox))}, Y ${Math.round(n0(it.oy))} мм.`;
+  if(SEL3==='tray')return`<b>Двигаете плитку поддона</b> — ведите пальцем по поддону. Сдвиг: X ${Math.round(n0(it.tray.tile.ox))}, Y ${Math.round(n0(it.tray.tile.oy))} мм.`;
+  if(SEL3==='curb')return`<b>Двигаете плитку на бортике</b> — ведите пальцем вдоль бортика. Сдвиг ${Math.round(n0((it.tray.curbs.tile||{}).off))} мм.`;
   const w=wallList(it).find(x=>x.idx===SEL3);return`<b>Двигаете плитку на стене ${w?w.num:''}</b>: влево-вправо — плитка этой стены (${Math.round(n0(T.wx[SEL3]))} мм), вверх-вниз — ряды на всех стенах (${Math.round(n0(T.y0))} мм). Нажмите на другую стену или пол, чтобы выбрать их.`}
 function cam3reset(kind){const g=G3;if(!g||!g.sc)return;const [x0,z0,x1,z1]=g.sc.box;const H=g.sc.H;const cx=(x0+x1)/2,cz=(z0+z1)/2;
   const asp=(g.cv.clientWidth||360)/(g.cv.clientHeight||480);
@@ -1988,17 +2095,22 @@ function ray3(cx,cy){const g=G3;const r=g.cv.getBoundingClientRect();const nx=((
   let f=[t[0]-e[0],t[1]-e[1],t[2]-e[2]];let l=Math.hypot(...f);f=f.map(v=>v/l);let rt=[f[1]*0-f[2]*1,f[2]*0-f[0]*0,f[0]*1-f[1]*0];l=Math.hypot(...rt)||1;rt=rt.map(v=>v/l);const up=[rt[1]*f[2]-rt[2]*f[1],rt[2]*f[0]-rt[0]*f[2],rt[0]*f[1]-rt[1]*f[0]];
   const th=Math.tan(c.fov/2),as=r.width/r.height;let d=[0,1,2].map(i=>f[i]+rt[i]*nx*th*as+up[i]*ny*th);l=Math.hypot(...d);d=d.map(v=>v/l);return{e,d}}
 function hitPlane(R,p0,n){const den=R.d[0]*n[0]+R.d[1]*n[1]+R.d[2]*n[2];if(Math.abs(den)<1e-4)return null;const t=((p0[0]-R.e[0])*n[0]+(p0[1]-R.e[1])*n[1]+(p0[2]-R.e[2])*n[2])/den;if(t<=0)return null;return{t,p:[R.e[0]+R.d[0]*t,R.e[1]+R.d[1]*t,R.e[2]+R.d[2]*t]}}
+function chainS(ch,p){let best=null;for(const g of ch.segs){const u=g.E.u;const t=Math.max(0,Math.min(g.L,(p[0]-g.a[0])*u[0]+(p[1]-g.a[1])*u[1]));const q=[g.a[0]+u[0]*t,g.a[1]+u[1]*t];const d=Math.hypot(p[0]-q[0],p[1]-q[1]);if(!best||d<best.d)best={d,s:g.s0+t}}return best}
 function local3(R,sel){const sc=G3.sc;if(sel==='floor'){const h=hitPlane(R,[0,sc.FL,0],[0,1,0]);return h?{t:h.t,x:h.p[0]*1000,y:h.p[2]*1000}:null}
+  if(sel==='tray'||sel==='curb'){const C=sc.TC;if(!C)return null;const lev=sel==='curb'&&C.curb?C.curb.chains[0].Htop:C.Hp;const h=hitPlane(R,[0,lev*0.001,0],[0,1,0]);if(!h)return null;const x=h.p[0]*1000,y=h.p[2]*1000;
+    if(sel==='curb'){if(!C.curb)return null;const b=chainS(C.curb.chains[0],[x,y]);return{t:h.t,x:b.s,y:0,d:b.d}}return{t:h.t,x,y}}
   const gr=sc.groups.find(x=>x.wall&&x.wall.idx===sel);if(!gr)return null;const w=gr.wall;const h=hitPlane(R,[w.S[0]*0.001,0,w.S[1]*0.001],[w.n[0],0,w.n[1]]);if(!h)return null;
   return{t:h.t,x:(h.p[0]*1000-w.S[0])*w.d[0]+(h.p[2]*1000-w.S[1])*w.d[1],y:h.p[1]*1000,w}}
 function pick3(cx,cy){const g=G3;if(!g||!g.sc)return null;const R=ray3(cx,cy);const c=g.cam,e=eye3(c);let best=null;
   const f=local3(R,'floor');if(f&&pip([f.x,f.y],g.sc.P))best={sel:'floor',t:f.t};
+  const C=g.sc.TC;if(C){const h=hitPlane(R,[0,C.Hp*0.001,0],[0,1,0]);if(h){const q=[h.p[0]*1000,h.p[2]*1000];if(pip(q,C.TP)){let onCurb=false;if(C.curb)for(const ch of C.curb.chains){const b=chainS(ch,q);if(b&&b.d<=C.cwid+20)onCurb=true}
+    const it=cur();best={sel:onCurb?'curb':(it.tray.tile.mode==='own'?'tray':'floor'),t:h.t}}}}
   for(const gr of g.sc.groups){if(!gr.wall||gr.wall.plain||!vis3(gr,c,e))continue;const L=local3(R,gr.wall.idx);if(!L||L.x<0||L.x>gr.wall.len||L.y<0||L.y>gr.wall.Hw)continue;if(!best||L.t<best.t)best={sel:gr.wall.idx,t:L.t}}
   return best}
 let rbq3=0;function rebuildSoon3(){if(!rbq3)rbq3=requestAnimationFrame(()=>{rbq3=0;rebuild3d();hint3()})}
 function rebuild3d(){const g=G3;if(!g)return;const it=cur();const sc=build3d(it);g.sc=sc;if(!sc)return;const gl=g.gl;gl.bindBuffer(gl.ARRAY_BUFFER,g.vb);gl.bufferData(gl.ARRAY_BUFFER,sc.buf,gl.STATIC_DRAW);
   const k=$('#kpi3');if(k){const s=sc.st;k.innerHTML=`<div><span>Пол: целых</span><b>${s.ff}</b></div><div><span>Пол: подрезок</span><b>${s.fc}</b></div><div><span>Стены: целых / подр.</span><b>${sc.own?'—':s.wf+' / '+s.wc}</b></div>`}
-  const sv=$('#surf3');if(sv){const ws=W(it).own?[]:wallList(it);sv.innerHTML=[['floor','Пол']].concat(ws.map(w=>[w.idx,'Стена '+w.num])).map(([v,t])=>`<button data-v3s="${v}" class="${String(SEL3)===String(v)?'on':''}">${t}</button>`).join('')}
+  const sv=$('#surf3');if(sv){const ws=W(it).own?[]:wallList(it);sv.innerHTML=[['floor','Пол']].concat(it.tray&&it.tray.tile&&it.tray.tile.mode==='own'&&sc.TC?[['tray','Поддон']]:[]).concat(sc.TC&&sc.TC.curb?[['curb','Бортик']]:[]).concat(ws.map(w=>[w.idx,'Стена '+w.num])).map(([v,t])=>`<button data-v3s="${v}" class="${String(SEL3)===String(v)?'on':''}">${t}</button>`).join('')}
   req3()}
 function stop3d(){const g=G3;if(!g)return;G3=null;if(g.raf)cancelAnimationFrame(g.raf);try{const x=g.gl.getExtension('WEBGL_lose_context');if(x)x.loseContext()}catch(e){}}
 function init3d(){stop3d();const cv=$('#c3');if(!cv)return;
@@ -2010,17 +2122,19 @@ function init3d(){stop3d();const cv=$('#c3');if(!cv)return;
   gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);
   const bgc=getComputedStyle(document.documentElement).getPropertyValue('--card').trim()||'#ffffff';
   G3={cv,gl,pr,vb:gl.createBuffer(),aP:gl.getAttribLocation(pr,'p'),aC:gl.getAttribLocation(pr,'c'),uM:gl.getUniformLocation(pr,'m'),bg:hex3(bgc),raf:0,ptr:new Map()};
-  const it0=cur();if(SEL3!=='floor'&&!(W(it0).own?[]:wallList(it0)).some(w=>w.idx===SEL3))SEL3='floor';
+  const it0=cur();if(SEL3==='tray'&&!(it0.tray&&it0.tray.tile&&it0.tray.tile.mode==='own'))SEL3='floor';if(SEL3==='curb'&&!(it0.tray&&Object.values((it0.tray.curbs||{}).sides||{}).some(Boolean)))SEL3='floor';if(SEL3!=='floor'&&SEL3!=='tray'&&SEL3!=='curb'&&!(W(it0).own?[]:wallList(it0)).some(w=>w.idx===SEL3))SEL3='floor';
   rebuild3d();if(CAM3&&CAM3.id===S.cur&&G3.sc){G3.cam=CAM3.cam;cam3reset_ui(CAM3.cam.kind||'iso')}else cam3reset('iso');
   // жесты: один палец — вращать (или двигать плитку), два — приблизить/сдвинуть
   const P=G3.ptr;let last=null,drag=null;
   const two=()=>{const a=[...P.values()];return{d:Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y),x:(a[0].x+a[1].x)/2,y:(a[0].y+a[1].y)/2}};
   cv.addEventListener('pointerdown',e=>{cv.setPointerCapture(e.pointerId);P.set(e.pointerId,{x:e.clientX,y:e.clientY,x0:e.clientX,y0:e.clientY});last=P.size===2?two():null;e.preventDefault();
-    drag=null;if(P.size===1&&MODE3==='move'&&G3&&G3.sc){const it=cur();const T=W(it);const L=local3(ray3(e.clientX,e.clientY),SEL3);if(L)drag={L,ox:n0(it.ox),oy:n0(it.oy),wx:n0(T.wx[SEL3]),y0:n0(T.y0),moved:false}}});
+    drag=null;if(P.size===1&&MODE3==='move'&&G3&&G3.sc){const it=cur();const T=W(it);const L=local3(ray3(e.clientX,e.clientY),SEL3);const tr=it.tray;if(L)drag={L,ox:n0(it.ox),oy:n0(it.oy),wx:n0(T.wx[SEL3]),y0:n0(T.y0),tox:tr?n0(tr.tile.ox):0,toy:tr?n0(tr.tile.oy):0,coff:tr&&tr.curbs.tile?n0(tr.curbs.tile.off):0,moved:false}}});
   cv.addEventListener('pointermove',e=>{const g=G3;if(!g||!P.has(e.pointerId))return;const p=P.get(e.pointerId);const dx=e.clientX-p.x,dy=e.clientY-p.y;P.set(e.pointerId,{...p,x:e.clientX,y:e.clientY});const c=g.cam;
     if(P.size===1){if(Math.hypot(e.clientX-p.x0,e.clientY-p.y0)<6&&!(drag&&drag.moved))return;
       if(MODE3==='move'){if(!drag)return;const L=local3(ray3(e.clientX,e.clientY),SEL3);if(!L)return;drag.moved=true;const it=cur();const T=W(it);
-        if(SEL3==='floor'){it.ox=Math.round(drag.ox+L.x-drag.L.x);it.oy=Math.round(drag.oy+L.y-drag.L.y)}else{T.wx[SEL3]=Math.round(drag.wx+L.x-drag.L.x);T.y0=Math.round(drag.y0+L.y-drag.L.y)}
+        if(SEL3==='floor'){it.ox=Math.round(drag.ox+L.x-drag.L.x);it.oy=Math.round(drag.oy+L.y-drag.L.y)}
+        else if(SEL3==='tray'){it.tray.tile.ox=Math.round(drag.tox+L.x-drag.L.x);it.tray.tile.oy=Math.round(drag.toy+L.y-drag.L.y)}
+        else if(SEL3==='curb'){it.tray.curbs.tile=it.tray.curbs.tile||{};it.tray.curbs.tile.off=Math.round(drag.coff+L.x-drag.L.x)}else{T.wx[SEL3]=Math.round(drag.wx+L.x-drag.L.x);T.y0=Math.round(drag.y0+L.y-drag.L.y)}
         rebuildSoon3();return}
       if(c.mode==='in'){c.yaw+=dx*0.006;c.pitch=Math.max(-1.25,Math.min(1.25,c.pitch+dy*0.006))}else{c.yaw-=dx*0.008;c.pitch=Math.max(0.03,Math.min(1.553,c.pitch+dy*0.008))}req3()}
     else if(P.size===2){drag=null;const n=two();if(last&&last.d>0){const r=n.d/last.d;
@@ -2061,7 +2175,7 @@ function png3(){const g=G3;if(!g||!g.sc)return;const sel=SEL3;SEL3=null;rebuild3
 document.addEventListener('click',e=>{const b=e.target.closest('[data-v3v],[data-v3m],[data-v3s],[data-act="png3"]');if(!b||!G3)return;
   if(b.dataset.act==='png3'){png3();return}
   if(b.dataset.v3m){MODE3=b.dataset.v3m;const s=$('#surf3');if(s)s.hidden=MODE3!=='move';cam3reset_ui(G3.cam?G3.cam.kind||'iso':'iso');rebuild3d();return}
-  if(b.dataset.v3s!==undefined){SEL3=b.dataset.v3s==='floor'?'floor':+b.dataset.v3s;rebuild3d();hint3();return}
+  if(b.dataset.v3s!==undefined){const v=b.dataset.v3s;SEL3=(v==='floor'||v==='tray'||v==='curb')?v:+v;rebuild3d();hint3();return}
   const k=b.dataset.v3v;
   if(k==='turn'){const c=G3.cam;c.yaw+=(c.mode==='in'?1:-1)*Math.PI/2;req3();return}cam3reset(k)});
 let rb3=0;document.addEventListener('input',e=>{const el=e.target;if(!el.dataset||!el.dataset.v3)return;const it=cur();if(!it)return;const V=v3(it);const k=el.dataset.v3;V[k]=el.type==='checkbox'?el.checked:el.value;save();
