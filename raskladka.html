@@ -416,7 +416,7 @@ function doorsHtml(it){const ds=it.doors||[];if(!ds.length)return'';const nW=roo
 // ================== экраны ==================
 function hdr(t,back){$('#hdr').innerHTML=(back?`<button data-act="back">‹</button>`:'')+`<h1>${esc(t)}</h1>`+(back?`<button data-act="dup" style="font-size:15px" title="Копия">⧉</button><button data-act="del" style="font-size:17px" title="Удалить">🗑</button>`:'')}
 function render(){
-  stop3d();
+  stop3d();f3Stop();
   if(S.view==='edit'&&!cur())S.view='list';
   $('#tabs').hidden=S.view!=='edit';
   if(S.view==='list')return renderList();
@@ -1165,8 +1165,8 @@ function panelCalc(it,el,si,seg){
   const warn=[];const cl=v=>Math.max(pw/2,Math.min(L-pw/2,v));
   // раскрой листов: подбираем ширину первого листа, чтобы швы не падали на инсталляцию и края проёмов
   const edgeX=[];for(const o of fr){edgeX.push(cl(n0(o.x)-pw/2),cl(n0(o.x)+n0(o.w)+pw/2))}
-  const bad=(x)=>{if(holes.some(h=>Math.abs(n0(h.x)-x)<(n0(h.d)||FOP[h.type].d)/2+pw/2+10))return 2;if(edgeX.some(e=>Math.abs(e-x)<=pw/2-8))return 0;if(edgeX.some(e=>Math.abs(e-x)<pw+10))return 1;for(const o of fr){if(o.type==='inst'&&x>n0(o.x)-pw&&x<n0(o.x)+n0(o.w)+pw)return 3}return 0};
-  const score=o0=>{let sc=0;for(const S0 of seamSets(f,el,o0)){const first=S0.ox||sw;if(first<250&&first<L-30)sc+=40;let last=0;for(let x=S0.ox||sw;x<L-30;x+=sw){sc+=bad(x)*100+1;last=x}if(L-last<250&&last>0)sc+=40}return sc+(o0?2:0)};
+  const bad=(x)=>{if(holes.some(h=>Math.abs(n0(h.x)-x)<(n0(h.d)||FOP[h.type].d)/2+pw/2+10))return 1;if(edgeX.some(e=>Math.abs(e-x)<=pw/2-8))return 0;if(edgeX.some(e=>Math.abs(e-x)<pw+10))return 1;for(const o of fr){if(o.type==='inst'&&x>n0(o.x)-pw&&x<n0(o.x)+n0(o.w)+pw)return 3}return 0};
+  const score=o0=>{let sc=0;for(const S0 of seamSets(f,el,o0)){const first=S0.ox||sw;if(first<250&&first<L-30)sc+=first<150?160:40;let last=0;for(let x=S0.ox||sw;x<L-30;x+=sw){sc+=bad(x)*100+1;last=x}if(L-last<250&&last>0)sc+=L-last<150?160:40}return sc+(o0?2:0)};
   let o0=isSet(seg.sx)&&n0(seg.sx)>0?n0(seg.sx)%sw:0;
   if(!(isSet(seg.sx)&&n0(seg.sx)>0)&&(fr.length||holes.length)){const cand=new Set([0]);for(let v=25;v<sw;v+=25)cand.add(v);for(const e of edgeX){cand.add(((e%sw)+sw)%sw);cand.add(((e-sw/2)%sw+sw)%sw)}
     let best=0,bs=score(0);for(const c of cand){const v=score(c);if(v<bs-0.5){bs=v;best=c}}o0=Math.round(best)}
@@ -1421,9 +1421,10 @@ function renderFrame(){const it=cur();const f=F(it);if(!f.sel||!f.els.some(e=>e.
     <div id="stage"><svg id="fv" xmlns="http://www.w3.org/2000/svg"></svg></div>
     <div class="card" id="finfo" style="margin-top:8px;border-color:#f59e0b!important">${fInfoHtml()}</div>
     <div class="tools"><button data-fa="fzin">＋</button><button data-fa="fzout">－</button><button data-fa="fzfit">⤢</button><span class="small mute" style="align-self:center"><span class="leg" style="background:#55636f"></span>стойка <span class="leg" style="background:#1f6f5c"></span>у проёма <span class="leg" style="background:#c4572e"></span>коротыш <span class="leg" style="background:#b7791f"></span>сдвинута от трубы <span class="leg" style="background:#2563eb"></span>под шов листа <span class="leg" style="background:#3b82c4"></span>поперечина <span class="leg" style="background:#ea580c"></span>закладная <span class="leg" style="background:#ef4444;border-radius:50%"></span>ГВ <span class="leg" style="background:#3b82f6;border-radius:50%"></span>ХВ <span class="leg" style="background:#9ca3af;border-radius:50%"></span>канализация${f.slide?' <span class="leg" style="background:#16a34a"></span>скользящая опора':''} <span style="color:#0ea5e9">┆</span> шов 1-го слоя${+f.layers===2?' <span style="color:#a855f7">┆</span> шов 2-го':''}</span></div>`}
+  if(el)h+=f3Card(it,el);
   h+=`<h2>Материалы</h2><div class="card" id="fmat"></div>${f.els.length?smCard('frame'):''}`;
   if(!f.els.length)h+=`<div class="empty">Добавьте стену, короб или колонну — каркас и материалы посчитаются сами.</div>`;
-  $('#main').innerHTML=h;fDraw();
+  f3Stop();$('#main').innerHTML=h;fDraw();if(FV3.on&&el)f3Init();
 }
 const SLICON={free:'<svg viewBox="0 0 40 26" width="40" height="26"><path d="M3 24V14L12 6L18 12L24 4L30 10V16H37V24Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>',none:'<svg viewBox="0 0 40 26" width="40" height="26"><rect x="3" y="6" width="34" height="18" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
   one:'<svg viewBox="0 0 40 26" width="40" height="26"><path d="M3 24 V12 L37 4 V24 Z" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
@@ -1493,7 +1494,165 @@ function fDraw(){const it=cur();const f=F(it);const el=f.els.find(e=>e.id===f.se
   const cv=$('#fv');if(!cv||!el)return;const W0=cv.clientWidth||360;const tmp=frameSvg(it,el,1);const pad=Math.max(tmp.W,tmp.H)*0.09+250;
   if(!cv._h){cv.style.height=Math.round(Math.max(240,Math.min(innerHeight*0.55,W0*(tmp.H+2*pad)/(tmp.W+2*pad))))+'px';cv._h=1}
   const H0=cv.clientHeight||300;let vw=tmp.W+2*pad,vh=tmp.H+2*pad;const ar=W0/H0;if(vw/vh<ar)vw=vh*ar;else vh=vw/ar;if(fview.cx===null){fview.cx=tmp.W/2;fview.cy=tmp.H/2}
-  vw/=fview.z;vh/=fview.z;const sc=W0/vw;const {s}=frameSvg(it,el,sc);cv.setAttribute('viewBox',`${fview.cx-vw/2} ${fview.cy-vh/2} ${vw} ${vh}`);cv.innerHTML=s;const fi=$('#finfo');if(fi)fi.innerHTML=fInfoHtml()}
+  vw/=fview.z;vh/=fview.z;const sc=W0/vw;const {s}=frameSvg(it,el,sc);cv.setAttribute('viewBox',`${fview.cx-vw/2} ${fview.cy-vh/2} ${vw} ${vh}`);cv.innerHTML=s;const fi=$('#finfo');if(fi)fi.innerHTML=fInfoHtml();if(FG)f3Soon()}
+let f3q=0;function f3Soon(){clearTimeout(f3q);f3q=setTimeout(()=>{if(FG)f3Rebuild()},250)}
+// ================== КАРКАС В 3D ==================
+// Свой WebGL без библиотек: профили, трубы, закладные, листы ГКЛ, саморезы и линии разметки по профилю.
+const FV3={on:false,show:'frame',pipes:true,screws:true,lines:true,dims:true,flip:false};let FG=null;
+const GKT=12.5;// толщина листа
+function f3Depth(f){return f.sys==='knauf'?(n0(f.ps)||50):33}
+// шаг саморезов для слоя k из n
+const scrStep=(k,n)=>n>1&&k<n-1?750:250;
+// раскладка листов одного набора швов на участке: прямоугольники [x0,y0,x1,y1]
+function f3Sheets(P,S0,sw){const L=P.L;const cuts=[0];for(let x=S0.ox||sw;x<L-30;x+=sw)cuts.push(x);cuts.push(L);const out=[];
+  for(let k=0;k<cuts.length-1;k++){const c0=cuts[k],c1=cuts[k+1];const colTop=Math.max(P.topAt(c0),P.topAt(c1),P.topAt((c0+c1)/2));
+    const ys=P.hseams.filter(h=>h.set.n===S0.n&&Math.abs(h.c0-c0)<1).map(h=>h.y).sort((a,b)=>a-b);const rows=[0,...ys,colTop];
+    for(let r=0;r<rows.length-1;r++)out.push({x0:c0,y0:rows[r],x1:c1,y1:rows[r+1],col:k,row:r})}return out}
+// вычесть проёмы из прямоугольника
+function rectMinus(r,holes){const xs=new Set([r[0],r[2]]);for(const h of holes){if(h[2]<=r[0]||h[0]>=r[2]||h[3]<=r[1]||h[1]>=r[3])continue;xs.add(Math.max(r[0],h[0]));xs.add(Math.min(r[2],h[2]))}
+  const X=[...xs].sort((a,b)=>a-b);const out=[];
+  for(let i=0;i<X.length-1;i++){const a=X[i],b=X[i+1];if(b-a<0.5)continue;const m=(a+b)/2;let iv=[[r[1],r[3]]];
+    for(const h of holes){if(m<=h[0]||m>=h[2])continue;iv=iv.flatMap(([p,q])=>{const o=[];if(h[1]>p)o.push([p,Math.min(h[1],q)]);if(h[3]<q)o.push([Math.max(h[3],p),q]);return o})}
+    for(const [p,q] of iv)if(q-p>0.5)out.push([a,p,b,q])}return out}
+function f3Build(it,el){const f=F(it);const pts=segPts(el);const pw=PW(f);const D=f3Depth(f);const kn=f.sys==='knauf';const gt=gapTop(f);const nl=+f.layers||1;
+  const two=el.type==='wall'&&+el.sides!==1;const back=two?0:(f.ops.some(o=>o.el===el.id&&o.type==='inst')?160:70);
+  const V=[];const L3=[];const LIGHT=(()=>{const v=[0.45,0.8,0.55];const l=Math.hypot(...v);return v.map(x=>x/l)})();
+  const sgn=FV3.flip?-1:1;let segs=[];let bb=[1e9,1e9,-1e9,-1e9],maxH=0;
+  el.segs.forEach((seg,si)=>{const a=pts[si],b=pts[si+1];const L=Math.hypot(b[0]-a[0],b[1]-a[1])||1;const d=[(b[0]-a[0])/L,(b[1]-a[1])/L];const n=[-d[1]*sgn,d[0]*sgn];segs.push({a,d,n,P:panelCalc(it,el,si,seg)});
+    for(const p of [a,b]){bb[0]=Math.min(bb[0],p[0]);bb[1]=Math.min(bb[1],p[1]);bb[2]=Math.max(bb[2],p[0]);bb[3]=Math.max(bb[3],p[1])}});
+  const W=(S,u,v,w)=>[(S.a[0]+S.d[0]*u+S.n[0]*w)*0.001,v*0.001,(S.a[1]+S.d[1]*u+S.n[1]*w)*0.001];
+  const tri=(p,q,r,c)=>{const e1=[q[0]-p[0],q[1]-p[1],q[2]-p[2]],e2=[r[0]-p[0],r[1]-p[1],r[2]-p[2]];let nn=[e1[1]*e2[2]-e1[2]*e2[1],e1[2]*e2[0]-e1[0]*e2[2],e1[0]*e2[1]-e1[1]*e2[0]];const l=Math.hypot(...nn)||1;nn=nn.map(x=>x/l);
+    const k=0.5+0.5*Math.abs(nn[0]*LIGHT[0]+nn[1]*LIGHT[1]+nn[2]*LIGHT[2]);const cc=[c[0]*k,c[1]*k,c[2]*k];for(const v of [p,q,r])V.push(v[0],v[1],v[2],cc[0],cc[1],cc[2])};
+  const quad=(p,q,r,s,c)=>{tri(p,q,r,c);tri(p,r,s,c)};
+  // прямоугольный брусок в координатах участка; t0/t1 — верх слева/справа (для скоса)
+  const box=(S,u0,u1,v0,v1,w0,w1,c,t0,t1)=>{const a0=t0===undefined?v1:t0,a1=t1===undefined?v1:t1;if(u1-u0<0.3)return;
+    const P8=[W(S,u0,v0,w0),W(S,u1,v0,w0),W(S,u1,a1,w0),W(S,u0,a0,w0),W(S,u0,v0,w1),W(S,u1,v0,w1),W(S,u1,a1,w1),W(S,u0,a0,w1)];
+    const F6=[[0,1,2,3],[5,4,7,6],[4,0,3,7],[1,5,6,2],[3,2,6,7],[4,5,1,0]];for(const q of F6)quad(P8[q[0]],P8[q[1]],P8[q[2]],P8[q[3]],c)};
+  // плоский многоугольник на глубине w (лицевая плоскость листа)
+  const flat=(S,poly,w,c)=>{const R=earTri(poly);for(const t of R.T)tri(W(S,...R.P[t[0]],w),W(S,...R.P[t[1]],w),W(S,...R.P[t[2]],w),c)};
+  // труба между точками участка
+  const pipe=(S,A,B,r,c)=>{const pa=W(S,A[0],A[1],A[2]),pb=W(S,B[0],B[1],B[2]);const ax=[pb[0]-pa[0],pb[1]-pa[1],pb[2]-pa[2]];const l=Math.hypot(...ax)||1;const z=ax.map(x=>x/l);
+    let t=Math.abs(z[1])<0.9?[0,1,0]:[1,0,0];let x=[t[1]*z[2]-t[2]*z[1],t[2]*z[0]-t[0]*z[2],t[0]*z[1]-t[1]*z[0]];const lx=Math.hypot(...x);x=x.map(v=>v/lx);const y=[z[1]*x[2]-z[2]*x[1],z[2]*x[0]-z[0]*x[2],z[0]*x[1]-z[1]*x[0]];
+    const R=r*0.001,N=10;const ring=(p)=>Array.from({length:N},(_,i)=>{const an=i/N*2*Math.PI;return[p[0]+(x[0]*Math.cos(an)+y[0]*Math.sin(an))*R,p[1]+(x[1]*Math.cos(an)+y[1]*Math.sin(an))*R,p[2]+(x[2]*Math.cos(an)+y[2]*Math.sin(an))*R]});
+    const ra=ring(pa),rb=ring(pb);for(let i=0;i<N;i++){const j=(i+1)%N;quad(ra[i],ra[j],rb[j],rb[i],c)}};
+  const C={prof:hex3('#aeb8c2'),kn:hex3('#c9d1d8'),zak:hex3('#f97316'),rail:hex3('#8794a1'),hot:hex3('#ef4444'),cold:hex3('#3b82f6'),sew:hex3('#9ca3af'),inst:hex3('#22a06b'),tank:hex3('#f4f4f2'),
+    wall:hex3('#d9d4cc'),floor:hex3('#e9e5de'),g1:hex3('#cfe3d4'),g1b:hex3('#bfd8c6'),g2:hex3('#e2efe5'),g2b:hex3('#d3e7d9'),edge:hex3('#5b6770'),scr:hex3('#1f2937'),mark:hex3('#dc2626'),niche:hex3('#f5e6d3'),shelf:hex3('#d6c3a5')};
+  const surf=D+nl*GKT;const showG=FV3.show==='frame'?0:FV3.show==='g1'?1:nl;const labels=[];const marks=[];
+  for(const S of segs){const P=S.P;const L=P.L;const fr=P.ops.filter(o=>FOP[o.type].frame);
+    // пол и стена позади
+    box(S,0,L,-12,0,-back-80,surf+250,C.floor);if(!two)box(S,0,L,0,Math.max(P.H,P.SL?P.SL.maxH:0),-back-80,-back,C.wall);
+    // стойки и коротыши
+    for(const p of P.pieces){const atTop=p.y1>=P.topAt(p.x)-1;const v0=p.y0+(!kn&&p.y0<1&&P.onRail(p.x)?pw:0);
+      const t0=atTop?P.topAt(p.x-pw/2)-gt-(kn?0:pw):p.y1,t1=atTop?P.topAt(p.x+pw/2)-gt-(kn?0:pw):p.y1;
+      box(S,p.x-pw/2,p.x+pw/2,v0,Math.max(t0,t1),0,D,kn?C.kn:C.prof,t0,t1)}
+    for(const h of P.heads){const y=h.pos==='top'?h.y:h.y-pw;box(S,h.x0,h.x1,y,y+pw,0,D,kn?C.rail:C.prof)}
+    for(const c of P.cross)box(S,c.a+pw/2,c.b-pw/2,c.y-pw/2,c.y+pw/2,0,D,c.why==='закл'?C.zak:(kn?C.rail:C.prof));
+    // направляющие / нижний и верхний профиль
+    const rh=kn?40:pw;for(const [a,b] of P.railSegs)box(S,a,b,0,rh,0,D,C.rail);
+    const tp=P.SL?P.SL.pts:[[0,P.H],[L,P.H]];for(let i=0;i<tp.length-1;i++){const [xa,ha]=tp[i],[xb,hb]=tp[i+1];const off=kn?0:gt;
+      if(xb-xa<1)box(S,xa-pw/2,xa+pw/2,Math.min(ha,hb)-off-rh,Math.max(ha,hb)-off,0,D,C.rail);
+      if(xb-xa>=1){const y0a=ha-off-rh,y0b=hb-off-rh;// брусок по скату
+        const P8=[W(S,xa,y0a,0),W(S,xb,y0b,0),W(S,xb,hb-off,0),W(S,xa,ha-off,0),W(S,xa,y0a,D),W(S,xb,y0b,D),W(S,xb,hb-off,D),W(S,xa,ha-off,D)];for(const q of [[0,1,2,3],[5,4,7,6],[3,2,6,7],[4,5,1,0],[4,0,3,7],[1,5,6,2]])quad(P8[q[0]],P8[q[1]],P8[q[2]],P8[q[3]],C.rail)}}
+    // инсталляции
+    for(const o of fr.filter(o=>o.type==='inst')){const x=n0(o.x),w=n0(o.w),h=n0(o.h),t=40,wb=-Math.min(back,150)+10;
+      box(S,x,x+t,0,h,wb,-5,C.inst);box(S,x+w-t,x+w,0,h,wb,-5,C.inst);box(S,x,x+w,h-t,h,wb,-5,C.inst);box(S,x,x+w,380,420,wb,-5,C.inst);
+      box(S,x+70,x+w-70,h*0.55,h*0.93,wb+10,-15,C.tank);if(FV3.pipes){pipe(S,[x+w/2,230,wb/2],[x+w/2,230,surf+40],55,C.sew);pipe(S,[x+w-90,h*0.9,wb/2],[x+w-90,h*1.25,wb/2],10,C.cold);
+        box(S,x+w/2-95,x+w/2-85,350,380,0,surf+40,C.edge);box(S,x+w/2+85,x+w/2+95,350,380,0,surf+40,C.edge)}}
+    // трубы и выводы сантехники
+    if(FV3.pipes){const pz=two?D/2:-back/2;
+      for(const q of P.fx){for(const h of q.holes){const col=h.kind==='sewer'?C.sew:/ГВ|подача/.test(h.nm)?C.hot:C.cold;const r=h.kind==='sewer'?25:10;
+          pipe(S,[h.x,h.y,pz],[h.x,h.y,surf+30],r,col);if(h.kind==='sewer'){pipe(S,[h.x,h.y,pz],[h.x,40,pz],r,col)}else pipe(S,[h.x,h.y,pz],[h.x,0,pz],r,col)}
+        if(q.box)box(S,q.box[0],q.box[2],q.box[1],q.box[3],pz-30,D-2,hex3('#93c5fd'))}
+      for(const o of P.ops.filter(o=>FOP[o.type].hole)){const d=n0(o.d)||FOP[o.type].d;const col=o.type==='socket'?hex3('#facc15'):C.sew;pipe(S,[n0(o.x),n0(o.y),pz],[n0(o.x),n0(o.y),surf+20],Math.max(8,d/2),col)}}
+    // ГКЛ: листы по слоям, вырезы под проёмы, скосы
+    const sets=seamSets(f,el,P.firstSheet===(sheetOf(f)[0])?0:P.firstSheet);const [sw]=sheetOf(f);
+    const holes=fr.filter(o=>FOP[o.type].cut).map(o=>[n0(o.x),n0(o.y),n0(o.x)+n0(o.w),n0(o.y)+n0(o.h)]);
+    const studAt=(x,y)=>P.pieces.some(p=>Math.abs(p.x-x)<pw/2+1&&p.y0<=y+1&&p.y1>=y-1);
+    const inHole=(x,y)=>holes.some(h=>x>h[0]-5&&x<h[2]+5&&y>h[1]-5&&y<h[3]+5);
+    const inPoly=(x,y)=>!P.SL||pip([x,y],P.SL.poly);
+    if(showG){sets.forEach((S0,si)=>{const back2=/обратная/.test(S0.n);const lay=back2?si-sets.length/2:si;if(lay>=showG)return;
+        const w0=back2?-(lay+1)*GKT:D+lay*GKT,w1=w0+GKT;const shs=f3Sheets(P,S0,sw);
+        shs.forEach((sh,k)=>{const col=lay===0?((sh.col+sh.row)%2?C.g1b:C.g1):((sh.col+sh.row)%2?C.g2b:C.g2);
+          for(const r of rectMinus([sh.x0+1,sh.y0+1,sh.x1-1,sh.y1-1],holes)){const poly=P.SL?clipRect(P.SL.poly,r[0],r[1],r[2],r[3]):[[r[0],r[1]],[r[2],r[1]],[r[2],r[3]],[r[0],r[3]]];if(poly.length<3)continue;
+            flat(S,poly,back2?w0:w1,col);flat(S,poly.slice().reverse(),back2?w1:w0,col)}});
+        // саморезы на видимом (внешнем) слое лицевой стороны
+        if(FV3.screws&&!back2&&lay===showG-1){const st=scrStep(lay,nl);const wS=w1+0.8,sz=11;const put=(x,y)=>{if(inHole(x,y)||!inPoly(x,y))return;box(S,x-sz/2,x+sz/2,y-sz/2,y+sz/2,w1,wS,C.scr)};
+          for(const sh of shs){const xsS=new Set();for(const x of P.xs){if(x<sh.x0-pw||x>sh.x1+pw)continue;let xx=x;if(Math.abs(x-sh.x0)<pw)xx=sh.x0+15;else if(Math.abs(x-sh.x1)<pw)xx=sh.x1-15;if(xx<sh.x0||xx>sh.x1)continue;xsS.add(Math.round(xx))}
+            for(const xx of xsS){const ys=[];const top=Math.min(sh.y1,P.topAt(xx))-15;for(let y=sh.y0+15;y<top;y+=st)ys.push(y);ys.push(top);for(const y of ys)if(studAt(xx<sh.x0+20?xx-15:xx>sh.x1-20?xx+15:xx,y))put(xx,y)}
+            const hz=[...P.cross.map(c=>({y:c.y,a:c.a,b:c.b})),...P.heads.map(h=>({y:h.pos==='top'?h.y+pw/2:h.y-pw/2,a:h.x0,b:h.x1})),...P.railSegs.map(([a,b])=>({y:rh/2,a,b}))];
+            for(const m of hz){if(m.y<sh.y0-pw||m.y>sh.y1+pw)continue;let yy=m.y;if(Math.abs(m.y-sh.y0)<pw)yy=sh.y0+15;else if(Math.abs(m.y-sh.y1)<pw)yy=sh.y1-15;const a=Math.max(m.a,sh.x0)+60,b=Math.min(m.b,sh.x1)-60;for(let x=a;x<=b;x+=st)put(x,yy)}
+            if(!P.SL){const yy=Math.min(sh.y1,P.H-gt-rh/2);if(sh.y1>P.H-pw-gt-1)for(let x=sh.x0+60;x<=sh.x1-60;x+=st)put(x,sh.y1-15)}}}
+        // линии разметки профиля на внешнем слое
+        if(FV3.lines&&!back2&&lay===showG-1){const wL=w1+0.5,lw=3;
+          for(const x of P.xs){const segsV=P.pieces.filter(p=>Math.abs(p.x-x)<1);for(const p of segsV){const y1=Math.min(p.y1,P.topAt(x));for(const r of rectMinus([x-lw/2,p.y0,x+lw/2,y1],holes))box(S,r[0],r[2],r[1],r[3],w1,wL,C.mark)}
+            labels.push({p:W(S,x,-90,w1),t:String(x),c:'#dc2626'})}
+          const ys=new Set();for(const c of P.cross){box(S,c.a,c.b,c.y-lw/2,c.y+lw/2,w1,wL,C.mark);ys.add(c.y)}
+          for(const h of P.heads){const y=h.pos==='top'?h.y+pw/2:h.y-pw/2;box(S,h.x0-pw/2,h.x1+pw/2,y-lw/2,y+lw/2,w1,wL,C.mark);ys.add(Math.round(y))}
+          for(const y of ys)labels.push({p:W(S,-40,y,w1),t:String(y),c:'#dc2626',al:'right'})}
+        // края листов
+        if(!back2&&lay===showG-1)for(const sh of shs){const wE=w1+0.3,e=2;for(const r of rectMinus([sh.x0,sh.y0,sh.x1,sh.y0+e],holes))box(S,r[0],r[2],r[1],r[3],w1,wE,C.edge);for(const r of rectMinus([sh.x1-e,sh.y0,sh.x1,Math.min(sh.y1,P.topAt(sh.x1-1))],holes))box(S,r[0],r[2],r[1],r[3],w1,wE,C.edge)}});
+      // ниши: откосы, задняя стенка, полочки
+      for(const o of fr.filter(o=>o.type==='niche')){const x0=n0(o.x),y0=n0(o.y),x1=x0+n0(o.w),y1=y0+n0(o.h);const dp=n0(isSet(o.dp)?o.dp:FOP.niche.dp);const wf=D+Math.min(showG,nl)*GKT,wb=wf-dp;
+        box(S,x0,x0+GKT,y0,y1,wb,wf,C.niche);box(S,x1-GKT,x1,y0,y1,wb,wf,C.niche);box(S,x0,x1,y0,y0+GKT,wb,wf,C.niche);box(S,x0,x1,y1-GKT,y1,wb,wf,C.niche);box(S,x0,x1,y0,y1,wb-GKT,wb,C.niche);
+        for(const yy of nicheShelves(o))box(S,x0+GKT,x1-GKT,yy-5,yy+5,wb,wf+10,C.shelf)}}
+    else{// только каркас: подписи осей стоек
+      if(FV3.dims)for(const x of P.xs)labels.push({p:W(S,x,-90,D),t:String(x),c:'#334155'})}
+    maxH=Math.max(maxH,P.SL?P.SL.maxH:P.H)}
+  const cx=(bb[0]+bb[2])/2,cz=(bb[1]+bb[3])/2;return{buf:new Float32Array(V),n:V.length/6,labels,ctr:[cx*0.001,maxH*0.0005,cz*0.001],size:Math.max(bb[2]-bb[0],bb[3]-bb[1],maxH)*0.001,segs}}
+function f3Stop(){const g=FG;if(!g)return;FG=null;if(g.raf)cancelAnimationFrame(g.raf);try{const x=g.gl.getExtension('WEBGL_lose_context');if(x)x.loseContext()}catch(e){}}
+function f3Req(){if(FG&&!FG.raf)FG.raf=requestAnimationFrame(f3Frame)}
+function f3Eye(c){const cp=Math.cos(c.pitch);return[c.t[0]+c.dist*cp*Math.sin(c.yaw),c.t[1]+c.dist*Math.sin(c.pitch),c.t[2]+c.dist*cp*Math.cos(c.yaw)]}
+function f3Frame(){const g=FG;if(!g)return;g.raf=0;if(!g.cv.isConnected){f3Stop();return}const gl=g.gl;const dpr=Math.min(window.devicePixelRatio||1,2);const w=g.cv.clientWidth||360,h=g.cv.clientHeight||400;
+  if(g.cv.width!==Math.round(w*dpr)||g.cv.height!==Math.round(h*dpr)){g.cv.width=Math.round(w*dpr);g.cv.height=Math.round(h*dpr);g.ov.width=g.cv.width;g.ov.height=g.cv.height}
+  gl.viewport(0,0,g.cv.width,g.cv.height);gl.clearColor(g.bg[0],g.bg[1],g.bg[2],1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);if(!g.sc)return;
+  const c=g.cam,e=f3Eye(c);const nr=Math.max(0.01,c.dist*0.02);const M=m4.mul(m4.per(c.fov,g.cv.width/g.cv.height,nr,nr*3000),m4.look(e,c.t,[0,1,0]));
+  gl.useProgram(g.pr);gl.uniformMatrix4fv(g.uM,false,new Float32Array(M));gl.bindBuffer(gl.ARRAY_BUFFER,g.vb);gl.vertexAttribPointer(g.aP,3,gl.FLOAT,false,24,0);gl.vertexAttribPointer(g.aC,3,gl.FLOAT,false,24,12);
+  gl.enableVertexAttribArray(g.aP);gl.enableVertexAttribArray(g.aC);gl.drawArrays(gl.TRIANGLES,0,g.sc.n);
+  const x=g.ov.getContext('2d');x.clearRect(0,0,g.ov.width,g.ov.height);if(!FV3.dims&&FV3.show==='frame')return;if(FV3.show!=='frame'&&!FV3.lines)return;
+  const fs=Math.round(11*dpr);x.font=`700 ${fs}px -apple-system,Roboto,Arial,sans-serif`;x.lineWidth=3*dpr;x.strokeStyle='rgba(255,255,255,.9)';const used=[];
+  for(const L of g.sc.labels){const p=L.p;const cx=M[0]*p[0]+M[4]*p[1]+M[8]*p[2]+M[12],cy=M[1]*p[0]+M[5]*p[1]+M[9]*p[2]+M[13],cw=M[3]*p[0]+M[7]*p[1]+M[11]*p[2]+M[15];if(cw<=0)continue;
+    const sx=(cx/cw*0.5+0.5)*g.cv.width,sy=(1-(cy/cw*0.5+0.5))*g.cv.height;if(used.some(u=>Math.abs(u[0]-sx)<fs*1.6&&Math.abs(u[1]-sy)<fs))continue;used.push([sx,sy]);
+    x.textAlign=L.al==='right'?'right':'center';x.fillStyle=L.c;x.strokeText(L.t,sx,sy);x.fillText(L.t,sx,sy)}}
+function f3Rebuild(){const g=FG;if(!g)return;const it=cur();const f=F(it);const el=f.els.find(e=>e.id===f.sel);if(!el){g.sc=null;f3Req();return}
+  const sc=f3Build(it,el);g.sc=sc;const gl=g.gl;gl.bindBuffer(gl.ARRAY_BUFFER,g.vb);gl.bufferData(gl.ARRAY_BUFFER,sc.buf,gl.STATIC_DRAW);if(!g.cam)f3Cam();f3Req();const mk=$('#f3mark');if(mk)mk.innerHTML=f3MarkHtml(it,el)}
+function f3Cam(){const g=FG;if(!g||!g.sc)return;const s=g.sc;// смотрим на лицевую сторону первого участка
+  const S=s.segs[0];const yaw=Math.atan2(S.n[0],S.n[1])+0.5;const asp=(g.cv.clientWidth||360)/(g.cv.clientHeight||480);g.cam={t:s.ctr,yaw,pitch:0.22,dist:(s.size*0.62)/Math.tan(22.5*Math.PI/180)/Math.min(1,asp)*0.95+0.4,fov:45*Math.PI/180};FV3.cam=g.cam;f3Req()}
+function f3Init(){f3Stop();const cv=$('#fc3'),ov=$('#fc3o');if(!cv)return;const gl=cv.getContext('webgl',{antialias:true,preserveDrawingBuffer:true})||cv.getContext('experimental-webgl');
+  if(!gl){cv.parentNode.innerHTML='<div class="empty">Этот телефон не поддерживает 3D (WebGL).</div>';return}
+  const sh=(t,s)=>{const o=gl.createShader(t);gl.shaderSource(o,s);gl.compileShader(o);return o};const pr=gl.createProgram();
+  gl.attachShader(pr,sh(gl.VERTEX_SHADER,'attribute vec3 p;attribute vec3 c;uniform mat4 m;varying vec3 v;void main(){gl_Position=m*vec4(p,1.0);v=c;}'));
+  gl.attachShader(pr,sh(gl.FRAGMENT_SHADER,'precision mediump float;varying vec3 v;void main(){gl_FragColor=vec4(v,1.0);}'));gl.linkProgram(pr);gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);
+  const bgc=getComputedStyle(document.documentElement).getPropertyValue('--card').trim()||'#ffffff';
+  FG={cv,ov,gl,pr,vb:gl.createBuffer(),aP:gl.getAttribLocation(pr,'p'),aC:gl.getAttribLocation(pr,'c'),uM:gl.getUniformLocation(pr,'m'),bg:hex3(bgc),raf:0,cam:FV3.cam||null};
+  f3Rebuild();
+  const P=new Map();let last=null;const two=()=>{const a=[...P.values()];return{d:Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y),x:(a[0].x+a[1].x)/2,y:(a[0].y+a[1].y)/2}};
+  const pan=(dx,dy)=>{const c=FG.cam;const k=c.dist*0.0018;const rx=[Math.cos(c.yaw),0,-Math.sin(c.yaw)];c.t=[c.t[0]-rx[0]*dx*k,c.t[1]+dy*k,c.t[2]-rx[2]*dx*k]};
+  cv.addEventListener('pointerdown',e=>{cv.setPointerCapture(e.pointerId);P.set(e.pointerId,{x:e.clientX,y:e.clientY});last=P.size===2?two():null;e.preventDefault()});
+  cv.addEventListener('pointermove',e=>{if(!P.has(e.pointerId)||!FG||!FG.cam)return;const p=P.get(e.pointerId);const dx=e.clientX-p.x,dy=e.clientY-p.y;p.x=e.clientX;p.y=e.clientY;const c=FG.cam;
+    if(P.size===1){c.yaw-=dx*0.008;c.pitch=Math.max(-0.2,Math.min(1.45,c.pitch+dy*0.008))}else if(P.size===2){const t=two();if(last){c.dist=Math.max(0.3,Math.min(30,c.dist*last.d/Math.max(1,t.d)));pan(t.x-last.x,t.y-last.y)}last=t}
+    FV3.cam=c;f3Req();e.preventDefault()});
+  const up=e=>{P.delete(e.pointerId);last=P.size===2?two():null};cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
+  cv.addEventListener('wheel',e=>{if(!FG||!FG.cam)return;FG.cam.dist=Math.max(0.3,Math.min(30,FG.cam.dist*(e.deltaY>0?1.12:0.89)));FV3.cam=FG.cam;f3Req();e.preventDefault()},{passive:false})}
+// текстовая разметка: где профиль под листом и как крутить саморезы
+function f3MarkHtml(it,el){const f=F(it);const nl=+f.layers||1;const [sw,sh]=sheetOf(f);const pw=PW(f);
+  return el.segs.map((seg,si)=>{const P=panelCalc(it,el,si,seg);const sets=seamSets(f,el,P.firstSheet===sw?0:P.firstSheet).filter(S0=>!/обратная/.test(S0.n));
+    const ys=[...new Set([...P.cross.map(c=>c.y),...P.heads.map(h=>Math.round(h.pos==='top'?h.y+pw/2:h.y-pw/2))])].sort((a,b)=>a-b);
+    const lay=sets.map((S0,k)=>{const shs=f3Sheets(P,S0,sw);const cols=[...new Set(shs.map(s=>s.col))].map(c=>{const r=shs.filter(s=>s.col===c);const w=Math.round(r[0].x1-r[0].x0);return`${w}${w<sw-1?' (обрезать)':''} × ${r.map(s=>Math.round(s.y1-s.y0)).join(' + ')}`});
+      return`<div style="margin:6px 0"><b>${S0.n}</b> — саморез ${k===0&&nl>1?'TN 25':nl>1?'TN 35':'TN 25'}, шаг <b>${scrStep(k,nl)} мм</b>, от края листа 10–15 мм, шляпку утопить на 1 мм.<br>Листы слева направо: ${cols.join(' · ')}</div>`}).join('');
+    return`<div style="margin-bottom:10px"><b>Участок ${si+1}</b>
+      <div style="margin:4px 0">Вертикальные линии (оси стоек) от начала участка: <b>${P.xs.join(' · ')}</b> мм</div>
+      ${ys.length?`<div style="margin:4px 0">Горизонтальные линии (оси поперечин и закладных) от пола: <b>${ys.join(' · ')}</b> мм</div>`:''}
+      ${P.fx.length?`<div style="margin:4px 0">Закладные под сантехнику: ${P.fx.flatMap(q=>q.boards.map(b=>`${FOP[q.o.type].sn} — ${Math.round(b.y)}`)).join(' · ')} мм от пола</div>`:''}${lay}</div>`}).join('')+
+  `<div class="small mute">Перед обшивкой отметьте эти размеры карандашом на полу и потолке (или на соседних стенах) — по ним на листе сразу чертите линию и крутите саморезы, профиль искать не нужно. На стыке листов саморезы обоих листов в разбежку, 10–15 мм от края.</div>`}
+function f3Card(it,el){if(!el)return'';if(!FV3.on)return`<div class="card" style="margin-top:10px"><button class="btn" data-fa="f3on" style="width:100%">🧊 Показать этот элемент в 3D</button><div class="small mute" style="margin-top:6px">Профили, трубы и закладные внутри, потом — листы ГКЛ с саморезами и линиями разметки.</div></div>`;
+  const nl=+F(it).layers||1;const ch=(v,t)=>`<button data-fa="f3show" data-v="${v}" class="${FV3.show===v?'on':''}">${t}</button>`;const ck=(k,t)=>`<label class="row" style="gap:6px;font-size:14px;width:auto"><input type="checkbox" data-f3="${k}" ${FV3[k]?'checked':''} style="width:auto"> ${t}</label>`;
+  return`<div class="card" style="margin-top:10px"><div class="row" style="justify-content:space-between"><b>3D: ${esc(el.name||'Элемент')}</b><button class="x" data-fa="f3off">✕</button></div>
+    <div class="chips" style="margin:8px 0">${ch('frame','Каркас')}${ch('g1',nl>1?'ГКЛ 1-й слой':'Обшить ГКЛ')}${nl>1?ch('g2','ГКЛ 2-й слой'):''}</div>
+    <div class="row" style="gap:12px;flex-wrap:wrap;margin-bottom:6px">${ck('pipes','Трубы')}${FV3.show==='frame'?ck('dims','Размеры'):ck('screws','Саморезы')+ck('lines','Линии профиля')}${ck('flip','Обшивка с другой стороны')}</div>
+    <div style="position:relative"><canvas id="fc3" style="width:100%;height:${Math.round(Math.min(innerHeight*0.62,520))}px;display:block;border-radius:12px;touch-action:none"></canvas><canvas id="fc3o" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas></div>
+    <div class="row" style="gap:8px;margin-top:6px"><button class="btn sm sec" data-fa="f3reset">⤢ Вид спереди</button><span class="small mute" style="align-self:center">Крутите пальцем, двумя — приблизить и сдвинуть.</span></div>
+    ${FV3.show!=='frame'?`<h3 style="margin:12px 0 4px">Разметка под саморезы</h3><div class="small" id="f3mark"></div>`:''}</div>`}
+
 function newEl(it,type){const f=F(it);const H=n0(it.ceil)||2700;let el;
   if(type==='wall')el={id:uid(),type:'wall',name:'Стена '+(f.els.length+1),H,sides:2,segs:[{len:2500,dir:0}]};
   else if(type==='box')el={id:uid(),type:'box',name:'Короб '+(f.els.length+1),H,segs:[{len:300,dir:2},{len:600,dir:0},{len:300,dir:6}]};
@@ -1502,7 +1661,11 @@ function newEl(it,type){const f=F(it);const H=n0(it.ceil)||2700;let el;
 document.addEventListener('click',e=>{const b=e.target.closest('[data-fset],[data-fa]');if(!b)return;const it=cur();const f=F(it);const el=f.els.find(x=>x.id===f.sel);
   if(b.dataset.fset){const k=b.dataset.fset,v=b.dataset.v;f[k]=(k==='layers')?+v:v;save();renderFrame();return}
   const a=b.dataset.fa;
-  if(a==='sel'){f.sel=b.dataset.id;fview={z:1,cx:null,cy:null}}
+  if(a==='f3on'){FV3.on=true;FV3.cam=null;renderFrame();setTimeout(()=>{const c=$('#fc3');if(c)c.scrollIntoView({block:'center',behavior:'smooth'})},50);return}
+  else if(a==='f3off'){FV3.on=false;f3Stop();renderFrame();return}
+  else if(a==='f3show'){FV3.show=b.dataset.v;renderFrame();return}
+  else if(a==='f3reset'){if(FG){FG.cam=null;f3Cam()}return}
+  if(a==='sel'){f.sel=b.dataset.id;fview={z:1,cx:null,cy:null};FV3.cam=null}
   else if(a==='addwall'||a==='addbox'||a==='addcol'){newEl(it,a==='addwall'?'wall':a==='addbox'?'box':'col');fview={z:1,cx:null,cy:null}}
   else if(a==='delel'){if(!confirm('Удалить элемент?'))return;f.ops=f.ops.filter(o=>o.el!==f.sel);f.els=f.els.filter(x=>x.id!==f.sel);f.sel=null}
   else if(a==='addseg'){el.segs.push({len:'',dir:+b.dataset.d})}
@@ -1519,6 +1682,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-fset],[dat
   else if(a==='fhitx'){FSEL=null;fDraw();return}
   save();renderFrame()});
 document.addEventListener('change',e=>{const c=e.target;if(!c.dataset||!c.dataset.fchk)return;const f=F(cur());f[c.dataset.fchk]=c.checked;save();renderFrame()});
+document.addEventListener('change',e=>{const d=e.target.dataset;if(d.f3===undefined)return;FV3[d.f3]=e.target.checked;if(d.f3==='flip')FV3.cam=null;if(d.f3==='flip'||d.f3==='pipes'||d.f3==='screws'||d.f3==='lines'||d.f3==='dims'){if(FG){if(d.f3==='flip')FG.cam=null;f3Rebuild()}}});
 document.addEventListener('input',e=>{const el2=e.target,d=el2.dataset;if(!(d.fk||d.fel||d.fseg!==undefined||d.fop||d.fsl!==undefined||d.fslp!==undefined))return;const it=cur();const f=F(it);const el=f.els.find(x=>x.id===f.sel);
   if(d.fk){f[d.fk]=el2.value}
   else if(d.fel){el[d.fel]=el2.type==='checkbox'?el2.checked:el2.value;if(d.fel==='name'){save();const c=document.querySelector(`[data-fa="sel"][data-id="${el.id}"]`);if(c)c.textContent=el2.value;return}}
