@@ -1167,9 +1167,9 @@ const SHEETS={'1200x2500':[1200,2500],'1200x2000':[1200,2000],'1200x3000':[1200,
 const PW=f=>f.sys==='knauf'?50:33;
 function sheetOf(f){return SHEETS[f.sheet]||[1200,2500]}
 // наборы швов: слой 1, слой 2 (сдвиг на полшага листа), вторая сторона перегородки
-function seamSets(f,el,o0=0){const [sw]=sheetOf(f);const L=[{n:'1-й слой',ox:o0%sw,odd:0}];if(+f.layers===2)L.push({n:'2-й слой',ox:(o0+sw/2)%sw,odd:1});
+function seamSets(f,el,o0=0,d2){const [sw]=sheetOf(f);if(d2===undefined)d2=sw/2;const L=[{n:'1-й слой',ox:((o0%sw)+sw)%sw,odd:0}];if(+f.layers===2)L.push({n:'2-й слой',ox:(((o0+d2)%sw)+sw)%sw,odd:1});
   if(el.type==='wall'&&+el.sides!==1){const k=L.length;for(let i=0;i<k;i++)L.push({n:'обратная сторона, '+L[i].n,ox:(L[i].ox+sw/2)%sw,odd:1-L[i].odd})}return L}
-function panelCalc(it,el,si,seg){
+function panelCore(it,el,si,seg,O0,D2){
   const f=F(it);const L=n0(seg.len),H=n0(el.H)||n0(it.ceil)||2700;const pw=PW(f);const [sw,sh]=sheetOf(f);
   const step=Math.max(100,n0(f.step)||600);const SL=slProf(seg.sl,L,H);const topAt=x=>SL?SL.top(Math.max(0,Math.min(L,x))):H;const maxTop=SL?SL.maxH:H;
   const ops=f.ops.filter(o=>o.el===el.id&&+o.seg===si&&FOP[o.type]);const fr=ops.filter(o=>FOP[o.type].frame),holes=ops.filter(o=>FOP[o.type].hole);const fx=ops.filter(o=>FOP[o.type].fix).map(o=>({o,...fixParts(o)}));for(const q of fx)for(const h of q.holes)holes.push({x:h.x,y:h.y,d:h.d,type:'hole',nm:FOP[q.o.type].n+': '+h.nm});
@@ -1181,10 +1181,7 @@ function panelCalc(it,el,si,seg){
   const edgeX=[];for(const o of fr){edgeX.push(cl(n0(o.x)-pw/2),cl(n0(o.x)+n0(o.w)+pw/2))}
   const bad=(x)=>{if(inCell(x))return 2;if(holes.some(h=>Math.abs(n0(h.x)-x)<(n0(h.d)||FOP[h.type].d)/2+pw/2+10))return 1;if(edgeX.some(e=>Math.abs(e-x)<=pw/2-8))return 0;if(edgeX.some(e=>Math.abs(e-x)<pw+10))return 1;for(const o of fr){if(o.type==='inst'&&x>n0(o.x)-pw&&x<n0(o.x)+n0(o.w)+pw)return 3}return 0};
   const score=o0=>{let sc=0;for(const S0 of seamSets(f,el,o0)){const first=S0.ox||sw;if(first<250&&first<L-30)sc+=first<150?160:40;let last=0;for(let x=S0.ox||sw;x<L-30;x+=sw){sc+=bad(x)*100+1;last=x}if(L-last<250&&last>0)sc+=L-last<150?160:40}return sc+(o0?2:0)};
-  let o0=isSet(seg.sx)&&n0(seg.sx)>0?n0(seg.sx)%sw:0;
-  if(!(isSet(seg.sx)&&n0(seg.sx)>0)&&(fr.length||holes.length||cells.length)){const cand=new Set([0]);for(let v=25;v<sw;v+=25)cand.add(v);for(const e of edgeX){cand.add(((e%sw)+sw)%sw);cand.add(((e-sw/2)%sw+sw)%sw)}
-    let best=0,bs=score(0);for(const c of cand){const v=score(c);if(v<bs-0.5){bs=v;best=c}}o0=Math.round(best)}
-  const sets=seamSets(f,el,o0);const firstSheet=o0?o0:sw;
+  const o0=O0;const sets=seamSets(f,el,o0,D2);const firstSheet=o0?o0:sw;
   // 1) обязательные стойки: края участка и вертикальные швы листов
   let st=[{x:pw/2,kind:'end'},{x:L-pw/2,kind:'end'}];
   const vseams=[];for(const S0 of sets){for(let x=S0.ox||sw;x<L-30;x+=sw)vseams.push({x,set:S0})}
@@ -1239,7 +1236,10 @@ function panelCalc(it,el,si,seg){
     const sp=full.filter(([a,b])=>a<bd.x1-1&&b>bd.x0+1);if(!sp.length)warn.push(`${FOP[q.o.type].n}: закладная на ${Math.round(bd.y)} мм не попала между стойками — проверьте положение`);for(const [a,b] of sp)add(bd.y,a,b,'закл',FOP[q.o.type].sn+' — '+bd.nm)}
   String(el.cross||'').split(/[;,\s]+/).map(v=>parseFloat(v)).filter(v=>v>0&&v<maxTop).forEach(y=>full.forEach(([a,b])=>add(y,a,b,'ваша')));
   if(f.sys==='wb'){const hs=Math.max(300,n0(f.hstep)||1200);for(let y=hs;y<maxTop-200;y+=hs)full.forEach(([a,b])=>{if(plates.some(pl=>a>=pl.a-1&&b<=pl.b+1&&Math.abs(pl.y-y)<pl.h/2+120))return;if(!cross.some(c=>c.a===a&&c.b===b&&Math.abs(c.y-y)<300))add(y,a,b,'шаг')});
-    for(const pl of plates)for(const c of cross)if(c.a>=pl.a-1&&c.b<=pl.b+1&&Math.abs(c.y-pl.y)<pl.h/2+20)warn.push(`горизонталь на ${c.y} мм мешает закладной ${pl.art} (${FOP[pl.q.o.type].sn}) — сдвиньте прибор по высоте или раскрой листов`);
+    // закладная упирается в горизонталь — сдвигаем её вплотную выше/ниже, пока точка крепления остаётся на ней
+    for(const pl of plates){pl.yp=pl.y;const hit=y=>cross.filter(c=>c.a>=pl.a-1&&c.b<=pl.b+1&&Math.abs(c.y-y)<pl.h/2+pw/2);const cs=hit(pl.y);if(!cs.length)continue;
+      const tol=pl.art==='WB90204'?40:pl.h/2-30;const cand=cs.flatMap(c=>[c.y+pw/2+pl.h/2+2,c.y-pw/2-pl.h/2-2]).filter(y=>Math.abs(y-pl.yp)<=tol&&!hit(y).length).sort((a,b)=>Math.abs(a-pl.yp)-Math.abs(b-pl.yp));
+      if(cand.length){pl.y=Math.round(cand[0]);pl.moved=true}else warn.push(`горизонталь на ${cs[0].y} мм мешает закладной ${pl.art} (${FOP[pl.q.o.type].sn}) — сдвиньте прибор по высоте`)}
     // нижняя и верхняя обвязка (под край листа)
   }
   // 8) направляющие (Knauf): низ — кроме дверей и инсталляций, верх — по потолку
@@ -1247,8 +1247,41 @@ function panelCalc(it,el,si,seg){
     for(const [p,q] of segs)if(q-p>40){railBot.push(q-p);railSegs.push([p,q])}}
   const railTopPts=SL?SL.pts:[[0,H],[L,H]];const railTop=[];for(let i=0;i<railTopPts.length-1;i++){const l=Math.hypot(railTopPts[i+1][0]-railTopPts[i][0],railTopPts[i+1][1]-railTopPts[i][1]);if(l>20)railTop.push(l)}
   const cutA=fr.filter(o=>FOP[o.type].cut).reduce((a,o)=>a+n0(o.w)*n0(o.h),0);
-  return{fx,plates,cells,firstSheet,L,H,SL,topAt,pieces,heads,cross,hseams,vseams,railBot,railSegs,onRail:x=>railSegs.some(([p,q])=>x>=p-1&&x<=q+1),railTop,area:(SL?Math.abs(polyArea(SL.poly)):L*H)-cutA,warn,ops,xs,pw}
+  return{o0,d2:D2===undefined?sw/2:D2,fx,plates,cells,firstSheet,L,H,SL,topAt,pieces,heads,cross,hseams,vseams,railBot,railSegs,onRail:x=>railSegs.some(([p,q])=>x>=p-1&&x<=q+1),railTop,area:(SL?Math.abs(polyArea(SL.poly)):L*H)-cutA,warn,ops,xs,pw}
 }
+// ---- подбор раскроя: перебираем начало листов 1-го слоя и сдвиг швов 2-го слоя, считаем «штраф» каркаса и берём лучший
+// штраф: каждая стойка, близко стоящие стойки (<150 мм), короткие горизонтали, узкие полосы листа, конфликты (предупреждения)
+function panelScore(P,f,el){const [sw]=sheetOf(f);let sc=0;
+  for(const p of P.pieces)sc+=p.kind==='crip'?6:10;
+  const xs=P.xs;for(let i=1;i<xs.length;i++){const g=xs[i]-xs[i-1];if(g<150)sc+=90;else if(g<250)sc+=20}
+  for(const c of P.cross){sc+=3;if(c.len<200)sc+=40;if(c.len<120)sc+=40}
+  sc+=P.heads.length*2;for(const w of P.warn)sc+=/ячейк|инсталляц|попадает в стойку/.test(w)?400:150;
+  for(const S0 of seamSets(f,el,P.o0,P.d2)){const first=S0.ox||sw;if(first<P.L-30){if(first<150)sc+=120;else if(first<250)sc+=30}let last=0;for(let x=S0.ox||sw;x<P.L-30;x+=sw)last=x;const tail=P.L-last;if(last>0){if(tail<150)sc+=120;else if(tail<250)sc+=30}}
+  return sc}
+const PCACHE=new Map();
+function panelCalc(it,el,si,seg,fast){const f=F(it);const [sw]=sheetOf(f);
+  const key=JSON.stringify([f.sys,f.ps,f.step,f.sheet,f.layers,f.hstep,f.slide,f.slideGap,el.id,el.H,el.sides,el.type,el.cross,el.xSheet,it.ceil,si,seg,f.ops.filter(o=>o.el===el.id&&+o.seg===si)]);
+  const hit=PCACHE.get(key+(fast?'f':''))||PCACHE.get(key);if(hit)return hit;
+  const fixed=isSet(seg.sx)&&n0(seg.sx)>0;const stO=fast?100:50;const O=fixed?[n0(seg.sx)%sw]:Array.from({length:Math.round(sw/stO)},(_,k)=>k*stO);
+  const Dd=+f.layers===2?(fast?[sw/2,300,900]:[sw/2,300,400,500,700,800,900]).filter(v=>v<sw-250):[sw/2];
+  let best=null,bs=Infinity;
+  for(const d of Dd)for(const o of O){const P=panelCore(it,el,si,seg,o,d);const v=panelScore(P,f,el)+(o?1:0)+(d!==sw/2?2:0);if(v<bs-0.01){bs=v;best=P}}
+  best.score=bs;if(PCACHE.size>400)PCACHE.clear();PCACHE.set(key+(fast?'f':''),best);return best}
+// подсказки: какой элемент сдвинуть, чтобы каркас стал проще (меньше стоек, нет коротких кусков и конфликтов)
+const MOVABLE=t=>!['door','window','hole','socket','sewer'].includes(t);
+function frameStats(P){return{st:P.pieces.length,short:P.cross.filter(c=>c.len<200).length+P.xs.reduce((a,x,i)=>a+(i&&x-P.xs[i-1]<150?1:0),0),w:P.warn.length}}
+function frameTips(it,el){const f=F(it);const out=[];
+  el.segs.forEach((seg,si)=>{const base=panelCalc(it,el,si,seg,true);const L=n0(seg.len);
+    for(const o of f.ops.filter(o=>o.el===el.id&&+o.seg===si&&FOP[o.type]&&MOVABLE(o.type))){const x0=n0(o.x);let best=null;
+      for(let d=-200;d<=200;d+=25){if(!d)continue;const nx=x0+d;const w=FOP[o.type].fix?0:n0(o.w);if(nx-(FOP[o.type].fix?300:0)<0||nx+w+(FOP[o.type].fix?300:0)>L)continue;
+        o.x=nx;const P=panelCalc(it,el,si,seg,true);o.x=x0;const gain=base.score-P.score-Math.abs(d)*0.05;if(gain>25&&(!best||gain>best.gain))best={gain,d,P}}
+      o.x=x0;if(best)out.push({o,si,d:best.d,gain:best.gain,a:frameStats(base),b:frameStats(best.P)})}});
+  return out.sort((a,b)=>b.gain-a.gain)}
+function tipsHtml(it,el){const T=frameTips(it,el);const nm=o=>FOP[o.type].fix?FOP[o.type].sn:FOP[o.type].n.split(' (')[0];
+  if(!T.length)return'<div class="small" style="color:var(--good,#15803d)">Лучше уже не сделать: швы, стойки и закладные стоят без лишних обрезков. ✔</div>';
+  return T.slice(0,4).map((t,i)=>`<div style="border-top:${i?'1px solid var(--line)':'0'};padding:8px 0"><b>Сдвиньте «${esc(nm(t.o))}» на ${Math.abs(t.d)} мм ${t.d>0?'вправо':'влево'}</b> (уч.${t.si+1}, станет ${Math.round(n0(t.o.x)+t.d)} мм)
+    <div class="small mute">стоек ${t.a.st} → ${t.b.st} · коротких кусков ${t.a.short} → ${t.b.short} · конфликтов ${t.a.w} → ${t.b.w}</div>
+    <button class="btn sm" data-fa="tipapply" data-id="${t.o.id}" data-d="${t.d}" style="margin-top:6px">Применить</button></div>`).join('')}
 const gapTop=f=>f.slide?Math.max(0,n0(isSet(f.slideGap)?f.slideGap:40)):(f.sys==='knauf'?10:5);
 // раскрой: первый подходящий по убыванию, пропил 3 мм; длинные куски — со стыком
 function pack(items,bar,kerf=3){const ps=[];let splices=0;
@@ -1339,7 +1372,7 @@ function frameCalc(it){const f=F(it);const out={els:[],warn:[]};const pw=PW(f);c
   if(nInst)m.push([kn?'Крепёж инсталляции к каркасу':'Кронштейны установки модуля WB90999',`${nInst} компл.`,kn?'по паспорту инсталляции; стойки вплотную к раме':'+ 2 соединения WB90102 на модуль']);
   const per=(f.sheet||'1200x2500').replace('x','×');
   m.push([`ГКЛ ${per} — на 1 слой`,`${sheets1} листов`,`площадь обшивки ${fq(A,2)} м², +10% на подрезку`]);
-  if(layers>1)m.push([`ГКЛ ${per} — всего на ${layers} слоя`,`${sheets1*layers} листов`,'швы 2-го слоя сдвинуты на 600 мм']);
+  if(layers>1)m.push([`ГКЛ ${per} — всего на ${layers} слоя`,`${sheets1*layers} листов`,`швы 2-го слоя сдвинуты относительно 1-го не меньше чем на 300 мм — сдвиг подобран под каждый участок: ${out.els.flatMap(E=>E.res.map(P=>P.d2)).filter((v,i,a)=>a.indexOf(v)===i).join(', ')} мм`]);
   if(layers===1)m.push(['Саморез TN 25 (шаг 250 мм)',`${Math.ceil(A*17)} шт`,'≈17 шт/м²']);
   else{m.push(['Саморез TN 25 — 1-й слой (шаг 750 мм)',`${Math.ceil(A*8)} шт`,'≈8 шт/м²']);m.push(['Саморез TN 35 — 2-й слой (шаг 250 мм)',`${Math.ceil(A*17)} шт`,'≈17 шт/м²'])}
   m.push(...fixRows());out.m=m;return out}
@@ -1437,7 +1470,7 @@ function renderFrame(){const it=cur();const f=F(it);if(!f.sel||!f.els.some(e=>e.
     <label class="row" style="gap:8px;font-size:14px;margin-top:6px"><input type="checkbox" data-fel="xSheet" ${el.xSheet?'checked':''} style="width:auto"> Поперечины по стыкам листов ГКЛ</label>
     <div class="small mute">Над инсталляцией поперечина ставится сама. Для раковины, полотенцесушителя, бойлера добавьте высоту крепления.</div></div>
     <div class="small mute" style="margin:10px 0 4px">Участки стены — как в «Смете»: стрелка и длина. Каждый участок — отдельная панель каркаса. Если потолок наклонный (мансарда) — под участком выберите «Один скат» или «Два ската» и впишите высоты.</div>
-    ${el.segs.map((s,k)=>`<div class="row" style="gap:6px;margin-bottom:6px"><span class="small mute" style="width:18px">${k+1}</span><select data-fseg="${k}" data-f="dir" style="width:62px;flex:none;font-size:18px;padding:6px 4px">${DIRS.map((d,i)=>`<option value="${i}" ${+s.dir===i?'selected':''}>${d[2]}</option>`).join('')}</select><input data-fseg="${k}" data-f="len" inputmode="decimal" value="${isSet(s.len)?s.len:''}" placeholder="длина, мм"><button class="x" data-fa="delseg" data-k="${k}">✕</button></div>${fslHtml(el,k)}<div style="margin:0 0 12px 24px"><label class="f">Первый лист ГКЛ от начала участка, мм<input data-fseg="${k}" data-f="sx" inputmode="decimal" value="${isSet(s.sx)?s.sx:''}" placeholder="авто: ${(()=>{try{return Math.round(panelCalc(it,el,k,s).firstSheet)}catch(_){return 1200}})()}"></label></div>`).join('')}
+    ${el.segs.map((s,k)=>`<div class="row" style="gap:6px;margin-bottom:6px"><span class="small mute" style="width:18px">${k+1}</span><select data-fseg="${k}" data-f="dir" style="width:62px;flex:none;font-size:18px;padding:6px 4px">${DIRS.map((d,i)=>`<option value="${i}" ${+s.dir===i?'selected':''}>${d[2]}</option>`).join('')}</select><input data-fseg="${k}" data-f="len" inputmode="decimal" value="${isSet(s.len)?s.len:''}" placeholder="длина, мм"><button class="x" data-fa="delseg" data-k="${k}">✕</button></div>${fslHtml(el,k)}<div style="margin:0 0 12px 24px"><label class="f">Первый лист ГКЛ от начала участка, мм<input data-fseg="${k}" data-f="sx" inputmode="decimal" value="${isSet(s.sx)?s.sx:''}" placeholder="авто: ${(()=>{try{const P=panelCalc(it,el,k,s);return Math.round(P.firstSheet)+(+f.layers===2?` · 2-й слой +${P.d2}`:'')}catch(_){return 1200}})()}"></label></div>`).join('')}
     <div class="chips">${[0,2,4,6].map(j=>`<button data-fa="addseg" data-d="${j}" style="font-size:17px;min-width:44px">+${DIRS[j][2]}</button>`).join('')}</div>
     <div id="fplan" style="margin-top:8px">${framePlan(el)}</div></div>
     <div class="card"><b>Проёмы, инсталляции, отверстия</b><div class="small mute">Расстояния: от начала участка (оранжевая точка — начало стены) и от пола.</div><div id="fops">${fopsHtml(it,el)}</div>
@@ -1446,6 +1479,7 @@ function renderFrame(){const it=cur();const f=F(it);if(!f.sel||!f.els.some(e=>e.
     <div class="chips">${Object.entries(FOP).filter(([k,t])=>t.fix).map(([k,t])=>`<button data-fa="addop" data-v="${k}">🚿 ${t.n}</button>`).join('')}</div></div>
     <div id="stage"><svg id="fv" xmlns="http://www.w3.org/2000/svg"></svg></div>
     <div class="card" id="finfo" style="margin-top:8px;border-color:#f59e0b!important">${fInfoHtml()}</div>
+    <div class="card"><div class="row" style="justify-content:space-between;gap:8px"><div><b>💡 Каркас без лишних обрезков</b><div class="small mute">Раскрой листов уже подобран сам. Подскажу, что сдвинуть, чтобы стоек и коротких кусков стало меньше.</div></div><button class="btn sm" data-fa="tips" style="flex:none">Подсказать</button></div><div id="ftips" style="margin-top:6px"></div></div>
     <div class="tools"><button data-fa="fzin">＋</button><button data-fa="fzout">－</button><button data-fa="fzfit">⤢</button><span class="small mute" style="align-self:center"><span class="leg" style="background:#55636f"></span>стойка <span class="leg" style="background:#1f6f5c"></span>у проёма <span class="leg" style="background:#c4572e"></span>коротыш <span class="leg" style="background:#b7791f"></span>сдвинута от трубы <span class="leg" style="background:#2563eb"></span>под шов листа <span class="leg" style="background:#3b82c4"></span>поперечина <span class="leg" style="background:#7c3aed"></span>стойка прибора <span class="leg" style="background:#ea580c"></span>закладная <span class="leg" style="background:#ef4444;border-radius:50%"></span>ГВ <span class="leg" style="background:#3b82f6;border-radius:50%"></span>ХВ <span class="leg" style="background:#9ca3af;border-radius:50%"></span>канализация${f.slide?' <span class="leg" style="background:#16a34a"></span>скользящая опора':''} <span style="color:#0ea5e9">┆</span> шов 1-го слоя${+f.layers===2?' <span style="color:#a855f7">┆</span> шов 2-го':''}</span></div>`}
   if(el)h+=f3Card(it,el);
   h+=`<h2>Материалы</h2><div class="card" id="fmat"></div>${f.els.length?smCard('frame'):''}`;
@@ -1599,7 +1633,7 @@ function f3Build(it,el){const f=F(it);const pts=segPts(el);const pw=PW(f);const 
       // 4 крепления к стойкам: WB90103 у пластины, WB90102 у фанеры
       for(const xx of [pl.a+pw/2,pl.b-pw/2-12])for(const yy of [pl.y-pl.h/2+10,pl.y+pl.h/2-22])box(S,xx,xx+12,yy,yy+12,ply?D-26:D-20,D,hex3('#475569'))}
     // ГКЛ: листы по слоям, вырезы под проёмы, скосы
-    const sets=seamSets(f,el,P.firstSheet===(sheetOf(f)[0])?0:P.firstSheet);const [sw]=sheetOf(f);
+    const sets=seamSets(f,el,P.o0,P.d2);const [sw]=sheetOf(f);
     const holes=fr.filter(o=>FOP[o.type].cut).map(o=>[n0(o.x),n0(o.y),n0(o.x)+n0(o.w),n0(o.y)+n0(o.h)]);
     const studAt=(x,y)=>P.pieces.some(p=>Math.abs(p.x-x)<pw/2+1&&p.y0<=y+1&&p.y1>=y-1);
     const inHole=(x,y)=>holes.some(h=>x>h[0]-5&&x<h[2]+5&&y>h[1]-5&&y<h[3]+5);
@@ -1669,7 +1703,7 @@ function f3Init(){f3Stop();const cv=$('#fc3'),ov=$('#fc3o');if(!cv)return;const 
   cv.addEventListener('wheel',e=>{if(!FG||!FG.cam)return;FG.cam.dist=Math.max(0.3,Math.min(30,FG.cam.dist*(e.deltaY>0?1.12:0.89)));FV3.cam=FG.cam;f3Req();e.preventDefault()},{passive:false})}
 // текстовая разметка: где профиль под листом и как крутить саморезы
 function f3MarkHtml(it,el){const f=F(it);const nl=+f.layers||1;const [sw,sh]=sheetOf(f);const pw=PW(f);
-  return el.segs.map((seg,si)=>{const P=panelCalc(it,el,si,seg);const sets=seamSets(f,el,P.firstSheet===sw?0:P.firstSheet).filter(S0=>!/обратная/.test(S0.n));
+  return el.segs.map((seg,si)=>{const P=panelCalc(it,el,si,seg);const sets=seamSets(f,el,P.o0,P.d2).filter(S0=>!/обратная/.test(S0.n));
     const ys=[...new Set([...P.cross.map(c=>c.y),...P.heads.map(h=>Math.round(h.pos==='top'?h.y+pw/2:h.y-pw/2))])].sort((a,b)=>a-b);
     const lay=sets.map((S0,k)=>{const shs=f3Sheets(P,S0,sw);const cols=[...new Set(shs.map(s=>s.col))].map(c=>{const r=shs.filter(s=>s.col===c);const w=Math.round(r[0].x1-r[0].x0);return`${w}${w<sw-1?' (обрезать)':''} × ${r.map(s=>Math.round(s.y1-s.y0)).join(' + ')}`});
       return`<div style="margin:6px 0"><b>${S0.n}</b> — саморез ${k===0&&nl>1?'TN 25':nl>1?'TN 35':'TN 25'}, шаг <b>${scrStep(k,nl)} мм</b>, от края листа 10–15 мм, шляпку утопить на 1 мм.<br>Листы слева направо: ${cols.join(' · ')}</div>`}).join('');
@@ -1695,6 +1729,8 @@ function newEl(it,type){const f=F(it);const H=n0(it.ceil)||2700;let el;
 document.addEventListener('click',e=>{const b=e.target.closest('[data-fset],[data-fa]');if(!b)return;const it=cur();const f=F(it);const el=f.els.find(x=>x.id===f.sel);
   if(b.dataset.fset){const k=b.dataset.fset,v=b.dataset.v;f[k]=(k==='layers')?+v:v;save();renderFrame();return}
   const a=b.dataset.fa;
+  if(a==='tips'){const t=$('#ftips');if(t){t.innerHTML='<div class="small mute">Считаю варианты…</div>';setTimeout(()=>{t.innerHTML=tipsHtml(it,el)},30)}return}
+  if(a==='tipapply'){const o=f.ops.find(x=>x.id===b.dataset.id);if(o){o.x=Math.round(n0(o.x)+ +b.dataset.d);save();renderFrame();setTimeout(()=>{const t=$('#ftips');if(t){t.innerHTML='<div class="small mute">Применено. Считаю дальше…</div>';setTimeout(()=>{t.innerHTML=tipsHtml(cur(),F(cur()).els.find(e=>e.id===F(cur()).sel))},30);t.scrollIntoView({block:'center'})}},50)}return}
   if(a==='f3on'){FV3.on=true;FV3.cam=null;renderFrame();setTimeout(()=>{const c=$('#fc3');if(c)c.scrollIntoView({block:'center',behavior:'smooth'})},50);return}
   else if(a==='f3off'){FV3.on=false;f3Stop();renderFrame();return}
   else if(a==='f3show'){FV3.show=b.dataset.v;renderFrame();return}
