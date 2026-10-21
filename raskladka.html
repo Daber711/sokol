@@ -1133,21 +1133,25 @@ const FOP={door:{n:'Дверь',w:800,h:2000,y:0,frame:true,cut:true,col:'#d9c4a
   wm:{sn:'Стиралка',n:'Стиральная машина',fix:true,y:650,yl:'Канализация (сифон) от пола',hint:'Слив d50 на 600–700 от пола (выше бака не нужно), вода 3/4" — на 900. Розетка с заземлением — рядом, не над водой.'},
   towel:{sn:'Сушитель',n:'Полотенцесушитель',fix:true,y:1100,sp:500,h:800,yl:'Ось подключения (низ) от пола',hl:'Высота сушителя',hint:'Межосевое — по паспорту (часто 500). Электрический: вместо воды — вывод под кабель.'},
   board:{sn:'Навесное',n:'Закладная (полка, шкаф, зеркало, поручень)',fix:true,y:1500,w:600,yl:'Высота крепления от пола',wl:'Ширина закладной',hint:'Под каждое тяжёлое крепление — своя закладная, иначе дюбели в ГКЛ не держат.'}};
+// фирменные закладные WALLBOX (каталог VALTEC): фанера WB90580 580×200 и WB90425 200×200 (от 18 мм, крепится 4 уголками WB90102),
+// пластина WB90204 под сантехническую арматуру (4 установочных элемента WB90103 в комплекте, вылет 65–95 мм от внутренней плоскости обшивки)
+function wbBoard(b){if(b.k==='arm')return[{art:'WB90204',n:'Монтажная пластина для сантехнической арматуры',q:1,w:300,h:120}];
+  if(b.k==='load'){const w=b.x1-b.x0;if(w<=260)return[{art:'WB90425',n:'Монтажная фанера малая 200×200',q:1,w:200,h:200}];return[{art:'WB90580',n:'Монтажная фанера большая 580×200',q:Math.max(1,Math.ceil((w-40)/580)),w:580,h:200}]}return[]}
 // толщина облицовки с одной стороны: ГКЛ (12,5 на слой) + клей 5 + плитка 9
 const tOut=f=>(+f.layers||1)*12.5+14;
 const nicheShelves=o=>{const n=Math.max(0,Math.round(n0(isSet(o.sh)?o.sh:FOP.niche.sh)));const y=n0(o.y),h=n0(o.h);return Array.from({length:n},(_,i)=>y+h*(i+1)/(n+1))};
 // выводы и закладные прибора: holes — трубы/выводы, boards — закладные (поперечины), box — корпус
 function fixParts(o){const t=FOP[o.type],x=n0(o.x),y=n0(isSet(o.y)?o.y:t.y),sp=n0(isSet(o.sp)?o.sp:t.sp),w=n0(isSet(o.w)?o.w:t.w),hh=n0(isSet(o.h)?o.h:t.h),ry=n0(isSet(o.ry)?o.ry:t.ry);
   const H=[],B=[];let box=null;const wat=(xx,yy,nm)=>H.push({x:xx,y:yy,d:25,kind:'water',nm});
-  if(o.type==='mixshower'){wat(x-sp/2,y,'ГВ смесителя (горячая, слева)');wat(x+sp/2,y,'ХВ смесителя (холодная, справа)');B.push({y,x0:x-sp/2-120,x1:x+sp/2+120,nm:'под водорозетки смесителя'});
-    if(o.opt)B.push({y:ry,x0:x-150,x1:x+150,nm:'верх душевой стойки / штанги'})}
-  if(o.type==='mixhidden'){box=[x-100,y-100,x+100,y+100];B.push({y:y-140,x0:x-200,x1:x+200,nm:'низ корпуса скрытого смесителя'},{y:y+140,x0:x-200,x1:x+200,nm:'верх корпуса скрытого смесителя'});
-    if(o.opt){wat(x,ry,'верхний душ (вывод 1/2")');B.push({y:ry,x0:x-150,x1:x+150,nm:'под водорозетку верхнего душа'})}}
+  if(o.type==='mixshower'){wat(x-sp/2,y,'ГВ смесителя (горячая, слева)');wat(x+sp/2,y,'ХВ смесителя (холодная, справа)');B.push({y,x0:x-sp/2-120,x1:x+sp/2+120,nm:'под водорозетки смесителя',k:'arm'});
+    if(o.opt)B.push({y:ry,x0:x-150,x1:x+150,nm:'верх душевой стойки / штанги',k:'load'})}
+  if(o.type==='mixhidden'){box=[x-100,y-100,x+100,y+100];B.push({y:y-140,x0:x-200,x1:x+200,nm:'низ корпуса скрытого смесителя',k:'arm'},{y:y+140,x0:x-200,x1:x+200,nm:'верх корпуса скрытого смесителя',k:'frame'});
+    if(o.opt){wat(x,ry,'верхний душ (вывод 1/2")');B.push({y:ry,x0:x-150,x1:x+150,nm:'под водорозетку верхнего душа',k:'arm'})}}
   if(o.type==='sinkdeck'||o.type==='sinkwall'){const wy=o.type==='sinkwall'?y+230:y-300;wat(x-sp/2,wy,'ГВ (горячая, слева)');wat(x+sp/2,wy,'ХВ (холодная, справа)');H.push({x,y:500,d:50,kind:'sewer',nm:'канализация d50'});
-    B.push({y:wy,x0:x-sp/2-120,x1:x+sp/2+120,nm:o.type==='sinkwall'?'под настенный смеситель':'под водорозетки'},{y:y-70,x0:x-w/2,x1:x+w/2,nm:'под крепёж раковины (шпильки)'})}
-  if(o.type==='wm'){H.push({x:x-100,y,d:50,kind:'sewer',nm:'слив стиральной машины d50'});wat(x+150,y+250,'вода 3/4" с краном');B.push({y:y+250,x0:x,x1:x+300,nm:'под кран стиральной машины'})}
-  if(o.type==='towel'){wat(x-sp/2,y,'подача');wat(x+sp/2,y,'обратка');B.push({y,x0:x-sp/2-120,x1:x+sp/2+120,nm:'под выводы и нижние кронштейны сушителя'},{y:y+hh-100,x0:x-sp/2-120,x1:x+sp/2+120,nm:'верхние кронштейны сушителя'})}
-  if(o.type==='board')B.push({y,x0:x-w/2,x1:x+w/2,nm:'под навесное (ширина '+Math.round(w)+')'});
+    B.push({y:wy,x0:x-sp/2-120,x1:x+sp/2+120,nm:o.type==='sinkwall'?'под настенный смеситель':'под водорозетки',k:'arm'},{y:y-70,x0:x-w/2,x1:x+w/2,nm:'под крепёж раковины (шпильки)',k:'load'})}
+  if(o.type==='wm'){H.push({x:x-100,y,d:50,kind:'sewer',nm:'слив стиральной машины d50'});wat(x+150,y+250,'вода 3/4" с краном');B.push({y:y+250,x0:x,x1:x+300,nm:'под кран стиральной машины',k:'arm'})}
+  if(o.type==='towel'){wat(x-sp/2,y,'подача');wat(x+sp/2,y,'обратка');B.push({y,x0:x-sp/2-120,x1:x+sp/2+120,nm:'под выводы и нижние кронштейны сушителя',k:'arm'},{y:y+hh-100,x0:x-sp/2-120,x1:x+sp/2+120,nm:'верхние кронштейны сушителя',k:'load'})}
+  if(o.type==='board')B.push({y,x0:x-w/2,x1:x+w/2,nm:'под навесное (ширина '+Math.round(w)+')',k:'load'});
   return{holes:H,boards:B,box}}
 function F(it){if(!it.F)it.F={sys:'knauf',ps:'50',bar:3000,step:600,sheet:'1200x2500',layers:1,mode:'wall',hstep:1200,wbBar:3000,els:[],ops:[],sel:null};const f=it.F;f.els=f.els||[];f.ops=f.ops||[];return f}
 const segPts=el=>{const pts=[[0,0]];let x=0,y=0;for(const s of el.segs){const [dx,dy]=dirVec(s);const l=n0(s.len);x+=dx*l;y+=dy*l;pts.push([x,y])}return pts};
@@ -1286,10 +1290,14 @@ function frameCalc(it){const f=F(it);const out={els:[],warn:[]};const pw=PW(f);c
   out.cutsS=groupCuts(S1);out.cutsN=groupCuts(S2);
   const m=[];const A=area/1e6;
   const fixRows=()=>{const r=[];const nW=fixL.reduce((a,q)=>a+q.holes.filter(h=>h.kind==='water').length,0),nS=fixL.reduce((a,q)=>a+q.holes.filter(h=>h.kind==='sewer').length,0);
-    if(nBoard)r.push([kn?'Закладные под сантехнику и навесное':'Горизонтали-закладные WALLBOX',`${nBoard} шт`,kn?'поперечина ПН между стойками + фанера 12–18 мм или брус на всю ширину пролёта, на саморезы к стойкам':'профиль WB90003 между стойками на уголках WB90102 — водорозетки и кронштейны крепить к нему']);
+    if(nBoard)r.push([kn?'Закладные под сантехнику и навесное':'Горизонтали WB90003 под закладные',`${nBoard} шт`,kn?'поперечина ПН между стойками + фанера 12–18 мм или брус на всю ширину пролёта, на саморезы к стойкам':'профиль между стойками на уголках WB90102 — к нему крепятся фирменные закладные WALLBOX (ниже)']);
+    if(!kn){const acc={};for(const q of fixL)for(const b of q.boards)for(const it2 of wbBoard(b)){const a=acc[it2.art]=acc[it2.art]||{n:it2.n,q:0,where:[]};a.q+=it2.q;a.where.push(`${FOP[q.o.type].sn} ${Math.round(b.y)}`)}
+      const nm={WB90204:'4 установочных элемента WB90103 в комплекте; вылет крепёжной плоскости 65–95 мм от внутренней стороны обшивки; саморезы Ø3,5 — отдельно',WB90580:'фанера от 18 мм, ставится вертикально, 4 уголка WB90102 на каждую — пазы передают нагрузку на стойки',WB90425:'фанера от 18 мм, 4 уголка WB90102'};
+      for(const [art,a] of Object.entries(acc))r.push([`${art} ${a.n}`,`${a.q} шт`,`${nm[art]} · где: ${a.where.join(', ')}`]);
+      const nc=Object.entries(acc).filter(([k])=>k!=='WB90204').reduce((s2,[k,a])=>s2+a.q*4,0);if(nc)r.push(['Уголок WB90102 — для монтажной фанеры',`${nc} шт`,'по 4 на каждую фанеру (сверх уголков каркаса)'])}
     if(nW)r.push(['Водорозетка (угольник настенный) 1/2"',`${nW} шт`,'крепить к закладной на 2 самореза; выступ под облицовку — по толщине ГКЛ + плитки']);
     if(nS)r.push(['Вывод канализации d50 (отвод 87° + заглушка)',`${nS} шт`,'уклон трубы к стояку 2–3 см на метр']);
-    for(const q of fixL){const t=FOP[q.o.type];const rows=[...q.holes.map(h=>`${h.nm} — ${Math.round(h.x)} от начала, ${Math.round(h.y)} от пола`),...q.boards.map(b=>`закладная ${b.nm} — на ${Math.round(b.y)}`)];r.push([`${t.n} (${q.where})`,'',rows.join('; ')])}
+    for(const q of fixL){const t=FOP[q.o.type];const rows=[...q.holes.map(h=>`${h.nm} — ${Math.round(h.x)} от начала, ${Math.round(h.y)} от пола`),...q.boards.map(b=>`закладная ${b.nm} — на ${Math.round(b.y)}`+(kn?'':wbBoard(b).map(x=>` (${x.art}${x.q>1?' ×'+x.q:''})`).join('')))];r.push([`${t.n} (${q.where})`,'',rows.join('; ')])}
     for(const n of nicheL){const o=n.o;const W=n0(o.w),Hh=n0(o.h),dp=n0(isSet(o.dp)?o.dp:FOP.niche.dp),ns=Math.max(0,Math.round(n0(isSet(o.sh)?o.sh:FOP.niche.sh)));
       r.push([`Ниша ${Math.round(W)}×${Math.round(Hh)} (${n.where})`,'1 шт',`откосы из ГКЛ (влагостойкий): 2 полосы ${Math.round(W)}×${dp} и 2 полосы ${Math.round(Hh)}×${dp}; дно — с уклоном 2–3° наружу; углы проклеить гидроизоляционной лентой`+(ns?`; полочки из плитки ${ns} шт ≈ ${Math.round(W-2*tOut(f))}×${dp+Math.round(tOut(f))} мм, на высоте ${nicheShelves(o).map(Math.round).join(', ')} от пола`:'')])}
     return r};
@@ -1327,10 +1335,11 @@ function frameSvg(it,el,sc){const f=F(it);const hits=[];const hit=(k,box,title,r
     const shape=P.SL?P.SL.poly:[[0,0],[L,0],[L,P.H],[0,P.H]];s+=`<polygon points="${shape.map(q=>(X+q[0])+','+fy(q[1])).join(' ')}" fill="var(--soft2)" stroke="var(--line)" stroke-width="${1/sc}"/>`;
     for(const q of P.fx){const o=q.o,t=FOP[o.type];const xs2=[...q.holes.map(h=>h.x),...q.boards.flatMap(b=>[b.x0,b.x1])],ys2=[...q.holes.map(h=>h.y),...q.boards.map(b=>b.y)];
       if(q.box){s+=`<rect x="${X+q.box[0]}" y="${fy(q.box[3])}" width="${q.box[2]-q.box[0]}" height="${q.box[3]-q.box[1]}" fill="#e0f2fe" stroke="#0369a1" stroke-width="${2/sc}"/>`;xs2.push(q.box[0],q.box[2]);ys2.push(q.box[1],q.box[3])}
+      if(f.sys!=='knauf')for(const b of q.boards){const cxb=(b.x0+b.x1)/2;for(const pl of wbBoard(b))for(let i=0;i<pl.q;i++){const wd=pl.w,x0=cxb-pl.q*wd/2+i*wd;s+=`<rect x="${X+x0}" y="${fy(b.y+pl.h/2)}" width="${wd-4}" height="${pl.h}" fill="${pl.art==='WB90204'?'#cbd5e1':'#d6b98c'}" fill-opacity=".75" stroke="${pl.art==='WB90204'?'#475569':'#8b5e34'}" stroke-width="${1.5/sc}"/><text x="${X+x0+wd/2}" y="${fy(b.y)+4/sc}" font-size="${Math.min(10/sc,40)}" text-anchor="middle" fill="#5b3a1a" font-weight="700">${pl.art}</text>`}}
       for(const h of q.holes)s+=`<circle cx="${X+h.x}" cy="${fy(h.y)}" r="${Math.max(h.d/2,4/sc)}" fill="${h.kind==='sewer'?'#9ca3af':/ГВ|подача/.test(h.nm)?'#ef4444':'#3b82f6'}" stroke="#111" stroke-width="${1/sc}"/>`;
       const bx=Math.min(...xs2)-30,bx1=Math.max(...xs2)+30,by=Math.min(...ys2)-40,by1=Math.max(...ys2)+40;
       s+=`<text x="${X+n0(o.x)}" y="${fy(by1)-4/sc}" font-size="${11/sc}" text-anchor="middle" font-weight="700" fill="#0369a1">${t.n.split(' (')[0].split(' +')[0]}</text>`;
-      hit('op:'+o.id,[X+bx,fy(by1),bx1-bx,by1-by],t.n,[['Центр прибора',`${Math.round(n0(o.x))} мм от начала участка`],...q.holes.map(h=>[h.nm,`${Math.round(h.x)} от начала · ${Math.round(h.y)} от пола${h.kind==='sewer'?' · d50':''}`]),...q.boards.map(b=>['Закладная',`${b.nm} — ось на ${Math.round(b.y)} мм`]),...(q.box?[['Корпус',`${Math.round(q.box[0])}–${Math.round(q.box[2])} по длине, ${Math.round(q.box[1])}–${Math.round(q.box[3])} от пола`]]:[]),['Совет',t.hint]])}
+      hit('op:'+o.id,[X+bx,fy(by1),bx1-bx,by1-by],t.n,[['Центр прибора',`${Math.round(n0(o.x))} мм от начала участка`],...q.holes.map(h=>[h.nm,`${Math.round(h.x)} от начала · ${Math.round(h.y)} от пола${h.kind==='sewer'?' · d50':''}`]),...q.boards.map(b=>['Закладная',`${b.nm} — ось на ${Math.round(b.y)} мм`+(f.sys==='knauf'?'':wbBoard(b).map(x=>` · ${x.art} ${x.n}${x.q>1?' ×'+x.q:''}`).join(''))]),...(q.box?[['Корпус',`${Math.round(q.box[0])}–${Math.round(q.box[2])} по длине, ${Math.round(q.box[1])}–${Math.round(q.box[3])} от пола`]]:[]),['Совет',t.hint]])}
     for(const o of P.ops){const t=FOP[o.type];if(t.fix)continue;if(t.hole){const d=n0(o.d)||t.d;s+=`<circle cx="${X+n0(o.x)}" cy="${fy(n0(o.y))}" r="${Math.max(d/2,1.5/sc)}" fill="#fff" stroke="#d11" stroke-width="${Math.min(2/sc,d/6)}"/>`;
         hit('op:'+o.id,[X+n0(o.x)-d/2,fy(n0(o.y))-d/2,d,d],t.n,[['Диаметр',`${Math.round(d)} мм`],['Центр от начала участка',`${Math.round(n0(o.x))} мм`],['Центр от пола',`${Math.round(n0(o.y))} мм`]]);continue}
       s+=`<rect x="${X+n0(o.x)}" y="${fy(n0(o.y)+n0(o.h))}" width="${n0(o.w)}" height="${n0(o.h)}" fill="${t.col}" stroke="var(--ink)" stroke-width="${1/sc}"/>`;
@@ -1564,6 +1573,8 @@ function f3Build(it,el){const f=F(it);const pts=segPts(el);const pw=PW(f);const 
           pipe(S,[h.x,h.y,pz],[h.x,h.y,surf+30],r,col);if(h.kind==='sewer'){pipe(S,[h.x,h.y,pz],[h.x,40,pz],r,col)}else pipe(S,[h.x,h.y,pz],[h.x,0,pz],r,col)}
         if(q.box)box(S,q.box[0],q.box[2],q.box[1],q.box[3],pz-30,D-2,hex3('#93c5fd'))}
       for(const o of P.ops.filter(o=>FOP[o.type].hole)){const d=n0(o.d)||FOP[o.type].d;const col=o.type==='socket'?hex3('#facc15'):C.sew;pipe(S,[n0(o.x),n0(o.y),pz],[n0(o.x),n0(o.y),surf+20],Math.max(8,d/2),col)}}
+    // фирменные закладные WALLBOX: фанера и пластины под арматуру
+    if(!kn)for(const q of P.fx)for(const b of q.boards){const cxb=(b.x0+b.x1)/2;for(const pl of wbBoard(b))for(let i=0;i<pl.q;i++){const x0=cxb-pl.q*pl.w/2+i*pl.w;box(S,x0+2,x0+pl.w-2,b.y-pl.h/2,b.y+pl.h/2,pl.art==='WB90204'?D-14:D-20,pl.art==='WB90204'?D-10:D-2,pl.art==='WB90204'?hex3('#94a3b8'):hex3('#c79a5b'))}}
     // ГКЛ: листы по слоям, вырезы под проёмы, скосы
     const sets=seamSets(f,el,P.firstSheet===(sheetOf(f)[0])?0:P.firstSheet);const [sw]=sheetOf(f);
     const holes=fr.filter(o=>FOP[o.type].cut).map(o=>[n0(o.x),n0(o.y),n0(o.x)+n0(o.w),n0(o.y)+n0(o.h)]);
