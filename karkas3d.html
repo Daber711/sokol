@@ -38,7 +38,7 @@ footer{grid-column:1/4;display:flex;gap:10px;align-items:center;padding:6px 10px
 <header>
   <span class="logo">Каркас <b>3D</b></span>
   <button data-act="new" title="Новый проект">📄</button><button data-act="open">📂 Открыть</button><button data-act="save" title="Ctrl+S">💾 Сохранить</button>
-  <button data-act="dae" title="Для SketchUp: Файл → Импорт">⬇ SketchUp</button><button data-act="idae" title="Модель из SketchUp: Экспорт → COLLADA">⬆ Импорт</button><button data-act="png">🖼</button>
+  <button data-act="dae" title="Для SketchUp: Файл → Импорт">⬇ SketchUp</button><button data-act="idae" title="Модель с текстурами: .dae + картинки, .zip/.kmz, .obj+.mtl, .glb, .stl">⬆ Импорт</button><button data-act="png">🖼</button>
   <span class="sep"></span><button data-act="undo" title="Ctrl+Z">↶</button><button data-act="redo" title="Ctrl+Y">↷</button><span class="sep"></span>
   <button data-tool="select" title="Выбор (Пробел)">🖱 Выбор <kbd>Пробел</kbd></button><button data-tool="profile" title="Профиль (P)">📏 Профиль <kbd>P</kbd></button><button data-tool="move" title="Переместить (M)">✥ Двигать <kbd>M</kbd></button><button data-tool="copy" title="Копировать (C)">⧉ Копия <kbd>C</kbd></button>
   <button data-tool="rotate" title="Повернуть (Q)">⟲ <kbd>Q</kbd></button><button data-tool="paint" title="Покрасить (B)">🪣 Краска <kbd>B</kbd></button><button data-tool="tape" title="Рулетка (T)">📐 <kbd>T</kbd></button><button data-tool="dim" title="Размер (D)">↔ Размер <kbd>D</kbd></button><button data-tool="erase" title="Ластик (E)">⌫ <kbd>E</kbd></button>
@@ -53,7 +53,7 @@ footer{grid-column:1/4;display:flex;gap:10px;align-items:center;padding:6px 10px
 <footer><div id="hint"></div><div id="vcbw"><span id="vcbl">Длина</span><input id="vcb" placeholder="введите и Enter" autocomplete="off"></div></footer>
 </div>
 <div id="modal"><div class="win"><div class="body"></div><div class="bar"><button class="btn" data-act="print">🖨 Печать / PDF</button><button class="btn main" data-act="close">Закрыть</button></div></div></div>
-<input type="file" id="fopen" accept=".json,.karkas,application/json" hidden><input type="file" id="fdae" accept=".dae" hidden><input type="file" id="fimg" accept="image/*" hidden>
+<input type="file" id="fopen" accept=".json,.karkas,application/json" hidden><input type="file" id="fdae" accept=".dae,.obj,.mtl,.glb,.gltf,.bin,.zip,.kmz,.stl,image/*" multiple hidden><input type="file" id="fimg" accept="image/*" hidden>
 <template id="helptpl"><h2>Как работать</h2>
 <p><b>Мышь:</b> колесо — приблизить к курсору; правая кнопка (или колесо) зажать — вращать; <kbd>Shift</kbd> + правая — двигать вид. Двойной щелчок по объекту — показать его крупно.</p>
 <p><b>Профиль <kbd>P</kbd>:</b> выберите слева профиль (WALLBOX, ПС, ПН, трубу), щёлкните начало и конец. Длину можно сразу набрать на клавиатуре и нажать <kbd>Enter</kbd>. Линия становится цветной, когда идёт вдоль оси: красная — X, зелёная — Y, синяя — Z. Стрелки <kbd>→</kbd> <kbd>←</kbd> <kbd>↑</kbd> закрепляют ось. Начните профиль на грани другого — он ляжет вплотную. <kbd>R</kbd> — повернуть профиль вокруг своей оси. <kbd>Esc</kbd> — закончить.</p>
@@ -63,7 +63,7 @@ footer{grid-column:1/4;display:flex;gap:10px;align-items:center;padding:6px 10px
 <p><b>Текстуры:</b> вкладка «Текстуры» — выберите и щёлкните по объекту. Можно загрузить свою картинку (фото плитки) и указать её реальный размер.</p>
 <p><b>Быстро построить:</b> каркас стены WALLBOX или Knauf со стойками, горизонталями, уголками, креплениями и ГКЛ — потом правьте любую деталь.</p>
 <p><b>Спецификация:</b> всё, что в модели, списком + сколько хлыстов профиля покупать.</p>
-<p><b>SketchUp:</b> «В SketchUp (.dae)» → в SketchUp: Файл → Импорт. Модели из SketchUp: Файл → Экспорт → 3D-модель → COLLADA (.dae) → здесь «Импорт .dae».</p>
+<p><b>Из SketchUp с текстурами:</b> в SketchUp — Файл → Экспорт → 3D-модель → COLLADA (.dae) или Google Earth (.kmz). Рядом с .dae появится папка с картинками. Здесь «⬆ Импорт» → выделите сразу .dae и все картинки из той папки (или выберите один .kmz / .zip). Так же открываются .obj+.mtl+картинки и .glb (текстуры уже внутри).</p><p><b>В SketchUp:</b> «⬇ SketchUp» → в SketchUp: Файл → Импорт.</p>
 <p>Проект сохраняется в браузере сам. Чтобы перенести на другой компьютер — «Сохранить» (файл) и «Открыть».</p></template>
 <script>
 'use strict';
@@ -306,7 +306,7 @@ function ray(mx,my){const cv=R3.cv;const r0=cv.getBoundingClientRect();const nx=
 function toScreen(p,VP){const q=m4.xf(VP||R3.VP,p);if(q[3]<=0)return null;const r0=R3.cv.getBoundingClientRect();return[(q[0]*0.5+0.5)*r0.width,(1-(q[1]*0.5+0.5))*r0.height,q[2]]}
 // ---- кадр
 let DRAWQ=0;function requestDraw(){if(!DRAWQ)DRAWQ=requestAnimationFrame(()=>{DRAWQ=0;drawScene()})}
-function objW(o,extra){return m4.fromRT(o.R,extra?v3.add(o.o,extra):o.o)}
+function objW(o,extra){const R=o.k&&o.k!==1?o.R.map(v=>v*o.k):o.R;return m4.fromRT(R,extra?v3.add(o.o,extra):o.o)}
 function drawScene(){const gl=R3.gl,cv=R3.cv,L=R3.loc;const dpr=Math.min(devicePixelRatio||1,2);const w=cv.clientWidth,h=cv.clientHeight;
   if(cv.width!==Math.round(w*dpr)||cv.height!==Math.round(h*dpr)){cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr);R3.ov.width=cv.width;R3.ov.height=cv.height}
   gl.viewport(0,0,cv.width,cv.height);gl.clearColor(.93,.94,.95,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.useProgram(R3.prog);
@@ -508,6 +508,115 @@ function drawOverlay(){const ov=R3.ov,g=ov.getContext('2d');const dpr=ov.width/o
   // подписи осей
   for(let i=0;i<3;i++){const s=toScreen(AX[i].map(v=>v*600));if(s){g.fillStyle=AXC[i];g.font='700 12px system-ui';g.fillText('XYZ'[i],s[0]+4,s[1]-4)}}}
 
+// ================= ИМПОРТ МОДЕЛЕЙ С ТЕКСТУРАМИ =================
+// Поддержка: .dae (COLLADA, с картинками рядом или в .zip/.kmz), .obj+.mtl+картинки, .glb/.gltf (текстуры внутри), .stl (без текстур)
+const IMGEXT=/\.(jpe?g|png|bmp|gif|webp|tga)$/i;
+const baseName=s=>decodeURIComponent(String(s||'').split(/[\\/]/).pop()).toLowerCase();
+async function readZip(buf){const u=new Uint8Array(buf),dv=new DataView(buf);let e=-1;for(let i=u.length-22;i>=Math.max(0,u.length-70000);i--)if(dv.getUint32(i,true)===0x06054b50){e=i;break}if(e<0)throw new Error('архив повреждён');
+  const n=dv.getUint16(e+10,true);let p=dv.getUint32(e+16,true);const out={};
+  for(let k=0;k<n;k++){if(dv.getUint32(p,true)!==0x02014b50)break;const meth=dv.getUint16(p+10,true),csz=dv.getUint32(p+20,true),nl=dv.getUint16(p+28,true),xl=dv.getUint16(p+30,true),cl=dv.getUint16(p+32,true),lo=dv.getUint32(p+42,true);
+    const name=new TextDecoder().decode(u.subarray(p+46,p+46+nl));p+=46+nl+xl+cl;if(name.endsWith('/'))continue;const lnl=dv.getUint16(lo+26,true),lxl=dv.getUint16(lo+28,true);const data=u.subarray(lo+30+lnl+lxl,lo+30+lnl+lxl+csz);
+    if(meth===0)out[name]=data.slice();else if(meth===8){const ds=new DecompressionStream('deflate-raw');const r=new Response(new Blob([data]).stream().pipeThrough(ds));out[name]=new Uint8Array(await r.arrayBuffer())}}return out}
+const toDataURL=(bytes,name)=>new Promise(res=>{const t=/png$/i.test(name)?'image/png':/gif$/i.test(name)?'image/gif':/webp$/i.test(name)?'image/webp':/bmp$/i.test(name)?'image/bmp':'image/jpeg';const fr=new FileReader();fr.onload=()=>res(fr.result);fr.readAsDataURL(new Blob([bytes],{type:t}))});
+// сжимаем картинку (большие текстуры не влезут в проект)
+const shrink=src=>new Promise(res=>{const im=new Image();im.onload=()=>{const s=Math.min(1024,Math.max(im.width,im.height));const k=s/Math.max(im.width,im.height);const c=document.createElement('canvas');c.width=Math.max(1,Math.round(im.width*k));c.height=Math.max(1,Math.round(im.height*k));c.getContext('2d').drawImage(im,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',0.85))};im.onerror=()=>res(null);im.src=src});
+class MeshOut{constructor(){this.parts={};this.mats={}}
+  mat(name,col,img){const key='imp_'+uid();MATS[key]={n:name||'Импорт',col:col||[1,1,1],img:img||undefined,size:img?[1,1]:[500,500],custom:true};return key}
+  tri(key,a,b,c,ta,tb,tc){const n=v3.norm(v3.cross(v3.sub(b,a),v3.sub(c,a)));if(!isFinite(n[0]))return;const A=this.parts[key]||(this.parts[key]=[]);
+    let uv=ta&&tb&&tc?[ta,tb,tc]:null;if(!uv){const ax=Math.abs(n[0]),ay=Math.abs(n[1]),az=Math.abs(n[2]);const f=ax>=ay&&ax>=az?p=>[p[1],p[2]]:ay>=az?p=>[p[0],p[2]]:p=>[p[0],p[1]];uv=[f(a),f(b),f(c)]}
+    [a,b,c].forEach((p,i)=>A.push(p[0],p[1],p[2],n[0],n[1],n[2],uv[i][0],uv[i][1]))}}
+function addMesh(out,name,opt={}){const key='mesh_'+uid();SC.meshes[key]={name,parts:Object.fromEntries(Object.entries(out.parts).map(([k,a])=>[k,new Float32Array(a)]))};
+  const o={id:uid(),c:'mesh',mesh:key,name,P:{},o:[0,0,0],R:m3.I(),k:opt.k||1,mat:null,tag:'Импорт'};
+  // ставим на пол рядом с моделью
+  const g=objGeo(o);let X0=0;if(SC.objs.length){let mx=-1e9;for(const q of SC.objs)mx=Math.max(mx,objBox(q)[3]);X0=mx+500}o.o=[X0-g.bb[0]*o.k,-g.bb[1]*o.k,-g.bb[2]*o.k];
+  SC.objs.push(o);SC.sel=new Set([o.id]);commit();viewFit([o]);const b=objBox(o);status(`Импортировано: ${esc(name)} — ${fmt(b[3]-b[0])}×${fmt(b[4]-b[1])}×${fmt(b[5]-b[2])} мм. Если размер не тот — справа выберите единицы.`)}
+// ---- COLLADA с текстурами
+async function impDae(text,name,files){const X=new DOMParser().parseFromString(text,'application/xml');const q=(el,s)=>Array.from(el.getElementsByTagName(s));
+  const unit=+((q(X,'unit')[0]||{getAttribute:()=>1}).getAttribute('meter')||1)*1000;const up=((q(X,'up_axis')[0]||{}).textContent||'').trim();
+  const byId={};for(const e of q(X,'*'))if(e.getAttribute('id'))byId[e.getAttribute('id')]=e;const out=new MeshOut();const matCache={};
+  const imgOf=id=>{const im=byId[id];if(!im)return null;const ini=q(im,'init_from')[0];const path=ini?(q(ini,'ref')[0]||ini).textContent.trim():'';return files[baseName(path)]||null};
+  const effMat=async matId=>{if(matCache[matId])return matCache[matId];const m=byId[matId];let col=[.8,.8,.8],img=null,nm=m?(m.getAttribute('name')||matId):matId;
+    const ie=m&&q(m,'instance_effect')[0];const fx=ie&&byId[(ie.getAttribute('url')||'').slice(1)];
+    if(fx){const d=q(fx,'diffuse')[0];if(d){const c=q(d,'color')[0];if(c)col=c.textContent.trim().split(/\s+/).slice(0,3).map(Number);const t=q(d,'texture')[0];
+      if(t){let ref=t.getAttribute('texture');const np={};for(const p of q(fx,'newparam'))np[p.getAttribute('sid')]=p;
+        if(np[ref]){const src=q(np[ref],'source')[0];if(src&&np[src.textContent.trim()]){const ini=q(np[src.textContent.trim()],'init_from')[0];if(ini)ref=ini.textContent.trim()}else{const ini=q(np[ref],'init_from')[0];if(ini)ref=ini.textContent.trim()}}
+        const du=imgOf(ref);if(du){img=await shrink(du);col=[1,1,1]}}}}
+    return matCache[matId]=out.mat(nm,col,img)};
+  const mulM=(a,b)=>{const o=new Array(16).fill(0);for(let r=0;r<4;r++)for(let c=0;c<4;c++)for(let k=0;k<4;k++)o[r*4+c]+=a[r*4+k]*b[k*4+c];return o};const I=[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1];
+  const xf=(M,p)=>[M[0]*p[0]+M[1]*p[1]+M[2]*p[2]+M[3],M[4]*p[0]+M[5]*p[1]+M[6]*p[2]+M[7],M[8]*p[0]+M[9]*p[1]+M[10]*p[2]+M[11]];
+  const fl=src=>{const fa=q(src,'float_array')[0].textContent.trim().split(/\s+/).map(Number);const acc=q(src,'accessor')[0];return{fa,st:+(acc&&acc.getAttribute('stride')||3)}};
+  const addGeo=async(geo,M,bind)=>{const mesh=q(geo,'mesh')[0];if(!mesh)return;const vtx=q(mesh,'vertices')[0];const posIn=vtx&&q(vtx,'input').find(i=>i.getAttribute('semantic')==='POSITION');const ps=posIn&&byId[posIn.getAttribute('source').slice(1)];if(!ps)return;const POS=fl(ps);
+    for(const prim of [...q(mesh,'triangles'),...q(mesh,'polylist'),...q(mesh,'polygons')]){const ins=q(prim,'input');const n=Math.max(...ins.map(i=>+(i.getAttribute('offset')||0)))+1;
+      const oV=+(ins.find(i=>i.getAttribute('semantic')==='VERTEX').getAttribute('offset')||0);const tIn=ins.find(i=>i.getAttribute('semantic')==='TEXCOORD');const oT=tIn?+(tIn.getAttribute('offset')||0):-1;const TC=tIn&&byId[tIn.getAttribute('source').slice(1)]?fl(byId[tIn.getAttribute('source').slice(1)]):null;
+      const sym=prim.getAttribute('material');const key=await effMat(bind[sym]||sym);const tex=!!MATS[key].img;
+      const P=i=>{let p=xf(M,[POS.fa[i*POS.st],POS.fa[i*POS.st+1],POS.fa[i*POS.st+2]]);if(up==='Y_UP')p=[p[0],-p[2],p[1]];else if(up==='X_UP')p=[-p[1],p[0],p[2]];return p.map(v=>v*unit)};
+      const T=i=>TC&&tex?[TC.fa[i*TC.st],1-TC.fa[i*TC.st+1]]:null;
+      const polys=[];const take=(idx,start,cnt)=>{const poly=[];for(let j=0;j<cnt;j++)poly.push([idx[(start+j)*n+oV],oT>=0?idx[(start+j)*n+oT]:-1]);return poly};
+      if(prim.tagName==='triangles'){const idx=q(prim,'p').map(p=>p.textContent.trim().split(/\s+/).map(Number)).flat();for(let k=0;(k+3)*n<=idx.length;k+=3)polys.push(take(idx,k,3))}
+      else if(prim.tagName==='polylist'){const vc=q(prim,'vcount')[0].textContent.trim().split(/\s+/).map(Number);const idx=q(prim,'p')[0].textContent.trim().split(/\s+/).map(Number);let k=0;for(const c of vc){polys.push(take(idx,k,c));k+=c}}
+      else for(const p of q(prim,'p')){const idx=p.textContent.trim().split(/\s+/).map(Number);polys.push(take(idx,0,idx.length/n))}
+      for(const poly of polys)for(let j=1;j<poly.length-1;j++){const [a,b,c]=[poly[0],poly[j],poly[j+1]];out.tri(key,P(a[0]),P(b[0]),P(c[0]),a[1]>=0?T(a[1]):null,b[1]>=0?T(b[1]):null,c[1]>=0?T(c[1]):null)}}};
+  const walk=async(node,M,depth)=>{if(depth>50)return;let L=M;for(const ch of node.children){const v=()=>ch.textContent.trim().split(/\s+/).map(Number);
+      if(ch.tagName==='matrix')L=mulM(L,v());if(ch.tagName==='translate'){const t=v();L=mulM(L,[1,0,0,t[0],0,1,0,t[1],0,0,1,t[2],0,0,0,1])}
+      if(ch.tagName==='scale'){const t=v();L=mulM(L,[t[0],0,0,0,0,t[1],0,0,0,0,t[2],0,0,0,0,1])}
+      if(ch.tagName==='rotate'){const t=v();const R=m3.rot([t[0],t[1],t[2]],t[3]);L=mulM(L,[R[0],R[1],R[2],0,R[3],R[4],R[5],0,R[6],R[7],R[8],0,0,0,0,1])}}
+    for(const ch of node.children){if(ch.tagName==='instance_geometry'){const bind={};for(const im of q(ch,'instance_material'))bind[im.getAttribute('symbol')]=(im.getAttribute('target')||'').slice(1);const g=byId[(ch.getAttribute('url')||'').slice(1)];if(g)await addGeo(g,L,bind)}
+      if(ch.tagName==='instance_node'){const nd=byId[(ch.getAttribute('url')||'').slice(1)];if(nd)await walk(nd,L,depth+1)}if(ch.tagName==='node')await walk(ch,L,depth+1)}};
+  const vs=q(X,'visual_scene')[0];if(!vs)throw new Error('в файле нет сцены');for(const nd of Array.from(vs.children))if(nd.tagName==='node')await walk(nd,I,0);
+  if(!Object.keys(out.parts).length)throw new Error('в файле нет геометрии');addMesh(out,name)}
+// ---- OBJ + MTL
+async function impObj(text,name,files){const V=[],VT=[];const out=new MeshOut();let cur=null;const mtl={};
+  const mtlNames=[...text.matchAll(/^mtllib\s+(.+)$/gm)].map(m=>baseName(m[1].trim()));
+  for(const mn of mtlNames){const t=files[mn+':text'];if(!t)continue;let m=null;for(const ln of t.split(/\r?\n/)){const s=ln.trim().split(/\s+/);if(s[0]==='newmtl'){m=mtl[s.slice(1).join(' ')]={col:[.8,.8,.8]}}else if(m&&s[0]==='Kd')m.col=s.slice(1,4).map(Number);else if(m&&s[0]==='map_Kd')m.tex=baseName(s[s.length-1])}}
+  const keys={};const keyFor=async nm=>{if(keys[nm])return keys[nm];const m=mtl[nm]||{col:[.8,.8,.8]};const du=m.tex&&files[m.tex];return keys[nm]=out.mat(nm,du?[1,1,1]:m.col,du?await shrink(du):null)};
+  cur=await keyFor('default');
+  for(const ln of text.split(/\r?\n/)){const s=ln.trim().split(/\s+/);
+    if(s[0]==='v')V.push(s.slice(1,4).map(Number));else if(s[0]==='vt')VT.push([+s[1],1-(+s[2]||0)]);else if(s[0]==='usemtl')cur=await keyFor(s.slice(1).join(' '));
+    else if(s[0]==='f'){const pts=s.slice(1).map(t=>{const [a,b]=t.split('/');let vi=+a,ti=b?+b:0;if(vi<0)vi=V.length+1+vi;if(ti<0)ti=VT.length+1+ti;return[V[vi-1],ti?VT[ti-1]:null]});
+      const tex=!!MATS[cur].img;for(let j=1;j<pts.length-1;j++){const a=pts[0],b=pts[j],c=pts[j+1];if(!a[0]||!b[0]||!c[0])continue;const P=p=>[p[0],-p[2],p[1]];out.tri(cur,P(a[0]),P(b[0]),P(c[0]),tex?a[1]:null,tex?b[1]:null,tex?c[1]:null)}}}
+  if(!Object.keys(out.parts).length)throw new Error('в файле нет граней');
+  // единицы OBJ не записаны: по размеру угадываем метры / сантиметры / мм
+  let mx=0;for(const v of V)mx=Math.max(mx,Math.abs(v[0]),Math.abs(v[1]),Math.abs(v[2]));const k=mx<30?1000:mx<400?10:1;addMesh(out,name,{k})}
+// ---- glTF / GLB
+async function impGltf(json,bin,name,files){const G=json;const out=new MeshOut();const bufs=[];
+  for(const b of G.buffers||[]){if(!b.uri)bufs.push(bin);else if(b.uri.startsWith('data:')){bufs.push(new Uint8Array(await (await fetch(b.uri)).arrayBuffer()))}else bufs.push(files[baseName(b.uri)+':bin']||null)}
+  const view=i=>{const bv=G.bufferViews[i];const b=bufs[bv.buffer||0];return{u:b.subarray((bv.byteOffset||0),(bv.byteOffset||0)+bv.byteLength),st:bv.byteStride||0}};
+  const acc=i=>{const a=G.accessors[i];const v=view(a.bufferView);const n={SCALAR:1,VEC2:2,VEC3:3,VEC4:4}[a.type];const cs={5126:4,5125:4,5123:2,5121:1}[a.componentType];const st=v.st||n*cs;const dv=new DataView(v.u.buffer,v.u.byteOffset+(a.byteOffset||0));const o=[];
+    for(let k=0;k<a.count;k++){const e=[];for(let j=0;j<n;j++){const off=k*st+j*cs;e.push(a.componentType===5126?dv.getFloat32(off,true):a.componentType===5125?dv.getUint32(off,true):a.componentType===5123?dv.getUint16(off,true):dv.getUint8(off))}o.push(n===1?e[0]:e)}return o};
+  const imgURL=async ii=>{const im=G.images[ii];if(im.bufferView!=null){const v=view(im.bufferView);return await toDataURL(v.u,im.mimeType==='image/png'?'x.png':'x.jpg')}if(im.uri&&im.uri.startsWith('data:'))return im.uri;return files[baseName(im.uri)]||null};
+  const mats={};const matKey=async mi=>{if(mi==null)mi=-1;if(mats[mi])return mats[mi];const m=(G.materials||[])[mi]||{};const pb=m.pbrMetallicRoughness||{};let col=(pb.baseColorFactor||[.8,.8,.8]).slice(0,3),img=null;
+    if(pb.baseColorTexture){const t=G.textures[pb.baseColorTexture.index];if(t&&t.source!=null){const du=await imgURL(t.source);if(du)img=await shrink(du)}}return mats[mi]=out.mat(m.name,img?(pb.baseColorFactor||[1,1,1]).slice(0,3):col,img)};
+  const mul=(a,b)=>{const o=new Array(16).fill(0);for(let c=0;c<4;c++)for(let r=0;r<4;r++)for(let k=0;k<4;k++)o[c*4+r]+=a[k*4+r]*b[c*4+k];return o};
+  const trs=nd=>{if(nd.matrix)return nd.matrix;const [x,y,z,w]=nd.rotation||[0,0,0,1];const [sx,sy,sz]=nd.scale||[1,1,1];const t=nd.translation||[0,0,0];
+    return[(1-2*(y*y+z*z))*sx,(2*(x*y+z*w))*sx,(2*(x*z-y*w))*sx,0,(2*(x*y-z*w))*sy,(1-2*(x*x+z*z))*sy,(2*(y*z+x*w))*sy,0,(2*(x*z+y*w))*sz,(2*(y*z-x*w))*sz,(1-2*(x*x+y*y))*sz,0,t[0],t[1],t[2],1]};
+  const walk=async(ni,M)=>{const nd=G.nodes[ni];const L=mul(M,trs(nd));if(nd.mesh!=null)for(const pr of G.meshes[nd.mesh].primitives){if(pr.mode!=null&&pr.mode!==4)continue;const P=acc(pr.attributes.POSITION);const T=pr.attributes.TEXCOORD_0!=null?acc(pr.attributes.TEXCOORD_0):null;
+      const idx=pr.indices!=null?acc(pr.indices):P.map((_,i)=>i);const key=await matKey(pr.material);const tex=!!MATS[key].img;
+      const W=p=>{const q=[L[0]*p[0]+L[4]*p[1]+L[8]*p[2]+L[12],L[1]*p[0]+L[5]*p[1]+L[9]*p[2]+L[13],L[2]*p[0]+L[6]*p[1]+L[10]*p[2]+L[14]];return[q[0]*1000,-q[2]*1000,q[1]*1000]};
+      for(let k=0;k+2<idx.length;k+=3){const [a,b,c]=[idx[k],idx[k+1],idx[k+2]];out.tri(key,W(P[a]),W(P[b]),W(P[c]),tex&&T?T[a]:null,tex&&T?T[b]:null,tex&&T?T[c]:null)}}
+    for(const c of nd.children||[])await walk(c,L)};
+  const sc=(G.scenes||[{nodes:G.nodes.map((_,i)=>i)}])[G.scene||0];for(const ni of sc.nodes)await walk(ni,[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]);
+  if(!Object.keys(out.parts).length)throw new Error('в файле нет геометрии');addMesh(out,name)}
+function parseGlb(buf){const dv=new DataView(buf);if(dv.getUint32(0,true)!==0x46546c67)throw new Error('это не GLB');let p=12,json=null,bin=null;
+  while(p<buf.byteLength){const len=dv.getUint32(p,true),type=dv.getUint32(p+4,true);const data=new Uint8Array(buf,p+8,len);if(type===0x4E4F534A)json=JSON.parse(new TextDecoder().decode(data));else if(type===0x004E4942)bin=data;p+=8+len}return{json,bin}}
+// ---- STL (без текстур)
+function impStl(buf,name){const out=new MeshOut();const key=out.mat(name,[.8,.8,.82],null);const u=new Uint8Array(buf);const head=new TextDecoder().decode(u.subarray(0,Math.min(512,u.length)));const dv=new DataView(buf);
+  const bin=u.length>=84&&84+dv.getUint32(80,true)*50===u.length;
+  if(bin){const n=dv.getUint32(80,true);for(let i=0;i<n;i++){const o=84+i*50;const p=k=>[dv.getFloat32(o+12+k*12,true),dv.getFloat32(o+16+k*12,true),dv.getFloat32(o+20+k*12,true)];out.tri(key,p(0),p(1),p(2))}}
+  else{const t=new TextDecoder().decode(u);const vs=[...t.matchAll(/vertex\s+(\S+)\s+(\S+)\s+(\S+)/g)].map(m=>[+m[1],+m[2],+m[3]]);for(let i=0;i+2<vs.length;i+=3)out.tri(key,vs[i],vs[i+1],vs[i+2])}
+  let mx=0;for(const a of Object.values(out.parts))for(let i=0;i<a.length;i+=8)mx=Math.max(mx,Math.abs(a[i]),Math.abs(a[i+1]),Math.abs(a[i+2]));addMesh(out,name,{k:mx<30?1000:1})}
+// ---- общий вход: можно выбрать сразу несколько файлов (модель + картинки + .mtl), или архив .zip/.kmz
+async function importFiles(list){status('Читаю файлы…');const raw={};for(const f of list)raw[f.name]=new Uint8Array(await f.arrayBuffer());
+  for(const [n,u] of Object.entries({...raw}))if(/\.(zip|kmz)$/i.test(n)){const z=await readZip(u.buffer.slice(u.byteOffset,u.byteOffset+u.byteLength));for(const [zn,zu] of Object.entries(z))raw[zn]=zu;delete raw[n]}
+  const files={};for(const [n,u] of Object.entries(raw)){const b=baseName(n);if(IMGEXT.test(n))files[b]=await toDataURL(u,n);else if(/\.(mtl)$/i.test(n))files[b+':text']=new TextDecoder().decode(u);else if(/\.bin$/i.test(n))files[b+':bin']=u}
+  let done=0;const dec=u=>new TextDecoder().decode(u);
+  for(const [n,u] of Object.entries(raw)){const nm=baseName(n).replace(/\.[^.]+$/,'');try{
+    if(/\.dae$/i.test(n)){await impDae(dec(u),nm,files);done++}
+    else if(/\.obj$/i.test(n)){await impObj(dec(u),nm,files);done++}
+    else if(/\.glb$/i.test(n)){const {json,bin}=parseGlb(u.buffer.slice(u.byteOffset,u.byteOffset+u.byteLength));await impGltf(json,bin,nm,files);done++}
+    else if(/\.gltf$/i.test(n)){await impGltf(JSON.parse(dec(u)),null,nm,files);done++}
+    else if(/\.stl$/i.test(n)){impStl(u.buffer.slice(u.byteOffset,u.byteOffset+u.byteLength),nm);done++}}catch(err){alert('Не получилось открыть '+n+': '+err.message)}}
+  if(!done)status('Не нашёл модель: выберите файл .dae, .obj, .glb, .gltf, .stl или архив .zip/.kmz (можно вместе с картинками текстур)');leftPanel()}
+
 // ================= ПАНЕЛИ =================
 const TAGS=['Каркас','Крепёж','ГКЛ','Плитка','Трубы','Сантехника','Стены','Импорт','Прочее'];
 function refreshPanels(){leftPanel();rightPanel()}
@@ -533,6 +642,7 @@ function rightPanel(){const el=$('#right');const list=selObjs();
   const o=list[0];const C=COMPS[o.c];const inp=(lab,k,v,cls='')=>`<label>${lab}<input data-${cls||'pp'}="${k}" value="${fmt(v)}"></label>`;
   el.innerHTML=`<div class="ptitle">${esc(objName(o))}</div>
     ${C&&Object.keys(C.params).length?`<div class="grp">Размеры, мм</div><div class="row2">${Object.entries(C.params).map(([k,v])=>inp(v[0],k,o.P[k])).join('')}</div>`:''}
+    ${o.c==='mesh'?`<div class="grp">Единицы модели</div><label>Модель была в<select data-ok><option value="1" ${o.k===1?'selected':''}>миллиметрах</option><option value="10" ${o.k===10?'selected':''}>сантиметрах</option><option value="25.4" ${o.k===25.4?'selected':''}>дюймах</option><option value="1000" ${o.k===1000?'selected':''}>метрах</option></select></label><div class="note">Размер сейчас: ${(()=>{const b=objBox(o);return fmt(b[3]-b[0])+' × '+fmt(b[4]-b[1])+' × '+fmt(b[5]-b[2])})()} мм. Лежит на боку — поверните кнопкой «красная X».</div>`:''}
     <div class="grp">Положение (точка вставки), мм</div><div class="row3">${['X','Y','Z'].map((a,i)=>inp(a,i,o.o[i],'po')).join('')}</div>
     ${rotBtns()}${matSel(o.mat||'')}
     <label>Слой<select data-otag>${TAGS.map(t=>`<option ${objTag(o)===t?'selected':''}>${t}</option>`).join('')}</select></label>
@@ -592,43 +702,30 @@ function openModal(h){$('#modal .body').innerHTML=h;$('#modal').classList.add('o
 function download(name,data,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500)}
 function saveFile(){download(`каркас-${new Date().toISOString().slice(0,10)}.karkas.json`,JSON.stringify(projectData()),'application/json');status('Проект сохранён в файл. Открыть его потом — «Открыть».')}
 function openFile(f){const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(d.app==='karkas3d')loadProject(d);else throw 0;status('Проект открыт: '+f.name);viewFit()}catch(e){alert('Не получилось открыть: это не файл проекта.')}};r.readAsText(f)}
-// экспорт в COLLADA (.dae) для SketchUp: Файл → Импорт. Цвет каждой текстуры — средний цвет картинки
+// экспорт в SketchUp: архив .zip — внутри karkas.dae и папка textures с картинками (SketchUp подхватит текстуры при импорте)
+function crc32(u){let c,crc=-1;const T=crc32.t||(crc32.t=Array.from({length:256},(_,n)=>{c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;return c>>>0}));for(let i=0;i<u.length;i++)crc=T[(crc^u[i])&255]^(crc>>>8);return(crc^-1)>>>0}
+function makeZip(files){const enc=new TextEncoder();const parts=[],cd=[];let off=0;
+  for(const [name,data] of files){const nb=enc.encode(name);const d=typeof data==='string'?enc.encode(data):data;const crc=crc32(d);const h=new DataView(new ArrayBuffer(30));
+    h.setUint32(0,0x04034b50,true);h.setUint16(4,20,true);h.setUint16(6,0x0800,true);h.setUint32(14,crc,true);h.setUint32(18,d.length,true);h.setUint32(22,d.length,true);h.setUint16(26,nb.length,true);
+    parts.push(new Uint8Array(h.buffer),nb,d);const c=new DataView(new ArrayBuffer(46));c.setUint32(0,0x02014b50,true);c.setUint16(4,20,true);c.setUint16(6,20,true);c.setUint16(8,0x0800,true);c.setUint32(16,crc,true);c.setUint32(20,d.length,true);c.setUint32(24,d.length,true);c.setUint16(28,nb.length,true);c.setUint32(42,off,true);
+    cd.push(new Uint8Array(c.buffer),nb);off+=30+nb.length+d.length}
+  const cdl=cd.reduce((a,b)=>a+b.length,0);const e=new DataView(new ArrayBuffer(22));e.setUint32(0,0x06054b50,true);e.setUint16(8,files.length,true);e.setUint16(10,files.length,true);e.setUint32(12,cdl,true);e.setUint32(16,off,true);
+  return new Blob([...parts,...cd,new Uint8Array(e.buffer)],{type:'application/zip'})}
+const dataUrlBytes=du=>{const b=atob(du.split(',')[1]);const u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u};
 function exportDae(){const groups=new Map();
-  for(const o of SC.objs){if(SC.hide[objTag(o)])continue;const g=objGeo(o);const M=objW(o);for(const [m,a] of Object.entries(g.parts)){const mk=m==='main'?(o.mat||COMPS[o.c]?.mat||o.dm||'white'):m;matTex(mk);
-      if(!groups.has(mk))groups.set(mk,[]);const arr=groups.get(mk);for(let i=0;i<a.length;i+=8){const p=m4.xf(M,[a[i],a[i+1],a[i+2]]);arr.push(p[0]/1000,p[1]/1000,p[2]/1000)}}}
-  let effs='',mats='',geos='',nodes='';let gi=0;
-  for(const [mk,pts] of groups){const M=MATS[mk]||MATS.white;const avg=R3.texAvg[mk]||[1,1,1];const c=(M.col||[1,1,1]).map((v,i)=>(v*(M.tex||M.img?avg[i]:1)).toFixed(4));const id='m'+gi;const n=pts.length/3;
-    effs+=`<effect id="${id}-fx"><profile_COMMON><technique sid="c"><lambert><diffuse><color>${c.join(' ')} 1</color></diffuse></lambert></technique></profile_COMMON></effect>`;
-    mats+=`<material id="${id}" name="${esc(M.n)}"><instance_effect url="#${id}-fx"/></material>`;
-    geos+=`<geometry id="g${gi}"><mesh><source id="g${gi}-p"><float_array id="g${gi}-a" count="${n*3}">${pts.map(v=>v.toFixed(5)).join(' ')}</float_array><technique_common><accessor source="#g${gi}-a" count="${n}" stride="3"><param name="X" type="float"/><param name="Y" type="float"/><param name="Z" type="float"/></accessor></technique_common></source><vertices id="g${gi}-v"><input semantic="POSITION" source="#g${gi}-p"/></vertices><triangles material="${id}" count="${n/3}"><input semantic="VERTEX" source="#g${gi}-v" offset="0"/><p>${Array.from({length:n},(_,i)=>i).join(' ')}</p></triangles></mesh></geometry>`;
-    nodes+=`<node id="n${gi}" name="${esc(M.n)}"><instance_geometry url="#g${gi}"><bind_material><technique_common><instance_material symbol="${id}" target="#${id}"/></technique_common></bind_material></instance_geometry></node>`;gi++}
-  download('каркас.dae',`<?xml version="1.0" encoding="utf-8"?><COLLADA xmlns="http://www.collada.org/2005/11/COLLADASchema" version="1.4.1"><asset><unit name="meter" meter="1"/><up_axis>Z_UP</up_axis></asset><library_effects>${effs}</library_effects><library_materials>${mats}</library_materials><library_geometries>${geos}</library_geometries><library_visual_scenes><visual_scene id="s"><node id="karkas" name="Каркас">${nodes}</node></visual_scene></library_visual_scenes><scene><instance_visual_scene url="#s"/></scene></COLLADA>`,'model/vnd.collada+xml');
-  status('Модель .dae сохранена. В SketchUp: Файл → Импорт → выберите файл.')}
-// импорт .dae (из SketchUp: Файл → Экспорт → 3D-модель → COLLADA) — как один объект-«подложка»
-function importDae(text,name){const X=new DOMParser().parseFromString(text,'application/xml');const q=(el,s)=>Array.from(el.getElementsByTagName(s));
-  const unit=+((q(X,'unit')[0]||{getAttribute:()=>1}).getAttribute('meter')||1)*1000;const yUp=/Y_UP/.test((q(X,'up_axis')[0]||{}).textContent||'');
-  const byId={};for(const e of q(X,'*'))if(e.getAttribute('id'))byId[e.getAttribute('id')]=e;
-  const matCol=matId=>{const m=byId[matId];if(!m)return[.8,.8,.8];const ie=q(m,'instance_effect')[0];const fx=ie&&byId[(ie.getAttribute('url')||'').slice(1)];const c=fx&&q(fx,'diffuse')[0]&&q(q(fx,'diffuse')[0],'color')[0];return c?c.textContent.trim().split(/\s+/).slice(0,3).map(Number):[.8,.8,.8]};
-  const parts={};const mulM=(a,b)=>{const o=new Array(16).fill(0);for(let r=0;r<4;r++)for(let c=0;c<4;c++)for(let k=0;k<4;k++)o[r*4+c]+=a[r*4+k]*b[k*4+c];return o};const I=[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1];
-  const xf=(M,p)=>[M[0]*p[0]+M[1]*p[1]+M[2]*p[2]+M[3],M[4]*p[0]+M[5]*p[1]+M[6]*p[2]+M[7],M[8]*p[0]+M[9]*p[1]+M[10]*p[2]+M[11]];
-  const addGeo=(geo,M,bind)=>{const mesh=q(geo,'mesh')[0];if(!mesh)return;const vtx=q(mesh,'vertices')[0];const posIn=vtx&&q(vtx,'input').find(i=>i.getAttribute('semantic')==='POSITION');const src=posIn&&byId[posIn.getAttribute('source').slice(1)];if(!src)return;
-    const fa=q(src,'float_array')[0].textContent.trim().split(/\s+/).map(Number);const acc=q(src,'accessor')[0];const st=+(acc&&acc.getAttribute('stride')||3);
-    for(const prim of [...q(mesh,'triangles'),...q(mesh,'polylist'),...q(mesh,'polygons')]){const ins=q(prim,'input');const off=+(ins.find(i=>i.getAttribute('semantic')==='VERTEX').getAttribute('offset')||0);const n=Math.max(...ins.map(i=>+(i.getAttribute('offset')||0)))+1;
-      const sym=prim.getAttribute('material');const col=matCol(bind[sym]||sym);const key='imp_'+col.map(v=>Math.round(v*255).toString(16).padStart(2,'0')).join('');if(!MATS[key])MATS[key]={n:'Импорт '+key.slice(4),col,custom:true};
-      const arr=parts[key]||(parts[key]=[]);const P=i=>{let p=[fa[i*st],fa[i*st+1],fa[i*st+2]];p=xf(M,p);if(yUp)p=[p[0],-p[2],p[1]];return p.map(v=>v*unit)};
-      const polys=[];if(prim.tagName==='triangles'){const idx=q(prim,'p').map(p=>p.textContent.trim().split(/\s+/).map(Number)).flat();for(let i=0;i+3*n-1<idx.length;i+=3*n)polys.push([idx[i+off],idx[i+n+off],idx[i+2*n+off]])}
-      else if(prim.tagName==='polylist'){const vc=q(prim,'vcount')[0].textContent.trim().split(/\s+/).map(Number);const idx=q(prim,'p')[0].textContent.trim().split(/\s+/).map(Number);let k=0;for(const c of vc){const poly=[];for(let j=0;j<c;j++)poly.push(idx[(k+j)*n+off]);k+=c;polys.push(poly)}}
-      else for(const p of q(prim,'p')){const idx=p.textContent.trim().split(/\s+/).map(Number);const poly=[];for(let j=0;j*n<idx.length;j++)poly.push(idx[j*n+off]);polys.push(poly)}
-      for(const poly of polys)for(let j=1;j<poly.length-1;j++){const a=P(poly[0]),b=P(poly[j]),c=P(poly[j+1]);const nn=v3.norm(v3.cross(v3.sub(b,a),v3.sub(c,a)));if(!isFinite(nn[0]))continue;
-        const ax=Math.abs(nn[0]),ay=Math.abs(nn[1]),az=Math.abs(nn[2]);const f=ax>=ay&&ax>=az?p=>[p[1],p[2]]:ay>=az?p=>[p[0],p[2]]:p=>[p[0],p[1]];for(const p of [a,b,c])arr.push(...p,...nn,...f(p))}}};
-  const walk=(node,M,depth)=>{if(depth>40)return;let L=M;for(const ch of node.children){if(ch.tagName==='matrix'){const m=ch.textContent.trim().split(/\s+/).map(Number);L=mulM(L,m)}
-      if(ch.tagName==='translate'){const t=ch.textContent.trim().split(/\s+/).map(Number);L=mulM(L,[1,0,0,t[0],0,1,0,t[1],0,0,1,t[2],0,0,0,1])}
-      if(ch.tagName==='scale'){const t=ch.textContent.trim().split(/\s+/).map(Number);L=mulM(L,[t[0],0,0,0,0,t[1],0,0,0,0,t[2],0,0,0,0,1])}}
-    for(const ch of node.children){if(ch.tagName==='instance_geometry'){const bind={};for(const im of q(ch,'instance_material'))bind[im.getAttribute('symbol')]=(im.getAttribute('target')||'').slice(1);const g=byId[(ch.getAttribute('url')||'').slice(1)];if(g)addGeo(g,L,bind)}
-      if(ch.tagName==='instance_node'){const n=byId[(ch.getAttribute('url')||'').slice(1)];if(n)walk(n,L,depth+1)}if(ch.tagName==='node')walk(ch,L,depth+1)}};
-  const vs=q(X,'visual_scene')[0];if(!vs)throw new Error('нет сцены');for(const n of Array.from(vs.children))if(n.tagName==='node')walk(n,I,0);
-  const key='mesh_'+uid();SC.meshes[key]={name,parts:Object.fromEntries(Object.entries(parts).map(([k,a])=>[k,new Float32Array(a)]))};
-  const o={id:uid(),c:'mesh',mesh:key,name,P:{},o:[0,0,0],R:m3.I(),mat:null,tag:'Импорт'};SC.objs.push(o);SC.sel=new Set([o.id]);commit();viewFit([o]);status('Импортировано: '+name)}
+  for(const o of SC.objs){if(SC.hide[objTag(o)])continue;const g=objGeo(o);const M=objW(o);for(const [m,a] of Object.entries(g.parts)){const mk=m==='main'?(o.mat||COMPS[o.c]?.mat||o.dm||'white'):m;
+      if(!groups.has(mk))groups.set(mk,{p:[],t:[]});const G=groups.get(mk);const sz=(MATS[mk]||{}).size||[500,500];for(let i=0;i<a.length;i+=8){const p=m4.xf(M,[a[i],a[i+1],a[i+2]]);G.p.push(p[0]/1000,p[1]/1000,p[2]/1000);G.t.push(a[i+6]/sz[0],1-a[i+7]/sz[1])}}}
+  let imgs='',effs='',mats='',geos='',nodes='';let gi=0;const zipFiles=[];
+  for(const [mk,G] of groups){const M=MATS[mk]||MATS.white;const id='m'+gi;const n=G.p.length/3;let tex=null;
+    if(M.tex){tex=`textures/${mk}.png`;zipFiles.push([tex,dataUrlBytes(TEXGEN[M.tex](M.to||{}).toDataURL('image/png'))])}else if(M.img){tex=`textures/${mk}.jpg`;zipFiles.push([tex,dataUrlBytes(M.img)])}
+    if(tex){imgs+=`<image id="${id}-img"><init_from>${tex}</init_from></image>`;effs+=`<effect id="${id}-fx"><profile_COMMON><newparam sid="${id}-surf"><surface type="2D"><init_from>${id}-img</init_from></surface></newparam><newparam sid="${id}-smp"><sampler2D><source>${id}-surf</source></sampler2D></newparam><technique sid="c"><lambert><diffuse><texture texture="${id}-smp" texcoord="UVSET0"/></diffuse></lambert></technique></profile_COMMON></effect>`}
+    else{const c=(M.col||[1,1,1]).map(v=>v.toFixed(4));effs+=`<effect id="${id}-fx"><profile_COMMON><technique sid="c"><lambert><diffuse><color>${c.join(' ')} 1</color></diffuse></lambert></technique></profile_COMMON></effect>`}
+    mats+=`<material id="${id}" name="${esc(M.n)}"><instance_effect url="#${id}-fx"/></material>`;const ix=[];for(let i=0;i<n;i++)ix.push(i,i);
+    geos+=`<geometry id="g${gi}"><mesh><source id="g${gi}-p"><float_array id="g${gi}-a" count="${n*3}">${G.p.map(v=>v.toFixed(5)).join(' ')}</float_array><technique_common><accessor source="#g${gi}-a" count="${n}" stride="3"><param name="X" type="float"/><param name="Y" type="float"/><param name="Z" type="float"/></accessor></technique_common></source><source id="g${gi}-t"><float_array id="g${gi}-ta" count="${n*2}">${G.t.map(v=>v.toFixed(4)).join(' ')}</float_array><technique_common><accessor source="#g${gi}-ta" count="${n}" stride="2"><param name="S" type="float"/><param name="T" type="float"/></accessor></technique_common></source><vertices id="g${gi}-v"><input semantic="POSITION" source="#g${gi}-p"/></vertices><triangles material="${id}" count="${n/3}"><input semantic="VERTEX" source="#g${gi}-v" offset="0"/><input semantic="TEXCOORD" source="#g${gi}-t" offset="1" set="0"/><p>${ix.join(' ')}</p></triangles></mesh></geometry>`;
+    nodes+=`<node id="n${gi}" name="${esc(M.n)}"><instance_geometry url="#g${gi}"><bind_material><technique_common><instance_material symbol="${id}" target="#${id}"><bind_vertex_input semantic="UVSET0" input_semantic="TEXCOORD" input_set="0"/></instance_material></technique_common></bind_material></instance_geometry></node>`;gi++}
+  const dae=`<?xml version="1.0" encoding="utf-8"?><COLLADA xmlns="http://www.collada.org/2005/11/COLLADASchema" version="1.4.1"><asset><unit name="meter" meter="1"/><up_axis>Z_UP</up_axis></asset><library_images>${imgs}</library_images><library_effects>${effs}</library_effects><library_materials>${mats}</library_materials><library_geometries>${geos}</library_geometries><library_visual_scenes><visual_scene id="s"><node id="karkas" name="Каркас">${nodes}</node></visual_scene></library_visual_scenes><scene><instance_visual_scene url="#s"/></scene></COLLADA>`;
+  zipFiles.unshift(['karkas.dae',dae]);const a=document.createElement('a');a.href=URL.createObjectURL(makeZip(zipFiles));a.download='каркас-для-SketchUp.zip';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500);
+  status('Сохранён архив для SketchUp: распакуйте его, в SketchUp — Файл → Импорт → karkas.dae (текстуры лежат рядом в папке textures).')}
 function meshGeo(m){let bb=[1e9,1e9,1e9,-1e9,-1e9,-1e9];for(const a of Object.values(m.parts))for(let i=0;i<a.length;i+=8)for(let k=0;k<3;k++){bb[k]=Math.min(bb[k],a[i+k]);bb[k+3]=Math.max(bb[k+3],a[i+k])}
   const snaps=[];for(const x of [bb[0],bb[3]])for(const y of [bb[1],bb[4]])for(const z of [bb[2],bb[5]])snaps.push([x,y,z]);return{parts:m.parts,edges:new Float32Array(0),snaps,bb}}
 function pngShot(){drawScene();const a=document.createElement('a');a.href=R3.cv.toDataURL('image/png');a.download='каркас.png';a.click()}
@@ -656,9 +753,10 @@ function bindUI(){
     if(d.tag){SC.hide[d.tag]=!t.checked;autosave();requestDraw();return}
     if(d.genc){GEN[d.genc]=t.checked;return}
     if(d.omat!==undefined){for(const o of selObjs())o.mat=t.value||null;commit();return}
+    if(d.ok!==undefined){const o=selObjs()[0];if(o){o.k=+t.value;commit()}return}
     if(d.otag!==undefined){for(const o of selObjs())o.tag=t.value;commit();return}
     if(t.id==='fopen'&&t.files[0]){openFile(t.files[0]);t.value=''}
-    if(t.id==='fdae'&&t.files[0]){const f=t.files[0];const r=new FileReader();r.onload=()=>{try{importDae(r.result,f.name.replace(/\.dae$/i,''))}catch(err){alert('Не получилось прочитать .dae: '+err.message)}};r.readAsText(f);t.value=''}
+    if(t.id==='fdae'&&t.files.length){importFiles([...t.files]).catch(err=>alert('Ошибка импорта: '+err.message));t.value=''}
     if(t.id==='fimg'&&t.files[0]){const f=t.files[0];const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const c=document.createElement('canvas');const s=Math.min(1024,Math.max(im.width,im.height));c.width=c.height=s;c.getContext('2d').drawImage(im,0,0,s,s);
         const k='u_'+uid();MATS[k]={n:f.name.replace(/\.[^.]+$/,''),col:[1,1,1],img:c.toDataURL('image/jpeg',0.85),size:[num($('#tw').value)||600,num($('#th').value)||600],custom:true};UI.curMat=k;leftPanel();setTool('paint');autosave();status('Текстура добавлена — щёлкните по объекту, чтобы покрасить')};im.src=r.result};r.readAsDataURL(f);t.value=''}});
   document.addEventListener('input',e=>{const t=e.target,d=t.dataset;
