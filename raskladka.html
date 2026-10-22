@@ -1587,9 +1587,21 @@ function f3Build(it,el){const f=F(it);const pts=segPts(el);const pw=PW(f);const 
   el.segs.forEach((seg,si)=>{const a=pts[si],b=pts[si+1];const L=Math.hypot(b[0]-a[0],b[1]-a[1])||1;const d=[(b[0]-a[0])/L,(b[1]-a[1])/L];const n=[-d[1]*sgn,d[0]*sgn];segs.push({a,d,n,P:panelCalc(it,el,si,seg)});
     for(const p of [a,b]){bb[0]=Math.min(bb[0],p[0]);bb[1]=Math.min(bb[1],p[1]);bb[2]=Math.max(bb[2],p[0]);bb[3]=Math.max(bb[3],p[1])}});
   const W=(S,u,v,w)=>[(S.a[0]+S.d[0]*u+S.n[0]*w)*0.001,v*0.001,(S.a[1]+S.d[1]*u+S.n[1]*w)*0.001];
-  const tri=(p,q,r,c)=>{const e1=[q[0]-p[0],q[1]-p[1],q[2]-p[2]],e2=[r[0]-p[0],r[1]-p[1],r[2]-p[2]];let nn=[e1[1]*e2[2]-e1[2]*e2[1],e1[2]*e2[0]-e1[0]*e2[2],e1[0]*e2[1]-e1[1]*e2[0]];const l=Math.hypot(...nn)||1;nn=nn.map(x=>x/l);
+  const RAW=[];const tri=(p,q,r,c)=>{RAW.push(p,q,r,c);const e1=[q[0]-p[0],q[1]-p[1],q[2]-p[2]],e2=[r[0]-p[0],r[1]-p[1],r[2]-p[2]];let nn=[e1[1]*e2[2]-e1[2]*e2[1],e1[2]*e2[0]-e1[0]*e2[2],e1[0]*e2[1]-e1[1]*e2[0]];const l=Math.hypot(...nn)||1;nn=nn.map(x=>x/l);
     const k=0.5+0.5*Math.abs(nn[0]*LIGHT[0]+nn[1]*LIGHT[1]+nn[2]*LIGHT[2]);const cc=[c[0]*k,c[1]*k,c[2]*k];for(const v of [p,q,r])V.push(v[0],v[1],v[2],cc[0],cc[1],cc[2])};
   const quad=(p,q,r,s,c)=>{tri(p,q,r,c);tri(p,r,s,c)};
+  // вытягивание сечения профиля вдоль отрезка A→B (координаты участка u,v,w); сечение: точки [a,b], b — глубина от стены к обшивке
+  const prof=(S,A,B,sec,c,dir)=>{const pa=W(S,...A),pb=W(S,...B);let t=[pb[0]-pa[0],pb[1]-pa[1],pb[2]-pa[2]];const l=Math.hypot(...t);if(l<1e-4)return;t=t.map(x=>x/l);
+    const wn=[S.n[0],0,S.n[1]];let e=[t[1]*wn[2]-t[2]*wn[1],t[2]*wn[0]-t[0]*wn[2],t[0]*wn[1]-t[1]*wn[0]];const el=Math.hypot(...e)||1;e=e.map(x=>x/el);
+    const want=dir==='up'?[0,1,0]:dir==='down'?[0,-1,0]:[S.d[0],0,S.d[1]];if(e[0]*want[0]+e[1]*want[1]+e[2]*want[2]<0)e=e.map(x=>-x);
+    const at=(p,q)=>[p[0]+(e[0]*q[0]+wn[0]*q[1])*0.001,p[1]+(e[1]*q[0]+wn[1]*q[1])*0.001,p[2]+(e[2]*q[0]+wn[2]*q[1])*0.001];
+    for(const loop of sec.loops){const n=loop.length;for(let i=0;i<n;i++){const j=(i+1)%n;quad(at(pa,loop[i]),at(pa,loop[j]),at(pb,loop[j]),at(pb,loop[i]),c)}}
+    for(const [i,j,k] of sec.cap){const P3=sec.capP;tri(at(pa,P3[i]),at(pa,P3[j]),at(pa,P3[k]),c);tri(at(pb,P3[i]),at(pb,P3[j]),at(pb,P3[k]),c)}};
+  // соединительный уголок WB90102 на стыке (маленький тёмный уголок)
+  const conn=(S,u,v,mode)=>{const k=hex3('#3f4a56');if(mode==='side')box(S,u-pw/2-1,u+pw/2+1,v-pw/2-1,v+pw/2+1,D-3,D+1,k);else box(S,u-pw/2-1,u+pw/2+1,mode==='up'?v:v-14,mode==='up'?v+14:v,-1,D+1,k)};
+  // опора к полу WB90302
+  const fixF=(S,u)=>{const k=hex3('#4b5563');box(S,u-20,u+20,0,3,-20,D+20,k);box(S,u-3,u+3,3,pw+10,D+1,D+4,k)};
+  const SEC=f3Sections(f,D);
   // прямоугольный брусок в координатах участка; t0/t1 — верх слева/справа (для скоса)
   const box=(S,u0,u1,v0,v1,w0,w1,c,t0,t1)=>{const a0=t0===undefined?v1:t0,a1=t1===undefined?v1:t1;if(u1-u0<0.3)return;
     const P8=[W(S,u0,v0,w0),W(S,u1,v0,w0),W(S,u1,a1,w0),W(S,u0,a0,w0),W(S,u0,v0,w1),W(S,u1,v0,w1),W(S,u1,a1,w1),W(S,u0,a0,w1)];
@@ -1607,18 +1619,18 @@ function f3Build(it,el){const f=F(it);const pts=segPts(el);const pw=PW(f);const 
   for(const S of segs){const P=S.P;const L=P.L;const fr=P.ops.filter(o=>FOP[o.type].frame);
     // пол и стена позади
     box(S,0,L,-12,0,-back-80,surf+250,C.floor);if(!two)box(S,0,L,0,Math.max(P.H,P.SL?P.SL.maxH:0),-back-80,-back,C.wall);
-    // стойки и коротыши
-    for(const p of P.pieces){const atTop=p.y1>=P.topAt(p.x)-1;const v0=p.y0+(!kn&&p.y0<1&&P.onRail(p.x)?pw:0);
-      const t0=atTop?P.topAt(p.x-pw/2)-gt-(kn?0:pw):p.y1,t1=atTop?P.topAt(p.x+pw/2)-gt-(kn?0:pw):p.y1;
-      box(S,p.x-pw/2,p.x+pw/2,v0,Math.max(t0,t1),0,D,kn?C.kn:C.prof,t0,t1)}
-    for(const h of P.heads){const y=h.pos==='top'?h.y:h.y-pw;box(S,h.x0,h.x1,y,y+pw,0,D,kn?C.rail:C.prof)}
-    for(const c of P.cross)box(S,c.a+pw/2,c.b-pw/2,c.y-pw/2,c.y+pw/2,0,D,c.why==='закл'?C.zak:(kn?C.rail:C.prof));
+    // стойки и коротыши — настоящим сечением профиля
+    for(const p of P.pieces){const atTop=p.y1>=P.topAt(p.x)-1;const v0=p.y0+(!kn&&p.y0<1&&P.onRail(p.x)?pw:(kn&&p.y0<1?2:0));
+      const t0=atTop?P.topAt(p.x-pw/2)-gt-(kn?2:pw):p.y1,t1=atTop?P.topAt(p.x+pw/2)-gt-(kn?2:pw):p.y1;
+      prof(S,[p.x,v0,0],[p.x,Math.min(t0,t1),0],kn?SEC.ps:SEC.wb,kn?C.kn:C.prof,'u');
+      if(!kn&&p.y0<1&&P.onRail(p.x))conn(S,p.x,pw,'up');if(!kn&&atTop)conn(S,p.x,Math.min(t0,t1),'down')}
+    for(const h of P.heads){const y=h.pos==='top'?h.y+pw/2:h.y-pw/2;prof(S,[h.x0-(kn?pw/2:0),y,0],[h.x1+(kn?pw/2:0),y,0],kn?SEC.pn:SEC.wb,kn?C.rail:C.prof,h.pos==='top'?'down':'up');if(!kn){conn(S,h.x0,y,'side');conn(S,h.x1,y,'side')}}
+    for(const c of P.cross){prof(S,[c.a+(kn?-pw/2:pw/2),c.y,0],[c.b-(kn?-pw/2:pw/2),c.y,0],kn?SEC.pn:SEC.wb,c.why==='закл'?C.zak:(kn?C.rail:C.prof),'up');if(!kn){conn(S,c.a+pw/2,c.y,'side');conn(S,c.b-pw/2,c.y,'side')}}
     // направляющие / нижний и верхний профиль
-    const rh=kn?40:pw;for(const [a,b] of P.railSegs)box(S,a,b,0,rh,0,D,C.rail);
+    const rh=kn?40:pw;for(const [a,b] of P.railSegs){prof(S,[a,kn?0:pw/2,0],[b,kn?0:pw/2,0],kn?SEC.pn:SEC.wb,C.rail,'up');if(!kn)for(let x=a+50;x<b;x+=Math.max(300,(b-a-100)/Math.max(1,Math.ceil((b-a-100)/600))))fixF(S,x)}
     const tp=P.SL?P.SL.pts:[[0,P.H],[L,P.H]];for(let i=0;i<tp.length-1;i++){const [xa,ha]=tp[i],[xb,hb]=tp[i+1];const off=kn?0:gt;
       if(xb-xa<1)box(S,xa-pw/2,xa+pw/2,Math.min(ha,hb)-off-rh,Math.max(ha,hb)-off,0,D,C.rail);
-      if(xb-xa>=1){const y0a=ha-off-rh,y0b=hb-off-rh;// брусок по скату
-        const P8=[W(S,xa,y0a,0),W(S,xb,y0b,0),W(S,xb,hb-off,0),W(S,xa,ha-off,0),W(S,xa,y0a,D),W(S,xb,y0b,D),W(S,xb,hb-off,D),W(S,xa,ha-off,D)];for(const q of [[0,1,2,3],[5,4,7,6],[3,2,6,7],[4,5,1,0],[4,0,3,7],[1,5,6,2]])quad(P8[q[0]],P8[q[1]],P8[q[2]],P8[q[3]],C.rail)}}
+      else prof(S,[xa,ha-off-(kn?0:pw/2),0],[xb,hb-off-(kn?0:pw/2),0],kn?SEC.pn:SEC.wb,C.rail,'down')}
     // инсталляции
     for(const o of fr.filter(o=>o.type==='inst')){const x=n0(o.x),w=n0(o.w),h=n0(o.h),t=40,wb=-Math.min(back,150)+10;
       box(S,x,x+t,0,h,wb,-5,C.inst);box(S,x+w-t,x+w,0,h,wb,-5,C.inst);box(S,x,x+w,h-t,h,wb,-5,C.inst);box(S,x,x+w,380,420,wb,-5,C.inst);
@@ -1668,7 +1680,28 @@ function f3Build(it,el){const f=F(it);const pts=segPts(el);const pw=PW(f);const 
     else{// только каркас: подписи осей стоек
       if(FV3.dims)for(const x of P.xs)labels.push({p:W(S,x,-90,D),t:String(x),c:'#334155'})}
     maxH=Math.max(maxH,P.SL?P.SL.maxH:P.H)}
-  const cx=(bb[0]+bb[2])/2,cz=(bb[1]+bb[3])/2;return{buf:new Float32Array(V),n:V.length/6,labels,ctr:[cx*0.001,maxH*0.0005,cz*0.001],size:Math.max(bb[2]-bb[0],bb[3]-bb[1],maxH)*0.001,segs}}
+  const cx=(bb[0]+bb[2])/2,cz=(bb[1]+bb[3])/2;return{raw:RAW,buf:new Float32Array(V),n:V.length/6,labels,ctr:[cx*0.001,maxH*0.0005,cz*0.001],size:Math.max(bb[2]-bb[0],bb[3]-bb[1],maxH)*0.001,segs}}
+// сечения: WALLBOX — квадратная алюминиевая труба 33×33×1,5 со скруглёнными углами; Knauf ПС — С-профиль с отгибами и ребром, ПН — П-профиль
+function f3Sections(f,D){const ring=(h,r,b0)=>{const pts=[];const c=[[h-r,h-r],[-h+r,h-r],[-h+r,-h+r],[h-r,-h+r]];const st=[0,90,180,270];for(let k=0;k<4;k++)for(let i=0;i<=4;i++){const an=(st[k]+i*22.5)*Math.PI/180;pts.push([c[k][0]+r*Math.cos(an),c[k][1]+r*Math.sin(an)+b0])}return pts};
+  const wbO=ring(16.5,3,16.5),wbI=ring(15,1.5,16.5).reverse();const wbCap=[];const n=wbO.length;
+  // торцы трубы — кольцо между внешним и внутренним контуром
+  const capP=[...wbO,...wbI.slice().reverse()];for(let i=0;i<n;i++){const j=(i+1)%n;wbCap.push([i,j,n+j],[i,n+j,n+i])}
+  const mk=pts=>{const R=earTri(pts);return{loops:[R.P],cap:R.T,capP:R.P}};
+  const t=1.2,F=50,L1=7,H2=F/2;
+  const ps=mk([[H2,L1],[H2,0],[-H2,0],[-H2,D/2-5],[-H2+3,D/2],[-H2,D/2+5],[-H2,D],[H2,D],[H2,D-L1],[H2-t,D-L1],[H2-t,D-t],[-H2+t,D-t],[-H2+t,D/2+5],[-H2+3+t,D/2],[-H2+t,D/2-5],[-H2+t,t],[H2-t,t],[H2-t,L1]]);
+  const pn=mk([[40,0],[0,0],[0,D],[40,D],[40,D-t],[t,D-t],[t,t],[40,t]]);
+  return{wb:{loops:[wbO,wbI],cap:wbCap,capP},ps,pn}}
+// выгрузка модели в COLLADA (.dae): открывается в SketchUp (Файл → Импорт), Blender и др.; каждый цвет — свой материал
+function f3Dae(it,el){const R=FG.sc.raw;const groups=new Map();for(let i=0;i<R.length;i+=4){const c=R[i+3];const k=c.map(v=>Math.round(v*255)).join(',');if(!groups.has(k))groups.set(k,[]);groups.get(k).push(R[i],R[i+1],R[i+2])}
+  let mats='',effs='',geos='',nodes='';let gi=0;
+  for(const [k,pts] of groups){const id='m'+gi;const [r,g,b]=k.split(',').map(v=>(+v/255).toFixed(4));
+    effs+=`<effect id="${id}-fx"><profile_COMMON><technique sid="c"><lambert><diffuse><color>${r} ${g} ${b} 1</color></diffuse></lambert></technique></profile_COMMON></effect>`;
+    mats+=`<material id="${id}" name="${id}"><instance_effect url="#${id}-fx"/></material>`;
+    const pos=pts.map(p=>p.map(v=>v.toFixed(5)).join(' ')).join(' ');const n=pts.length;
+    geos+=`<geometry id="g${gi}"><mesh><source id="g${gi}-p"><float_array id="g${gi}-a" count="${n*3}">${pos}</float_array><technique_common><accessor source="#g${gi}-a" count="${n}" stride="3"><param name="X" type="float"/><param name="Y" type="float"/><param name="Z" type="float"/></accessor></technique_common></source><vertices id="g${gi}-v"><input semantic="POSITION" source="#g${gi}-p"/></vertices><triangles material="${id}" count="${n/3}"><input semantic="VERTEX" source="#g${gi}-v" offset="0"/><p>${Array.from({length:n},(_,i)=>i).join(' ')}</p></triangles></mesh></geometry>`;
+    nodes+=`<node id="n${gi}"><instance_geometry url="#g${gi}"><bind_material><technique_common><instance_material symbol="${id}" target="#${id}"/></technique_common></bind_material></instance_geometry></node>`;gi++}
+  const x=`<?xml version="1.0" encoding="utf-8"?><COLLADA xmlns="http://www.collada.org/2005/11/COLLADASchema" version="1.4.1"><asset><unit name="meter" meter="1"/><up_axis>Y_UP</up_axis></asset><library_effects>${effs}</library_effects><library_materials>${mats}</library_materials><library_geometries>${geos}</library_geometries><library_visual_scenes><visual_scene id="s"><node id="frame">${nodes}</node></visual_scene></library_visual_scenes><scene><instance_visual_scene url="#s"/></scene></COLLADA>`;
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([x],{type:'model/vnd.collada+xml'}));a.download=(el.name||'каркас').replace(/[^\wа-яё -]/gi,'')+'.dae';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},2000);toast('Файл .dae сохранён — в SketchUp: Файл → Импорт')}
 function f3Stop(){const g=FG;if(!g)return;FG=null;if(g.raf)cancelAnimationFrame(g.raf);try{const x=g.gl.getExtension('WEBGL_lose_context');if(x)x.loseContext()}catch(e){}}
 function f3Req(){if(FG&&!FG.raf)FG.raf=requestAnimationFrame(f3Frame)}
 function f3Eye(c){const cp=Math.cos(c.pitch);return[c.t[0]+c.dist*cp*Math.sin(c.yaw),c.t[1]+c.dist*Math.sin(c.pitch),c.t[2]+c.dist*cp*Math.cos(c.yaw)]}
@@ -1720,7 +1753,7 @@ function f3Card(it,el){if(!el)return'';if(!FV3.on)return`<div class="card" style
     <div class="chips" style="margin:8px 0">${ch('frame','Каркас')}${ch('g1',nl>1?'ГКЛ 1-й слой':'Обшить ГКЛ')}${nl>1?ch('g2','ГКЛ 2-й слой'):''}</div>
     <div class="row" style="gap:12px;flex-wrap:wrap;margin-bottom:6px">${ck('pipes','Трубы')}${FV3.show==='frame'?ck('dims','Размеры'):ck('screws','Саморезы')+ck('lines','Линии профиля')}${ck('flip','Обшивка с другой стороны')}</div>
     <div style="position:relative"><canvas id="fc3" style="width:100%;height:${Math.round(Math.min(innerHeight*0.62,520))}px;display:block;border-radius:12px;touch-action:none"></canvas><canvas id="fc3o" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas></div>
-    <div class="row" style="gap:8px;margin-top:6px"><button class="btn sm sec" data-fa="f3reset">⤢ Вид спереди</button><span class="small mute" style="align-self:center">Крутите пальцем, двумя — приблизить и сдвинуть.</span></div>
+    <div class="row" style="gap:8px;margin-top:6px;flex-wrap:wrap"><button class="btn sm sec" data-fa="f3reset">⤢ Вид спереди</button><button class="btn sm sec" data-fa="f3dae">⬇ Модель для SketchUp</button><span class="small mute" style="align-self:center">Крутите пальцем, двумя — приблизить и сдвинуть.</span></div>
     ${FV3.show!=='frame'?`<h3 style="margin:12px 0 4px">Разметка под саморезы</h3><div class="small" id="f3mark"></div>`:''}</div>`}
 
 function newEl(it,type){const f=F(it);const H=n0(it.ceil)||2700;let el;
@@ -1743,6 +1776,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-fset],[dat
   if(a==='f3on'){FV3.on=true;FV3.cam=null;renderFrame();setTimeout(()=>{const c=$('#fc3');if(c)c.scrollIntoView({block:'center',behavior:'smooth'})},50);return}
   else if(a==='f3off'){FV3.on=false;f3Stop();renderFrame();return}
   else if(a==='f3show'){FV3.show=b.dataset.v;renderFrame();return}
+  else if(a==='f3dae'){if(FG&&FG.sc)f3Dae(it,el);return}
   else if(a==='f3reset'){if(FG){FG.cam=null;f3Cam()}return}
   if(a==='sel'){f.sel=b.dataset.id;fview={z:1,cx:null,cy:null};FV3.cam=null}
   else if(a==='addwall'||a==='addbox'||a==='addcol'){newEl(it,a==='addwall'?'wall':a==='addbox'?'box':'col');fview={z:1,cx:null,cy:null}}
