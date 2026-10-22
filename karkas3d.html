@@ -1,0 +1,678 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Каркас 3D — конструктор</title>
+<style>
+:root{--bg:#f3f4f6;--card:#fff;--ink:#111827;--mute:#6b7280;--line:#e5e7eb;--acc:#d9572c;--acc2:#2563eb}
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:13px/1.35 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;overflow:hidden}
+#app{display:grid;grid-template-rows:auto 1fr auto;grid-template-columns:270px 1fr 280px;height:100vh}
+header{grid-column:1/4;display:flex;flex-wrap:wrap;gap:4px;align-items:center;padding:6px 8px;background:#1f2937;color:#fff}
+header .logo{font-weight:800;font-size:15px;margin-right:8px;letter-spacing:.2px}header .logo b{color:#fb923c}
+header .sep{width:1px;height:26px;background:#4b5563;margin:0 4px}
+header button{background:#374151;color:#f9fafb;border:0;border-radius:7px;padding:5px 7px;font:12.5px/1.2 inherit;cursor:pointer;display:inline-flex;gap:5px;align-items:center;white-space:nowrap}
+header button:hover{background:#4b5563}header button.on{background:var(--acc);color:#fff}header button kbd{display:none}
+aside{background:var(--card);border-right:1px solid var(--line);overflow:auto;padding:8px}#rightw{border-right:0;border-left:1px solid var(--line)}
+#ltabs{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px}#ltabs button{flex:1;border:1px solid var(--line);background:#f9fafb;border-radius:7px;padding:6px 4px;font:inherit;font-weight:600;cursor:pointer}#ltabs button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.grp{font-weight:800;margin:12px 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:.4px;color:#374151}
+button.comp{display:flex;gap:8px;align-items:center;width:100%;text-align:left;border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 7px;margin-bottom:4px;font:inherit;cursor:pointer}
+button.comp:hover{border-color:var(--acc)}button.comp.on{border-color:var(--acc);background:#fff4ee}button.comp small{display:block;color:var(--mute);font-size:11px}
+.sw{width:20px;height:20px;border-radius:5px;border:1px solid rgba(0,0,0,.15);flex:none}
+.mats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.mat{border:2px solid transparent;background:#f9fafb;border-radius:8px;padding:4px;cursor:pointer;font:11px/1.2 inherit;display:flex;flex-direction:column;align-items:center;gap:3px}
+.mat canvas{width:56px;height:56px;border-radius:6px}.mat.on{border-color:var(--acc)}.mat span{text-align:center;font-size:10.5px}
+.note{color:var(--mute);font-size:12px;margin:8px 0}
+label{display:block;font-size:12px;color:#374151;margin:4px 0}label input,label select{display:block;width:100%;margin-top:2px;padding:6px 7px;border:1px solid #d1d5db;border-radius:6px;font:inherit;background:#fff}
+label.tag{display:flex;gap:8px;align-items:center;font-size:13px;padding:5px 0}label.tag input{width:auto;margin:0}label.tag small{color:var(--mute);margin-left:auto}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:6px}.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.btn{display:block;width:100%;margin:6px 0;padding:8px;border:1px solid #d1d5db;border-radius:8px;background:#fff;font:inherit;font-weight:600;cursor:pointer}.btn:hover{border-color:var(--acc)}
+.btn.on{background:var(--ink);color:#fff}.btn.main{background:var(--acc);border-color:var(--acc);color:#fff}.btn.red{color:#b91c1c}
+.ptitle{font-weight:800;font-size:15px;margin:2px 0 8px}
+#stage{position:relative;overflow:hidden}#cv,#ov{position:absolute;inset:0;width:100%;height:100%;display:block}#ov{pointer-events:none}#cv{cursor:crosshair}
+footer{grid-column:1/4;display:flex;gap:10px;align-items:center;padding:6px 10px;background:#fff;border-top:1px solid var(--line)}
+#hint{flex:1;color:#374151}#vcbw{display:flex;gap:6px;align-items:center;font-weight:700}#vcb{width:150px;padding:6px 8px;border:2px solid var(--acc2);border-radius:7px;font:inherit;font-weight:700}
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;z-index:9}#modal.on{display:flex}
+#modal .win{background:#fff;border-radius:12px;width:min(820px,94vw);max-height:88vh;display:flex;flex-direction:column}#modal .body{overflow:auto;padding:16px 20px}#modal .bar{display:flex;gap:8px;justify-content:flex-end;padding:10px 16px;border-top:1px solid var(--line)}
+#modal .bar button{width:auto;margin:0}table{border-collapse:collapse;width:100%;margin:6px 0 14px}td,th{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}th{background:#f9fafb}
+#modal h2{margin:0 0 8px}#modal kbd{background:#f3f4f6;border:1px solid #d1d5db;border-radius:4px;padding:0 5px;font:12px monospace}
+@media print{body *{visibility:hidden}#modal,#modal *{visibility:visible}#modal{position:absolute;inset:0;background:#fff;display:block}#modal .bar{display:none}#modal .win{width:100%;max-height:none}}
+</style></head><body>
+<div id="app">
+<header>
+  <span class="logo">Каркас <b>3D</b></span>
+  <button data-act="new" title="Новый проект">📄</button><button data-act="open">📂 Открыть</button><button data-act="save" title="Ctrl+S">💾 Сохранить</button>
+  <button data-act="dae" title="Для SketchUp: Файл → Импорт">⬇ SketchUp</button><button data-act="idae" title="Модель из SketchUp: Экспорт → COLLADA">⬆ Импорт</button><button data-act="png">🖼</button>
+  <span class="sep"></span><button data-act="undo" title="Ctrl+Z">↶</button><button data-act="redo" title="Ctrl+Y">↷</button><span class="sep"></span>
+  <button data-tool="select" title="Выбор (Пробел)">🖱 Выбор <kbd>Пробел</kbd></button><button data-tool="profile" title="Профиль (P)">📏 Профиль <kbd>P</kbd></button><button data-tool="move" title="Переместить (M)">✥ Двигать <kbd>M</kbd></button><button data-tool="copy" title="Копировать (C)">⧉ Копия <kbd>C</kbd></button>
+  <button data-tool="rotate" title="Повернуть (Q)">⟲ <kbd>Q</kbd></button><button data-tool="paint" title="Покрасить (B)">🪣 Краска <kbd>B</kbd></button><button data-tool="tape" title="Рулетка (T)">📐 <kbd>T</kbd></button><button data-tool="dim" title="Размер (D)">↔ Размер <kbd>D</kbd></button><button data-tool="erase" title="Ластик (E)">⌫ <kbd>E</kbd></button>
+  <span class="sep"></span><button data-tool="orbit" title="Вращать вид (O)">🔄 <kbd>O</kbd></button><button data-tool="pan" title="Двигать вид (H)">✋ <kbd>H</kbd></button>
+  <button data-view="iso">Изо</button><button data-view="front">Спереди</button><button data-view="right">Справа</button><button data-view="top">Сверху</button><button data-act="allfit">⤢ Всё</button>
+  <span class="sep"></span><button data-act="xray">👁 Рентген</button><button data-act="ortho">⧈ Ортогон.</button><button data-act="edges" class="on">Рёбра</button><button data-act="gridt" class="on">Сетка</button><button data-act="snapg" title="Округлять точки до 10 мм">#10</button>
+  <span class="sep"></span><button data-act="spec">📋 Спецификация</button><button data-act="dimclr">✕ Размеры</button><button data-act="help">❔</button>
+</header>
+<aside><div id="ltabs"></div><div id="left"></div></aside>
+<div id="stage"><canvas id="cv"></canvas><canvas id="ov"></canvas></div>
+<aside id="rightw"><div id="right"></div></aside>
+<footer><div id="hint"></div><div id="vcbw"><span id="vcbl">Длина</span><input id="vcb" placeholder="введите и Enter" autocomplete="off"></div></footer>
+</div>
+<div id="modal"><div class="win"><div class="body"></div><div class="bar"><button class="btn" data-act="print">🖨 Печать / PDF</button><button class="btn main" data-act="close">Закрыть</button></div></div></div>
+<input type="file" id="fopen" accept=".json,.karkas,application/json" hidden><input type="file" id="fdae" accept=".dae" hidden><input type="file" id="fimg" accept="image/*" hidden>
+<template id="helptpl"><h2>Как работать</h2>
+<p><b>Мышь:</b> колесо — приблизить к курсору; правая кнопка (или колесо) зажать — вращать; <kbd>Shift</kbd> + правая — двигать вид. Двойной щелчок по объекту — показать его крупно.</p>
+<p><b>Профиль <kbd>P</kbd>:</b> выберите слева профиль (WALLBOX, ПС, ПН, трубу), щёлкните начало и конец. Длину можно сразу набрать на клавиатуре и нажать <kbd>Enter</kbd>. Линия становится цветной, когда идёт вдоль оси: красная — X, зелёная — Y, синяя — Z. Стрелки <kbd>→</kbd> <kbd>←</kbd> <kbd>↑</kbd> закрепляют ось. Начните профиль на грани другого — он ляжет вплотную. <kbd>R</kbd> — повернуть профиль вокруг своей оси. <kbd>Esc</kbd> — закончить.</p>
+<p><b>Привязки:</b> зелёный кружок — точка (конец, угол, середина), синий квадрат — на грани, серый — на полу.</p>
+<p><b>Переместить <kbd>M</kbd> / Копировать <kbd>C</kbd>:</b> выделите, щёлкните точку, ведите, щёлкните. Расстояние можно набрать и <kbd>Enter</kbd>. После копии наберите <kbd>x5</kbd> и <kbd>Enter</kbd> — получится ряд из 5 копий.</p>
+<p><b>Повернуть:</b> <kbd>Q</kbd> — 90° вокруг вертикали, кнопки справа — вокруг любой оси.</p>
+<p><b>Текстуры:</b> вкладка «Текстуры» — выберите и щёлкните по объекту. Можно загрузить свою картинку (фото плитки) и указать её реальный размер.</p>
+<p><b>Быстро построить:</b> каркас стены WALLBOX или Knauf со стойками, горизонталями, уголками, креплениями и ГКЛ — потом правьте любую деталь.</p>
+<p><b>Спецификация:</b> всё, что в модели, списком + сколько хлыстов профиля покупать.</p>
+<p><b>SketchUp:</b> «В SketchUp (.dae)» → в SketchUp: Файл → Импорт. Модели из SketchUp: Файл → Экспорт → 3D-модель → COLLADA (.dae) → здесь «Импорт .dae».</p>
+<p>Проект сохраняется в браузере сам. Чтобы перенести на другой компьютер — «Сохранить» (файл) и «Открыть».</p></template>
+<script>
+'use strict';
+// ================= МАТЕМАТИКА =================
+const v3={
+  add:(a,b)=>[a[0]+b[0],a[1]+b[1],a[2]+b[2]],sub:(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]],mul:(a,k)=>[a[0]*k,a[1]*k,a[2]*k],
+  dot:(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2],cross:(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]],
+  len:a=>Math.hypot(a[0],a[1],a[2]),norm:a=>{const l=Math.hypot(a[0],a[1],a[2])||1;return[a[0]/l,a[1]/l,a[2]/l]},
+  dist:(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1],a[2]-b[2]),lerp:(a,b,t)=>[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t]};
+// 3×3 по строкам
+const m3={I:()=>[1,0,0,0,1,0,0,0,1],
+  mul:(a,b)=>{const o=new Array(9);for(let r=0;r<3;r++)for(let c=0;c<3;c++)o[r*3+c]=a[r*3]*b[c]+a[r*3+1]*b[3+c]+a[r*3+2]*b[6+c];return o},
+  apply:(m,v)=>[m[0]*v[0]+m[1]*v[1]+m[2]*v[2],m[3]*v[0]+m[4]*v[1]+m[5]*v[2],m[6]*v[0]+m[7]*v[1]+m[8]*v[2]],
+  rot:(axis,deg)=>{const a=deg*Math.PI/180,c=Math.cos(a),s=Math.sin(a);const [x,y,z]=v3.norm(axis);const t=1-c;
+    return[t*x*x+c,t*x*y-s*z,t*x*z+s*y,t*x*y+s*z,t*y*y+c,t*y*z-s*x,t*x*z-s*y,t*y*z+s*x,t*z*z+c]},
+  // базис: столбцы X,Y,Z
+  basis:(X,Y,Z)=>[X[0],Y[0],Z[0],X[1],Y[1],Z[1],X[2],Y[2],Z[2]],
+  clean:m=>m.map(v=>Math.abs(v)<1e-9?0:Math.abs(Math.abs(v)-1)<1e-9?Math.sign(v):v)};
+const m4={
+  per(f,a,n,fa){const t=1/Math.tan(f/2);return[t/a,0,0,0,0,t,0,0,0,0,(fa+n)/(n-fa),-1,0,0,2*fa*n/(n-fa),0]},
+  ortho(w,h,n,f){return[2/w,0,0,0,0,2/h,0,0,0,0,-2/(f-n),0,0,0,-(f+n)/(f-n),1]},
+  look(e,c,u){let z=v3.norm(v3.sub(e,c));let x=v3.norm(v3.cross(u,z));const y=v3.cross(z,x);
+    return[x[0],y[0],z[0],0,x[1],y[1],z[1],0,x[2],y[2],z[2],0,-v3.dot(x,e),-v3.dot(y,e),-v3.dot(z,e),1]},
+  mul(a,b){const o=new Array(16);for(let c=0;c<4;c++)for(let r=0;r<4;r++){let s=0;for(let k=0;k<4;k++)s+=a[k*4+r]*b[c*4+k];o[c*4+r]=s}return o},
+  // из матрицы поворота (по строкам) и сдвига — в столбцовую 4×4
+  fromRT(R,t){return[R[0],R[3],R[6],0,R[1],R[4],R[7],0,R[2],R[5],R[8],0,t[0],t[1],t[2],1]},
+  xf(M,p){const x=M[0]*p[0]+M[4]*p[1]+M[8]*p[2]+M[12],y=M[1]*p[0]+M[5]*p[1]+M[9]*p[2]+M[13],z=M[2]*p[0]+M[6]*p[1]+M[10]*p[2]+M[14],w=M[3]*p[0]+M[7]*p[1]+M[11]*p[2]+M[15];return[x/w,y/w,z/w,w]}};
+const uid=()=>Math.random().toString(36).slice(2,10);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const fmt=v=>String(Math.round(v*10)/10).replace('.',',');
+const num=v=>{const x=parseFloat(String(v).replace(',','.').replace(/\s/g,''));return isFinite(x)?x:0};
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+// триангуляция многоугольника (отсечение ушей)
+function earTri(P0){const P=[];for(const q of P0){const l=P[P.length-1];if(!l||Math.abs(l[0]-q[0])>1e-6||Math.abs(l[1]-q[1])>1e-6)P.push(q)}
+  if(P.length>2){const a=P[0],b=P[P.length-1];if(Math.abs(a[0]-b[0])<1e-6&&Math.abs(a[1]-b[1])<1e-6)P.pop()}
+  const n=P.length;if(n<3)return{P,T:[]};let ar=0;for(let i=0;i<n;i++){const a=P[i],b=P[(i+1)%n];ar+=a[0]*b[1]-b[0]*a[1]}const s=ar>0?1:-1;
+  const cr=(a,b,c)=>((b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]))*s;const idx=[...Array(n).keys()];const T=[];let guard=0;
+  while(idx.length>3&&guard++<5000){let cut=false;const m=idx.length;
+    for(let k=0;k<m;k++){const i0=idx[(k-1+m)%m],i1=idx[k],i2=idx[(k+1)%m];const a=P[i0],b=P[i1],c=P[i2];if(cr(a,b,c)<=1e-9)continue;
+      let bad=false;for(const j of idx){if(j===i0||j===i1||j===i2)continue;const p=P[j];if(cr(a,b,p)>=-1e-9&&cr(b,c,p)>=-1e-9&&cr(c,a,p)>=-1e-9){bad=true;break}}
+      if(bad)continue;T.push([i0,i1,i2]);idx.splice(k,1);cut=true;break}
+    if(!cut){for(let k=1;k<idx.length-1;k++)T.push([idx[0],idx[k],idx[k+1]]);return{P,T,s}}}
+  if(idx.length===3)T.push([idx[0],idx[1],idx[2]]);return{P,T,s}}
+
+// ================= МАТЕРИАЛЫ И ТЕКСТУРЫ =================
+// Текстура рисуется на холсте один раз; size — сколько мм реального размера занимает одна картинка
+function rnd(seed){let s=seed>>>0||1;return()=>{s^=s<<13;s^=s>>>17;s^=s<<5;return((s>>>0)%100000)/100000}}
+function cv(n=512){const c=document.createElement('canvas');c.width=c.height=n;return[c,c.getContext('2d')]}
+function noise(g,n,amt,seed,col='0,0,0'){const r=rnd(seed);for(let i=0;i<n*n/6;i++){g.fillStyle=`rgba(${col},${r()*amt})`;g.fillRect(r()*n,r()*n,1+r()*2,1+r()*2)}}
+const TEXGEN={
+  alu(){const [c,g]=cv(256);g.fillStyle='#c9cfd6';g.fillRect(0,0,256,256);const r=rnd(3);for(let y=0;y<256;y++){g.fillStyle=`rgba(${r()<.5?'255,255,255':'60,70,80'},${r()*0.18})`;g.fillRect(0,y,256,1)}return c},
+  zinc(){const [c,g]=cv(256);g.fillStyle='#b9c0c7';g.fillRect(0,0,256,256);const r=rnd(7);for(let i=0;i<70;i++){const x=r()*256,y=r()*256,s=10+r()*30;g.fillStyle=`rgba(${r()<.5?'255,255,255':'90,100,110'},${0.08+r()*0.12})`;g.beginPath();for(let k=0;k<7;k++){const a=k/7*6.283,rr=s*(0.6+r()*0.5);g.lineTo(x+Math.cos(a)*rr,y+Math.sin(a)*rr)}g.fill()}noise(g,256,.08,9);return c},
+  steel(){const [c,g]=cv(256);g.fillStyle='#4b5563';g.fillRect(0,0,256,256);noise(g,256,.15,11,'255,255,255');return c},
+  plywood(){const [c,g]=cv(512);g.fillStyle='#d9b77e';g.fillRect(0,0,512,512);const r=rnd(5);for(let i=0;i<60;i++){const y=r()*512;g.strokeStyle=`rgba(140,95,40,${0.1+r()*0.25})`;g.lineWidth=1+r()*3;g.beginPath();g.moveTo(0,y);for(let x=0;x<=512;x+=32)g.lineTo(x,y+Math.sin(x/60+i)*6*r());g.stroke()}
+    for(let i=0;i<6;i++){g.fillStyle='rgba(120,80,30,.35)';g.beginPath();g.ellipse(r()*512,r()*512,8+r()*10,4+r()*5,0,0,6.3);g.fill()}return c},
+  gklv(){const [c,g]=cv(256);g.fillStyle='#8fc6a2';g.fillRect(0,0,256,256);noise(g,256,.1,13);noise(g,256,.12,14,'255,255,255');return c},
+  gkl(){const [c,g]=cv(256);g.fillStyle='#d8d5cf';g.fillRect(0,0,256,256);noise(g,256,.08,15);return c},
+  cement(){const [c,g]=cv(256);g.fillStyle='#b8b4ac';g.fillRect(0,0,256,256);noise(g,256,.25,16);noise(g,256,.2,17,'255,255,255');return c},
+  logs(){const [c,g]=cv(512);const r=rnd(19);for(let k=0;k<2;k++){const y0=k*256;const gr=g.createLinearGradient(0,y0,0,y0+256);gr.addColorStop(0,'#8a5a2b');gr.addColorStop(.15,'#c48b4f');gr.addColorStop(.55,'#d9a467');gr.addColorStop(.9,'#a8703a');gr.addColorStop(1,'#6b4220');g.fillStyle=gr;g.fillRect(0,y0,512,256);
+    for(let i=0;i<40;i++){const y=y0+20+r()*216;g.strokeStyle=`rgba(110,65,25,${0.08+r()*0.2})`;g.lineWidth=1+r()*2;g.beginPath();g.moveTo(0,y);for(let x=0;x<=512;x+=40)g.lineTo(x,y+(r()-.5)*4);g.stroke()}}return c},
+  boards(){const [c,g]=cv(512);const r=rnd(23);for(let k=0;k<4;k++){g.fillStyle=`hsl(30,${45+r()*10}%,${55+r()*10}%)`;g.fillRect(0,k*128,512,128);for(let i=0;i<14;i++){g.strokeStyle=`rgba(120,75,30,${0.1+r()*0.2})`;g.beginPath();const y=k*128+r()*128;g.moveTo(0,y);g.bezierCurveTo(170,y+r()*10,340,y-r()*10,512,y);g.stroke()}g.fillStyle='rgba(60,35,15,.6)';g.fillRect(0,k*128,512,2)}return c},
+  concrete(){const [c,g]=cv(256);g.fillStyle='#9ea1a3';g.fillRect(0,0,256,256);noise(g,256,.3,29);noise(g,256,.2,31,'255,255,255');return c},
+  brick(){const [c,g]=cv(512);g.fillStyle='#cfc6b8';g.fillRect(0,0,512,512);const r=rnd(37);const bh=512/8,bw=512/2;for(let row=0;row<8;row++){const off=row%2?bw/2:0;for(let i=-1;i<3;i++){g.fillStyle=`hsl(${8+r()*10},${45+r()*15}%,${35+r()*10}%)`;g.fillRect(off+i*bw+6,row*bh+5,bw-12,bh-10)}}noise(g,512,.15,41);return c},
+  tile(o){const [c,g]=cv(512);g.fillStyle=o.grout||'#9aa0a6';g.fillRect(0,0,512,512);const nx=o.nx||1,ny=o.ny||2,j=o.j||6;const w=512/nx,h=512/ny;const r=rnd(o.seed||43);
+    for(let i=0;i<nx;i++)for(let k=0;k<ny;k++){g.fillStyle=o.col||'#f4f3ef';g.fillRect(i*w+j/2,k*h+j/2,w-j,h-j);if(o.marble){g.save();g.beginPath();g.rect(i*w+j/2,k*h+j/2,w-j,h-j);g.clip();for(let v=0;v<5;v++){g.strokeStyle=`rgba(120,120,130,${0.15+r()*0.25})`;g.lineWidth=1+r()*2.5;g.beginPath();let x=i*w+r()*w,y=k*h;g.moveTo(x,y);for(let s=0;s<12;s++){x+=(r()-.5)*40;y+=h/10;g.lineTo(x,y)}g.stroke()}g.restore()}
+      const gr=g.createLinearGradient(i*w,k*h,i*w+w,k*h+h);gr.addColorStop(0,'rgba(255,255,255,.12)');gr.addColorStop(1,'rgba(0,0,0,.05)');g.fillStyle=gr;g.fillRect(i*w+j/2,k*h+j/2,w-j,h-j)}return c},
+  rubber(){const [c,g]=cv(128);g.fillStyle='#1f2328';g.fillRect(0,0,128,128);noise(g,128,.1,47,'255,255,255');return c}};
+// базовые материалы: n — название, col — оттенок, tex — генератор, size — мм на одну картинку
+const MATS={
+  alu:{n:'Алюминий (WALLBOX)',col:[1,1,1],tex:'alu',size:[300,300]},
+  zinc:{n:'Оцинковка (Knauf)',col:[1,1,1],tex:'zinc',size:[400,400]},
+  steel:{n:'Сталь тёмная (крепёж)',col:[1,1,1],tex:'steel',size:[100,100]},
+  plywood:{n:'Фанера',col:[1,1,1],tex:'plywood',size:[600,600]},
+  gklv:{n:'ГКЛ влагостойкий',col:[1,1,1],tex:'gklv',size:[600,600]},
+  gkl:{n:'ГКЛ обычный',col:[1,1,1],tex:'gkl',size:[600,600]},
+  cement:{n:'Цементная плита',col:[1,1,1],tex:'cement',size:[500,500]},
+  logs:{n:'Брус / бревно',col:[1,1,1],tex:'logs',size:[1200,400]},
+  boards:{n:'Доска',col:[1,1,1],tex:'boards',size:[1200,600]},
+  concrete:{n:'Бетон / стяжка',col:[1,1,1],tex:'concrete',size:[600,600]},
+  brick:{n:'Кирпич',col:[1,1,1],tex:'brick',size:[500,540]},
+  tile_w:{n:'Плитка белая 300×600',col:[1,1,1],tex:'tile',to:{nx:1,ny:2,col:'#f6f5f1',grout:'#b7bcc1'},size:[302,1204]},
+  tile_g:{n:'Керамогранит серый 600×600',col:[1,1,1],tex:'tile',to:{nx:2,ny:2,col:'#8d8f8e',grout:'#5c5f62',seed:5},size:[1204,1204]},
+  tile_m:{n:'Плитка «мрамор» 600×1200',col:[1,1,1],tex:'tile',to:{nx:2,ny:1,col:'#f2f1ee',grout:'#c9cbcc',marble:true},size:[1204,1204]},
+  mosaic:{n:'Мозаика 25×25',col:[1,1,1],tex:'tile',to:{nx:8,ny:8,col:'#6aa9c9',grout:'#e8e8e8',j:10},size:[208,208]},
+  ppr:{n:'Труба PPR белая',col:[.95,.95,.93]},hot:{n:'Труба — горячая',col:[.86,.2,.2]},cold:{n:'Труба — холодная',col:[.2,.42,.86]},
+  sewer:{n:'Канализация серая',col:[.62,.64,.66]},brass:{n:'Латунь',col:[.8,.65,.3]},chrome:{n:'Хром',col:[.85,.87,.9]},
+  white:{n:'Белый',col:[.96,.96,.95]},green:{n:'Зелёный (инсталляция)',col:[.18,.6,.38]},rubber:{n:'Резина / уплотнитель',col:[1,1,1],tex:'rubber',size:[100,100]},
+  glass:{n:'Стекло',col:[.75,.88,.92]}};
+
+// ================= ПОСТРОЕНИЕ ГЕОМЕТРИИ =================
+// Части объекта собираются по материалам: 'main' — материал объекта (его можно перекрасить), остальные — фиксированные.
+// Вершина: x,y,z, nx,ny,nz, u,v (u,v — в мм; в шейдере делятся на размер текстуры)
+class Builder{
+  constructor(){this.parts={};this.edges=[];this.snaps=[];this.st=[{R:m3.I(),t:[0,0,0]}];this.bb=[1e9,1e9,1e9,-1e9,-1e9,-1e9]}
+  get T(){return this.st[this.st.length-1]}
+  push(R,t){const c=this.T;this.st.push({R:m3.mul(c.R,R||m3.I()),t:v3.add(c.t,m3.apply(c.R,t||[0,0,0]))})}
+  pop(){this.st.pop()}
+  P(p){const c=this.T;return v3.add(c.t,m3.apply(c.R,p))}
+  N(n){return v3.norm(m3.apply(this.T.R,n))}
+  part(m){return this.parts[m]||(this.parts[m]=[])}
+  // треугольник уже в координатах объекта; uv — пары мм
+  triW(a,b,c,m,uv){const n=v3.norm(v3.cross(v3.sub(b,a),v3.sub(c,a)));if(!isFinite(n[0]))return;const A=this.part(m);
+    if(!uv){const ax=Math.abs(n[0]),ay=Math.abs(n[1]),az=Math.abs(n[2]);const f=ax>=ay&&ax>=az?p=>[p[1],p[2]]:ay>=az?p=>[p[0],p[2]]:p=>[p[0],p[1]];uv=[f(a),f(b),f(c)]}
+    [a,b,c].forEach((p,i)=>{A.push(p[0],p[1],p[2],n[0],n[1],n[2],uv[i][0],uv[i][1]);for(let k=0;k<3;k++){this.bb[k]=Math.min(this.bb[k],p[k]);this.bb[k+3]=Math.max(this.bb[k+3],p[k])}})}
+  tri(a,b,c,m,uv){this.triW(this.P(a),this.P(b),this.P(c),m,uv)}
+  quad(a,b,c,d,m,uv){this.tri(a,b,c,m,uv&&[uv[0],uv[1],uv[2]]);this.tri(a,c,d,m,uv&&[uv[0],uv[2],uv[3]])}
+  edge(a,b){this.edges.push(this.P(a),this.P(b))}
+  snap(p){this.snaps.push(this.P(p))}
+  box(x0,y0,z0,x1,y1,z1,m,noSnap){const p=[[x0,y0,z0],[x1,y0,z0],[x1,y1,z0],[x0,y1,z0],[x0,y0,z1],[x1,y0,z1],[x1,y1,z1],[x0,y1,z1]];
+    for(const f of [[0,3,2,1],[4,5,6,7],[0,1,5,4],[2,3,7,6],[1,2,6,5],[3,0,4,7]])this.quad(p[f[0]],p[f[1]],p[f[2]],p[f[3]],m);
+    for(const [a,b] of [[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]])this.edge(p[a],p[b]);
+    if(!noSnap){p.forEach(q=>this.snap(q));for(const [a,b] of [[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]])this.snap(v3.lerp(p[a],p[b],.5))}}
+  // вытягивание сечения (контуры в плоскости y,z) вдоль x от 0 до L
+  ext(loops,L,m,sharp=25){const out=loops[0];
+    for(let li=0;li<loops.length;li++){const lp=loops[li];const n=lp.length;let per=0;
+      for(let i=0;i<n;i++){const a=lp[i],b=lp[(i+1)%n];const seg=Math.hypot(b[0]-a[0],b[1]-a[1]);
+        this.quad([0,a[0],a[1]],[0,b[0],b[1]],[L,b[0],b[1]],[L,a[0],a[1]],m,[[0,per],[0,per+seg],[L,per+seg],[L,per]]);per+=seg}
+      for(let i=0;i<n;i++){const a=lp[(i-1+n)%n],b=lp[i],c=lp[(i+1)%n];const d1=v3.norm([0,b[0]-a[0],b[1]-a[1]]),d2=v3.norm([0,c[0]-b[0],c[1]-b[1]]);
+        const ang=Math.acos(clamp(v3.dot(d1,d2),-1,1))*180/Math.PI;if(ang>sharp)this.edge([0,b[0],b[1]],[L,b[0],b[1]]);
+        this.edge([0,b[0],b[1]],[0,c[0],c[1]]);this.edge([L,b[0],b[1]],[L,c[0],c[1]])}}
+    if(loops.length===2&&loops[0].length===loops[1].length){const A=loops[0],B=loops[1],n=A.length;
+      for(let i=0;i<n;i++){const j=(i+1)%n;for(const x of [0,L]){const f=x===0;const p=[[x,A[i][0],A[i][1]],[x,A[j][0],A[j][1]],[x,B[j][0],B[j][1]],[x,B[i][0],B[i][1]]];if(f)this.quad(p[3],p[2],p[1],p[0],m);else this.quad(...p,m)}}}
+    else{const R=earTri(out);for(const t of R.T){const [a,b,c]=t.map(i=>R.P[i]);this.tri([0,c[0],c[1]],[0,b[0],b[1]],[0,a[0],a[1]],m);this.tri([L,a[0],a[1]],[L,b[0],b[1]],[L,c[0],c[1]],m)}}
+    let y0=1e9,y1=-1e9,z0=1e9,z1=-1e9;for(const q of out){y0=Math.min(y0,q[0]);y1=Math.max(y1,q[0]);z0=Math.min(z0,q[1]);z1=Math.max(z1,q[1])}
+    for(const x of [0,L]){this.snap([x,0,0]);for(const y of [y0,y1])for(const z of [z0,z1])this.snap([x,y,z])}this.snap([L/2,0,0])}
+  cyl(r,x0,x1,m,seg=16){const pts=[];for(let i=0;i<seg;i++){const a=i/seg*Math.PI*2;pts.push([Math.cos(a)*r,Math.sin(a)*r])}
+    this.push(null,[x0,0,0]);const L=x1-x0;for(let i=0;i<seg;i++){const a=pts[i],b=pts[(i+1)%seg];const u0=i/seg*2*Math.PI*r,u1=(i+1)/seg*2*Math.PI*r;
+      this.quad([0,a[0],a[1]],[0,b[0],b[1]],[L,b[0],b[1]],[L,a[0],a[1]],m,[[0,u0],[0,u1],[L,u1],[L,u0]]);this.tri([0,0,0],[0,b[0],b[1]],[0,a[0],a[1]],m);this.tri([L,0,0],[L,a[0],a[1]],[L,b[0],b[1]],m);
+      this.edge([0,a[0],a[1]],[0,b[0],b[1]]);this.edge([L,a[0],a[1]],[L,b[0],b[1]])}
+    this.snap([0,0,0]);this.snap([L,0,0]);this.snap([L/2,0,0]);this.pop()}
+  // отвод: четверть тора радиусом R (центр поворота в (0,R,0)), труба r — из оси x в ось y
+  bend(r,R,m,deg=90,seg=8){const k=12;for(let s=0;s<seg;s++){const a0=s/seg*deg*Math.PI/180,a1=(s+1)/seg*deg*Math.PI/180;
+      const C=a=>[Math.sin(a)*R,R-Math.cos(a)*R,0],T=a=>[Math.cos(a),Math.sin(a),0];
+      for(let i=0;i<k;i++){const b0=i/k*2*Math.PI,b1=(i+1)/k*2*Math.PI;const ring=(a,b)=>{const c=C(a),t=T(a);const nx=[-t[1],t[0],0];return v3.add(c,v3.add(v3.mul(nx,Math.cos(b)*r),[0,0,Math.sin(b)*r]))};
+        this.quad(ring(a0,b0),ring(a0,b1),ring(a1,b1),ring(a1,b0),m,[[a0*R,b0*r],[a0*R,b1*r],[a1*R,b1*r],[a1*R,b0*r]])}}
+    this.snap([0,0,0]);this.snap([R,R,0])}
+  done(){const out={parts:{},edges:new Float32Array(this.edges.flat()),snaps:this.snaps,bb:this.bb};for(const [m,a] of Object.entries(this.parts))out.parts[m]=new Float32Array(a);return out}}
+// ---- сечения
+function rrect(w,h,r,seg=4){const pts=[];const c=[[w/2-r,h/2-r,0],[-w/2+r,h/2-r,90],[-w/2+r,-h/2+r,180],[w/2-r,-h/2+r,270]];for(const [x,y,a0] of c)for(let i=0;i<=seg;i++){const a=(a0+i*90/seg)*Math.PI/180;pts.push([x+r*Math.cos(a),y+r*Math.sin(a)])}return pts}
+const SECT={
+  wb:()=>[rrect(33,33,3),rrect(30,30,1.5).reverse()],
+  // С-профиль ПС: полки вдоль y (ширина F), стенка поперёк (глубина W вдоль z), отгибы и ребро
+  ps:(W,F=50,t=0.9,L1=7)=>{const H=F/2,D=W/2;return[[[H,-D+L1],[H,-D],[-H,-D],[-H,-5],[-H+3,0],[-H,5],[-H,D],[H,D],[H,D-L1],[H-t,D-L1],[H-t,D-t],[-H+t,D-t],[-H+t,5],[-H+3+t,0],[-H+t,-5],[-H+t,-D+t],[H-t,-D+t],[H-t,-D+L1]]]},
+  // П-профиль ПН: стенка горизонтально (по y, ширина W), полки вверх (H)
+  pn:(W,H=40,t=0.9)=>{const D=W/2,h=H/2;return[[[-D,h],[-D,-h],[D,-h],[D,h],[D-t,h],[D-t,-h+t],[-D+t,-h+t],[-D+t,h]]]}};
+// ---- компоненты: params — {ключ:[подпись, по умолчанию]}; len — параметр длины для инструмента «Профиль»
+const COMPS={
+  wb_prof:{n:'Профиль WALLBOX WB90003 33×33',g:'WALLBOX',tag:'Каркас',mat:'alu',len:'L',params:{L:['Длина',1000]},
+    build(B,P){B.ext(SECT.wb(),P.L,'main')}},
+  wb_corner:{n:'Уголок соединительный WB90102',g:'WALLBOX',tag:'Крепёж',mat:'steel',params:{},
+    build(B){B.box(0,-16.5,16.5,32,16.5,19,'main');B.box(0,-16.5,16.5,2.5,16.5,48,'main');B.push(null,[12,0,19]);B.push(m3.rot([0,1,0],-90));B.cyl(4,0,6,'main',8);B.pop();B.pop()}},
+  wb_floor:{n:'Крепление одинарное WB90302 (к полу/потолку)',g:'WALLBOX',tag:'Крепёж',mat:'steel',params:{},
+    build(B){B.box(-30,-25,0,30,25,4,'main');B.box(-3,-16.5,4,3,16.5,60,'main');B.push(null,[0,-20,2]);B.push(m3.rot([0,1,0],-90));B.cyl(5,-3,6,'main',10);B.pop();B.pop()}},
+  wb_double:{n:'Крепление двойное WB90311 (к стене)',g:'WALLBOX',tag:'Крепёж',mat:'steel',params:{L:['Вылет до стены',120]},
+    build(B,P){B.box(-20,-18,-18,20,18,18,'main');B.push(m3.rot([0,0,1],90));B.cyl(4,18,P.L,'brass',10);B.pop();B.box(-30,P.L,-30,30,P.L+4,30,'main')}},
+  wb_slide:{n:'Скользящая опора WB90112 (потолок, усадка)',g:'WALLBOX',tag:'Крепёж',mat:'steel',params:{G:['Зазор под усадку',40]},
+    build(B,P){const g=P.G;B.box(-35,-25,g+33,35,25,g+37,'main');B.box(-20,-20,0,-17,20,g+33,'main');B.box(17,-20,0,20,20,g+33,'main');B.box(-20,-20,g*0.4,20,-17,g*0.4+10,'rubber')}},
+  wb_plate:{n:'Пластина под арматуру WB90204',g:'WALLBOX',tag:'Крепёж',mat:'steel',params:{W:['Между стойками',600]},
+    build(B,P){const W=P.W;B.box(16.5,-2,-60,W-16.5,0,60,'zinc');for(const x of [16.5,W-16.5-25])for(const z of [-60,35])B.box(x,-2,z,x+25,40,z+25,'main');
+      for(const x of [W/2-75,W/2+75]){B.push(m3.rot([0,0,1],-90),[x,0,0]);B.cyl(12,-2,2,'brass',14);B.pop()}}},
+  ply580:{n:'Монтажная фанера WB90580 580×200',g:'WALLBOX',tag:'Крепёж',mat:'plywood',params:{},build(B){B.box(0,0,0,580,18,200,'main')}},
+  ply425:{n:'Монтажная фанера WB90425 200×200',g:'WALLBOX',tag:'Крепёж',mat:'plywood',params:{},build(B){B.box(0,0,0,200,18,200,'main')}},
+  wb_hinge:{n:'Петли люка WB90200 (пара)',g:'WALLBOX',tag:'Крепёж',mat:'steel',params:{H:['Высота люка',600]},
+    build(B,P){for(const z of [P.H*0.15,P.H*0.85-80]){B.box(0,0,z,40,8,z+80,'main');B.box(40,0,z+10,60,8,z+70,'main')}}},
+  wb_cap:{n:'Заглушка торцевая WB98128',g:'WALLBOX',tag:'Крепёж',mat:'rubber',params:{},build(B){B.push(null,[-4,0,0]);B.ext([rrect(34,34,3.5)],4,'main');B.pop()}},
+  kn_ps:{n:'Профиль стоечный ПС (Knauf)',g:'Knauf',tag:'Каркас',mat:'zinc',len:'L',params:{L:['Длина',2500],W:['Ширина стенки (50/75/100)',50]},build(B,P){B.ext(SECT.ps(P.W),P.L,'main')}},
+  kn_pn:{n:'Профиль направляющий ПН (Knauf)',g:'Knauf',tag:'Каркас',mat:'zinc',len:'L',params:{L:['Длина',3000],W:['Ширина (50/75/100)',50]},build(B,P){B.ext(SECT.pn(P.W),P.L,'main')}},
+  kn_hanger:{n:'Подвес прямой (Knauf)',g:'Knauf',tag:'Крепёж',mat:'zinc',params:{},build(B){B.box(-30,-60,0,30,-59,120,'main');B.box(-30,59,0,30,60,120,'main');B.box(-30,-60,120,30,60,121,'main')}},
+  inst:{n:'Инсталляция (модуль 500×1120)',g:'Сантехника',tag:'Сантехника',mat:'green',params:{W:['Ширина',500],H:['Высота',1120],D:['Глубина',150]},
+    build(B,P){const {W,H,D}=P;const t=40;B.box(0,0,0,t,D,H,'main');B.box(W-t,0,0,W,D,H,'main');B.box(0,0,H-t,W,D,H,'main');B.box(0,0,380,W,D,420,'main');B.box(-40,0,0,W+40,D+60,5,'main');
+      B.box(70,20,H*0.55,W-70,D-10,H-50,'white');B.push(m3.rot([0,0,1],-90),[W/2,0,230]);B.cyl(55,-40,D,'sewer',20);B.pop();
+      for(const x of [W/2-90,W/2+90]){B.push(m3.rot([0,0,1],-90),[x,0,350]);B.cyl(6,-120,20,'chrome',10);B.pop()}
+      B.push(m3.rot([0,1,0],-90),[W-90,D/2,H-60]);B.cyl(10,0,260,'cold',12);B.pop()}},
+  outlet:{n:'Водорозетка 1/2"',g:'Сантехника',tag:'Сантехника',mat:'brass',params:{},
+    build(B){B.box(-22,0,-22,22,6,22,'main');B.push(m3.rot([0,0,1],-90));B.cyl(11,-45,0,'main',14);B.pop();B.cyl(10,-30,0,'main',12)}},
+  mixer:{n:'Смеситель для душа (наружный)',g:'Сантехника',tag:'Сантехника',mat:'chrome',params:{S:['Межосевое',150]},
+    build(B,P){const s=P.S;B.push(null,[0,-75,0]);B.cyl(26,-s/2-50,s/2+50,'main',20);B.pop();for(const x of [-s/2,s/2]){B.push(m3.rot([0,0,1],-90),[x,0,0]);B.cyl(10,0,75,'main',12);B.pop()}B.box(s/2+50,-90,-12,s/2+60,-60,60,'main')}},
+  pipe_c:{n:'Труба — холодная вода',g:'Трубы',tag:'Трубы',mat:'cold',len:'L',params:{L:['Длина',1000],D:['Диаметр',20]},build(B,P){B.cyl(P.D/2,0,P.L,'main')}},
+  pipe_h:{n:'Труба — горячая вода',g:'Трубы',tag:'Трубы',mat:'hot',len:'L',params:{L:['Длина',1000],D:['Диаметр',20]},build(B,P){B.cyl(P.D/2,0,P.L,'main')}},
+  sewer:{n:'Канализационная труба',g:'Трубы',tag:'Трубы',mat:'sewer',len:'L',params:{L:['Длина',1000],D:['Диаметр (50/110)',50]},build(B,P){B.cyl(P.D/2,0,P.L,'main',24)}},
+  bend:{n:'Отвод 90°',g:'Трубы',tag:'Трубы',mat:'cold',params:{D:['Диаметр',20],R:['Радиус изгиба',40]},build(B,P){B.bend(P.D/2,P.R,'main')}},
+  gkl:{n:'Лист ГКЛ',g:'Обшивка',tag:'ГКЛ',mat:'gklv',params:{W:['Ширина',1200],H:['Высота',2500],T:['Толщина',12.5]},build(B,P){B.box(0,-P.T,0,P.W,0,P.H,'main')}},
+  cboard:{n:'Цементная плита',g:'Обшивка',tag:'ГКЛ',mat:'cement',params:{W:['Ширина',1200],H:['Высота',800],T:['Толщина',12.5]},build(B,P){B.box(0,-P.T,0,P.W,0,P.H,'main')}},
+  tilepanel:{n:'Облицовка плиткой (поверхность)',g:'Обшивка',tag:'Плитка',mat:'tile_w',params:{W:['Ширина',1200],H:['Высота',2500],T:['Толщина с клеем',14]},build(B,P){B.box(0,-P.T,0,P.W,0,P.H,'main')}},
+  niche:{n:'Ниша (короб из ГКЛ)',g:'Обшивка',tag:'ГКЛ',mat:'gklv',params:{W:['Ширина',600],H:['Высота',400],D:['Глубина',100],T:['Толщина стенок',12.5]},
+    build(B,P){const {W,H,D,T}=P;B.box(0,0,0,T,D,H,'main');B.box(W-T,0,0,W,D,H,'main');B.box(T,0,0,W-T,D,T,'main');B.box(T,0,H-T,W-T,D,H,'main');B.box(T,D-T,T,W-T,D,H-T,'main')}},
+  shelf:{n:'Полочка (плитка)',g:'Обшивка',tag:'Плитка',mat:'tile_m',params:{W:['Ширина',520],D:['Глубина',98],T:['Толщина',10]},build(B,P){B.box(0,0,0,P.W,P.D,P.T,'main')}},
+  wall:{n:'Стена',g:'Помещение',tag:'Стены',mat:'logs',params:{W:['Длина',3000],H:['Высота',2700],T:['Толщина',150]},build(B,P){B.box(0,0,0,P.W,P.T,P.H,'main')}},
+  floor:{n:'Пол / плита',g:'Помещение',tag:'Стены',mat:'concrete',params:{W:['Длина',3000],D:['Ширина',2000],T:['Толщина',50]},build(B,P){B.box(0,0,-P.T,P.W,P.D,0,'main')}},
+  door:{n:'Проём двери (условно)',g:'Помещение',tag:'Стены',mat:'boards',params:{W:['Ширина',800],H:['Высота',2000],T:['Толщина',40]},build(B,P){B.box(0,0,0,P.W,P.T,P.H,'main')}},
+  box:{n:'Брусок / коробка',g:'Помещение',tag:'Стены',mat:'white',params:{W:['X',500],D:['Y',300],H:['Z',300]},build(B,P){B.box(0,0,0,P.W,P.D,P.H,'main')}}};
+const GCACHE=new Map();
+function compGeo(c,P){const key=c+JSON.stringify(P);let g=GCACHE.get(key);if(g)return g;const B=new Builder();COMPS[c].build(B,P);g=B.done();GCACHE.set(key,g);return g}
+function compDefaults(c){const o={};for(const [k,v] of Object.entries(COMPS[c].params))o[k]=v[1];return o}
+
+// ================= РЕНДЕР (WebGL) =================
+const R3={gl:null,cv:null,ov:null,prog:null,loc:{},tex:{},gbuf:new WeakMap(),grid:null,fbo:null,fboW:0,fboH:0,texAvg:{}};
+function glInit(cv,ov){const gl=cv.getContext('webgl',{antialias:true,preserveDrawingBuffer:true,alpha:false});if(!gl)return false;R3.gl=gl;R3.cv=cv;R3.ov=ov;
+  const sh=(t,s)=>{const o=gl.createShader(t);gl.shaderSource(o,s);gl.compileShader(o);if(!gl.getShaderParameter(o,gl.COMPILE_STATUS))console.error(gl.getShaderInfoLog(o));return o};
+  const pr=gl.createProgram();
+  gl.attachShader(pr,sh(gl.VERTEX_SHADER,`attribute vec3 p;attribute vec3 n;attribute vec2 uv;uniform mat4 VP;uniform mat4 W;varying vec3 vn;varying vec2 vuv;
+    void main(){gl_Position=VP*W*vec4(p,1.0);vn=mat3(W)*n;vuv=uv;}`));
+  gl.attachShader(pr,sh(gl.FRAGMENT_SHADER,`precision mediump float;varying vec3 vn;varying vec2 vuv;uniform vec3 col;uniform sampler2D T;uniform float useTex;uniform vec2 tsz;uniform vec4 tint;uniform float alpha;uniform float unlit;
+    void main(){if(unlit>0.5){gl_FragColor=vec4(col,alpha);return;}vec3 N=normalize(vn);if(!gl_FrontFacing)N=-N;vec3 b=col;if(useTex>0.5)b*=texture2D(T,vuv/tsz).rgb;
+      float d=0.42+0.5*max(dot(N,normalize(vec3(0.45,-0.6,0.75))),0.0)+0.18*max(dot(N,normalize(vec3(-0.6,0.5,0.2))),0.0)+0.06*N.z;
+      vec3 c=b*d;c=mix(c,tint.rgb,tint.a);gl_FragColor=vec4(c,alpha);}`));
+  gl.linkProgram(pr);R3.prog=pr;for(const k of ['p','n','uv'])R3.loc[k]=gl.getAttribLocation(pr,k);for(const k of ['VP','W','col','T','useTex','tsz','tint','alpha','unlit'])R3.loc[k]=gl.getUniformLocation(pr,k);
+  gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+  // сетка пола: 100 мм тонкие, 1000 мм толстые
+  const L=[],H=[];const N=10000;for(let x=-N;x<=N;x+=100){(x%1000?L:H).push(x,-N,0,0,0,1,0,0,x,N,0,0,0,1,0,0,-N,x,0,0,0,1,0,0,N,x,0,0,0,1,0,0)}
+  R3.grid={thin:mkBuf(L),thick:mkBuf(H),axes:mkBuf([0,0,0,0,0,1,0,0,N,0,0,0,0,1,0,0, 0,0,0,0,0,1,0,0,0,N,0,0,0,1,0,0, 0,0,0,0,0,1,0,0,0,0,N,0,0,1,0,0])};return true}
+function mkBuf(a){const gl=R3.gl;const b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,a instanceof Float32Array?a:new Float32Array(a),gl.STATIC_DRAW);return{b,n:(a.length/8)|0}}
+function geoBufs(g){let r=R3.gbuf.get(g);if(r)return r;r={parts:{},edges:null};for(const [m,a] of Object.entries(g.parts))r.parts[m]=mkBuf(a);
+  if(g.edges.length){const e=[];for(let i=0;i<g.edges.length;i+=3)e.push(g.edges[i],g.edges[i+1],g.edges[i+2],0,0,1,0,0);r.edges=mkBuf(e)}R3.gbuf.set(g,r);return r}
+// текстуры: генерируются один раз, свои картинки — из dataURL
+function matTex(key){const M=MATS[key];if(!M||(!M.tex&&!M.img))return null;if(R3.tex[key]!==undefined)return R3.tex[key];const gl=R3.gl;
+  const up=src=>{const t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,t);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,src);gl.generateMipmap(gl.TEXTURE_2D);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.REPEAT);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.REPEAT);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);R3.tex[key]=t;
+    try{const c=document.createElement('canvas');c.width=c.height=8;const g=c.getContext('2d');g.drawImage(src,0,0,8,8);const d=g.getImageData(0,0,8,8).data;let s=[0,0,0];for(let i=0;i<d.length;i+=4){s[0]+=d[i];s[1]+=d[i+1];s[2]+=d[i+2]}R3.texAvg[key]=s.map(v=>v/64/255)}catch(e){}return t};
+  if(M.tex){return up(TEXGEN[M.tex](M.to||{}))}
+  R3.tex[key]=null;const im=new Image();im.onload=()=>{const c=document.createElement('canvas');c.width=c.height=512;c.getContext('2d').drawImage(im,0,0,512,512);up(c);M._cv=c;requestDraw()};im.src=M.img;return null}
+function matPreview(key,n=56){const M=MATS[key];const c=document.createElement('canvas');c.width=c.height=n;const g=c.getContext('2d');
+  if(M.tex){g.drawImage(TEXGEN[M.tex](M.to||{}),0,0,n,n)}else if(M.img&&M._cv)g.drawImage(M._cv,0,0,n,n);else if(M.img){const im=new Image();im.onload=()=>{g.drawImage(im,0,0,n,n)};im.src=M.img}else{g.fillStyle=`rgb(${M.col.map(v=>Math.round(v*255)).join(',')})`;g.fillRect(0,0,n,n)}return c}
+function useMat(key,tint,alpha){const gl=R3.gl,L=R3.loc;const M=MATS[key]||MATS.white;const t=matTex(key);
+  gl.uniform3fv(L.col,M.col||[1,1,1]);gl.uniform1f(L.useTex,t?1:0);if(t){gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,t);gl.uniform1i(L.T,0);gl.uniform2fv(L.tsz,M.size||[500,500])}
+  gl.uniform4fv(L.tint,tint||[0,0,0,0]);gl.uniform1f(L.alpha,alpha==null?1:alpha);gl.uniform1f(L.unlit,0)}
+function bindBuf(B){const gl=R3.gl,L=R3.loc;gl.bindBuffer(gl.ARRAY_BUFFER,B.b);gl.vertexAttribPointer(L.p,3,gl.FLOAT,false,32,0);gl.vertexAttribPointer(L.n,3,gl.FLOAT,false,32,12);gl.vertexAttribPointer(L.uv,2,gl.FLOAT,false,32,24);
+  gl.enableVertexAttribArray(L.p);gl.enableVertexAttribArray(L.n);gl.enableVertexAttribArray(L.uv)}
+function drawLines(B,col,alpha,W){const gl=R3.gl,L=R3.loc;gl.uniformMatrix4fv(L.W,false,new Float32Array(W||[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]));gl.uniform1f(L.unlit,1);gl.uniform3fv(L.col,col);gl.uniform1f(L.alpha,alpha==null?1:alpha);bindBuf(B);gl.drawArrays(gl.LINES,0,B.n)}
+// ---- камера (ось Z вверх, мм)
+const CAM={t:[1500,1000,1200],dist:7000,yaw:-55*Math.PI/180,pitch:28*Math.PI/180,fov:40*Math.PI/180,ortho:false};
+function camEye(c=CAM){const cp=Math.cos(c.pitch);return[c.t[0]+c.dist*cp*Math.cos(c.yaw),c.t[1]+c.dist*cp*Math.sin(c.yaw),c.t[2]+c.dist*Math.sin(c.pitch)]}
+function camBasis(){const e=camEye();const f=v3.norm(v3.sub(CAM.t,e));let r=v3.cross(f,[0,0,1]);if(v3.len(r)<1e-6)r=[Math.sin(CAM.yaw),-Math.cos(CAM.yaw),0];r=v3.norm(r);const u=v3.cross(r,f);return{e,f,r,u}}
+function camVP(){const cv=R3.cv;const asp=cv.width/cv.height;const {e,f,u}=camBasis();const V=m4.look(e,CAM.t,u);
+  const P=CAM.ortho?m4.ortho(2*CAM.dist*Math.tan(CAM.fov/2)*asp,2*CAM.dist*Math.tan(CAM.fov/2),-CAM.dist*20,CAM.dist*40):m4.per(CAM.fov,asp,Math.max(2,CAM.dist*0.003),CAM.dist*60+50000);return m4.mul(P,V)}
+function ray(mx,my){const cv=R3.cv;const r0=cv.getBoundingClientRect();const nx=((mx-r0.left)/r0.width)*2-1,ny=1-((my-r0.top)/r0.height)*2;const {e,f,r,u}=camBasis();const asp=r0.width/r0.height;const th=Math.tan(CAM.fov/2);
+  if(CAM.ortho){const hh=CAM.dist*th,hw=hh*asp;const o=v3.add(v3.add(v3.sub(CAM.t,v3.mul(f,CAM.dist*20)),v3.mul(r,nx*hw)),v3.mul(u,ny*hh));return{o,d:f}}
+  return{o:e,d:v3.norm(v3.add(f,v3.add(v3.mul(r,nx*th*asp),v3.mul(u,ny*th))))}}
+function toScreen(p,VP){const q=m4.xf(VP||R3.VP,p);if(q[3]<=0)return null;const r0=R3.cv.getBoundingClientRect();return[(q[0]*0.5+0.5)*r0.width,(1-(q[1]*0.5+0.5))*r0.height,q[2]]}
+// ---- кадр
+let DRAWQ=0;function requestDraw(){if(!DRAWQ)DRAWQ=requestAnimationFrame(()=>{DRAWQ=0;drawScene()})}
+function objW(o,extra){return m4.fromRT(o.R,extra?v3.add(o.o,extra):o.o)}
+function drawScene(){const gl=R3.gl,cv=R3.cv,L=R3.loc;const dpr=Math.min(devicePixelRatio||1,2);const w=cv.clientWidth,h=cv.clientHeight;
+  if(cv.width!==Math.round(w*dpr)||cv.height!==Math.round(h*dpr)){cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr);R3.ov.width=cv.width;R3.ov.height=cv.height}
+  gl.viewport(0,0,cv.width,cv.height);gl.clearColor(.93,.94,.95,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.useProgram(R3.prog);
+  const VP=camVP();R3.VP=VP;gl.uniformMatrix4fv(L.VP,false,new Float32Array(VP));
+  // сетка
+  if(UI.grid){gl.enable(gl.BLEND);gl.depthMask(false);drawLines(R3.grid.thin,[.6,.63,.67],.25);drawLines(R3.grid.thick,[.45,.48,.52],.45);gl.depthMask(true);gl.disable(gl.BLEND)}
+  gl.lineWidth(1);
+  const xr=UI.xray;const vis=SC.objs.filter(o=>!SC.hide[objTag(o)]);
+  const pass=(list,alpha,extraFn)=>{if(alpha<1){gl.enable(gl.BLEND);gl.depthMask(false)}gl.enable(gl.POLYGON_OFFSET_FILL);gl.polygonOffset(1,1);
+    for(const o of list){const g=objGeo(o);const B=geoBufs(g);const sel=SC.sel.has(o.id);const ex=extraFn&&extraFn(o);gl.uniformMatrix4fv(L.W,false,new Float32Array(ex?ex.W:objW(o)));
+      for(const [m,buf] of Object.entries(B.parts)){useMat(m==='main'?(o.mat||COMPS[o.c]?.mat||o.dm||'white'):m,sel?[.25,.55,1,.28]:(ex&&ex.tint)||null,ex&&ex.alpha!=null?ex.alpha:alpha);bindBuf(buf);gl.drawArrays(gl.TRIANGLES,0,buf.n)}}
+    gl.disable(gl.POLYGON_OFFSET_FILL);
+    if(UI.edges)for(const o of list){const g=objGeo(o);const B=geoBufs(g);if(!B.edges)continue;const sel=SC.sel.has(o.id);const ex=extraFn&&extraFn(o);if(!sel)gl.enable(gl.BLEND);drawLines(B.edges,sel?[.1,.35,.95]:[.12,.13,.15],sel?1:(alpha<1?.35:.55),ex?ex.W:objW(o));if(!sel)gl.disable(gl.BLEND)}
+    if(alpha<1){gl.disable(gl.BLEND);gl.depthMask(true)}};
+  const moving=TOOL.preview&&TOOL.preview.ids?new Set(TOOL.preview.ids):null;
+  pass(vis.filter(o=>!moving||!moving.has(o.id)),xr?.35:1);
+  if(TOOL.preview){const pv=TOOL.preview;
+    if(pv.ids){const list=SC.objs.filter(o=>pv.ids.includes(o.id));pass(list,1,o=>({W:pv.Wf(o)}))}
+    if(pv.ghost){pass([pv.ghost],.6,()=>({W:objW(pv.ghost),tint:[.3,.6,1,.15],alpha:.75}))}}
+  // оси
+  gl.lineWidth(2);gl.disable(gl.DEPTH_TEST);const ax=R3.grid.axes;bindBuf(ax);gl.uniformMatrix4fv(L.W,false,new Float32Array([1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]));gl.uniform1f(L.unlit,1);gl.uniform1f(L.alpha,.8);gl.enable(gl.BLEND);
+  [[.85,.15,.15],[.1,.65,.2],[.15,.3,.9]].forEach((c,i)=>{gl.uniform3fv(L.col,c);gl.drawArrays(gl.LINES,i*2,2)});gl.disable(gl.BLEND);gl.enable(gl.DEPTH_TEST);
+  drawOverlay()}
+// ---- выбор объекта по цвету (отдельный буфер)
+function pickAt(mx,my,exclude){const gl=R3.gl,cv=R3.cv,L=R3.loc;if(!R3.fbo||R3.fboW!==cv.width||R3.fboH!==cv.height){const fb=gl.createFramebuffer(),tx=gl.createTexture(),rb=gl.createRenderbuffer();
+    gl.bindTexture(gl.TEXTURE_2D,tx);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,cv.width,cv.height,0,gl.RGBA,gl.UNSIGNED_BYTE,null);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.NEAREST);
+    gl.bindRenderbuffer(gl.RENDERBUFFER,rb);gl.renderbufferStorage(gl.RENDERBUFFER,gl.DEPTH_COMPONENT16,cv.width,cv.height);gl.bindFramebuffer(gl.FRAMEBUFFER,fb);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,tx,0);gl.framebufferRenderbuffer(gl.FRAMEBUFFER,gl.DEPTH_ATTACHMENT,gl.RENDERBUFFER,rb);R3.fbo=fb;R3.fboW=cv.width;R3.fboH=cv.height}
+  gl.bindFramebuffer(gl.FRAMEBUFFER,R3.fbo);gl.viewport(0,0,cv.width,cv.height);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.useProgram(R3.prog);
+  gl.uniformMatrix4fv(L.VP,false,new Float32Array(camVP()));gl.uniform1f(L.unlit,1);gl.uniform1f(L.alpha,1);const list=SC.objs.filter(o=>!SC.hide[objTag(o)]&&!(exclude&&exclude.has(o.id)));
+  list.forEach((o,i)=>{const id=i+1;gl.uniform3fv(L.col,[(id&255)/255,((id>>8)&255)/255,((id>>16)&255)/255]);gl.uniformMatrix4fv(L.W,false,new Float32Array(objW(o)));const B=geoBufs(objGeo(o));for(const buf of Object.values(B.parts)){bindBuf(buf);gl.drawArrays(gl.TRIANGLES,0,buf.n)}});
+  const r0=cv.getBoundingClientRect();const dpr=cv.width/r0.width;const px=new Uint8Array(4);gl.readPixels(Math.round((mx-r0.left)*dpr),Math.round(cv.height-(my-r0.top)*dpr),1,1,gl.RGBA,gl.UNSIGNED_BYTE,px);
+  gl.bindFramebuffer(gl.FRAMEBUFFER,null);const id=px[0]+px[1]*256+px[2]*65536;return id?list[id-1]:null}
+// точное попадание луча в треугольники объекта: точка и нормаль
+function rayObj(R,o){const g=objGeo(o);const M=objW(o);let best=null;
+  for(const a of Object.values(g.parts))for(let i=0;i<a.length;i+=24){const p0=m4.xf(M,[a[i],a[i+1],a[i+2]]),p1=m4.xf(M,[a[i+8],a[i+9],a[i+10]]),p2=m4.xf(M,[a[i+16],a[i+17],a[i+18]]);
+    const e1=v3.sub(p1,p0),e2=v3.sub(p2,p0);const h=v3.cross(R.d,e2);const det=v3.dot(e1,h);if(Math.abs(det)<1e-9)continue;const f=1/det;const s=v3.sub(R.o,p0);const u=f*v3.dot(s,h);if(u<0||u>1)continue;
+    const q=v3.cross(s,e1);const v=f*v3.dot(R.d,q);if(v<0||u+v>1)continue;const t=f*v3.dot(e2,q);if(t>0&&(!best||t<best.t))best={t,p:v3.add(R.o,v3.mul(R.d,t)),n:v3.norm(v3.cross(e1,e2))}}
+  if(best&&v3.dot(best.n,R.d)>0)best.n=v3.mul(best.n,-1);return best}
+
+// ================= СЦЕНА =================
+const SC={objs:[],sel:new Set(),hide:{},dims:[],meshes:{}};
+const UI={grid:true,edges:true,xray:false,tab:'comp',curProf:'wb_prof',curMat:'tile_w',snapGrid:false};
+const objTag=o=>o.tag||COMPS[o.c]?.tag||'Прочее';
+function objGeo(o){if(o.c==='mesh'){const m=SC.meshes[o.mesh];if(!m)return{parts:{},edges:new Float32Array(0),snaps:[],bb:[0,0,0,0,0,0]};return m.geo||(m.geo=meshGeo(m))}return compGeo(o.c,o.P)}
+function objName(o){return o.c==='mesh'?(o.name||'Импорт'):COMPS[o.c].n}
+function worldSnaps(o){const M=objW(o);return objGeo(o).snaps.map(p=>m4.xf(M,p).slice(0,3))}
+function objBox(o){const g=objGeo(o);const M=objW(o);const b=g.bb;let r=[1e9,1e9,1e9,-1e9,-1e9,-1e9];for(const x of [b[0],b[3]])for(const y of [b[1],b[4]])for(const z of [b[2],b[5]]){const p=m4.xf(M,[x,y,z]);for(let k=0;k<3;k++){r[k]=Math.min(r[k],p[k]);r[k+3]=Math.max(r[k+3],p[k])}}return r}
+function selObjs(){return SC.objs.filter(o=>SC.sel.has(o.id))}
+function newObj(c,P,o,R,extra){return Object.assign({id:uid(),c,P:Object.assign(compDefaults(c),P||{}),o:o||[0,0,0],R:R||m3.I(),mat:null},extra||{})}
+// ---- отмена / повтор
+const HIST={u:[],r:[]};
+function snapState(){return JSON.stringify({objs:SC.objs,dims:SC.dims})}
+function commit(){HIST.u.push(HIST.cur||snapState());if(HIST.u.length>80)HIST.u.shift();HIST.r=[];HIST.cur=snapState();autosave();refreshPanels();requestDraw()}
+function undo(){if(!HIST.u.length)return;HIST.r.push(snapState());const s=JSON.parse(HIST.u.pop());SC.objs=s.objs;SC.dims=s.dims;HIST.cur=snapState();SC.sel=new Set([...SC.sel].filter(id=>SC.objs.some(o=>o.id===id)));autosave();refreshPanels();requestDraw()}
+function redo(){if(!HIST.r.length)return;HIST.u.push(snapState());const s=JSON.parse(HIST.r.pop());SC.objs=s.objs;SC.dims=s.dims;HIST.cur=snapState();autosave();refreshPanels();requestDraw()}
+let ASQ=0;function autosave(){clearTimeout(ASQ);ASQ=setTimeout(()=>{try{localStorage.setItem('karkas3d_v1',JSON.stringify(projectData()))}catch(e){status('Не хватает места для автосохранения — сохраните проект в файл')}},400)}
+function projectData(){const mats={};for(const [k,m] of Object.entries(MATS))if(m.custom)mats[k]={n:m.n,col:m.col,img:m.img,size:m.size,custom:true};
+  const meshes={};for(const [k,m] of Object.entries(SC.meshes))meshes[k]={name:m.name,parts:Object.fromEntries(Object.entries(m.parts).map(([mk,a])=>[mk,Array.from(a,v=>Math.round(v*10)/10)]))};
+  return{app:'karkas3d',v:1,objs:SC.objs,dims:SC.dims,hide:SC.hide,mats,meshes,cam:{t:CAM.t,dist:CAM.dist,yaw:CAM.yaw,pitch:CAM.pitch}}}
+function loadProject(d){if(!d||d.app!=='karkas3d')throw new Error('Это не файл проекта');for(const [k,m] of Object.entries(d.mats||{})){MATS[k]=m;delete R3.tex[k]}
+  SC.meshes={};for(const [k,m] of Object.entries(d.meshes||{}))SC.meshes[k]={name:m.name,parts:Object.fromEntries(Object.entries(m.parts).map(([mk,a])=>[mk,new Float32Array(a)]))};
+  SC.objs=d.objs||[];SC.dims=d.dims||[];SC.hide=d.hide||{};SC.sel=new Set();if(d.cam)Object.assign(CAM,d.cam);HIST.u=[];HIST.r=[];HIST.cur=snapState();refreshPanels();requestDraw()}
+// ================= ВЫВОД ПОДСКАЗОК =================
+function status(t){$('#hint').innerHTML=t}
+// ================= ПРИВЯЗКИ (как в SketchUp) =================
+const AX=[[1,0,0],[0,1,0],[0,0,1]],AXC=['#e11d48','#16a34a','#2563eb'],AXN=['по красной оси (X)','по зелёной оси (Y)','по синей оси (Z)'];
+function closestOnLine(R,A,d){// точка на прямой A+t*d, ближайшая к лучу
+  const w0=v3.sub(A,R.o);const a=v3.dot(d,d),b=v3.dot(d,R.d),c=v3.dot(R.d,R.d),dd=v3.dot(d,w0),e=v3.dot(R.d,w0);const den=a*c-b*b;if(Math.abs(den)<1e-9)return null;const t=(b*e-c*dd)/den;return v3.add(A,v3.mul(d,t))}
+function planeHit(R,p0,n){const den=v3.dot(R.d,n);if(Math.abs(den)<1e-9)return null;const t=v3.dot(v3.sub(p0,R.o),n)/den;if(t<0&&!CAM.ortho)return null;return v3.add(R.o,v3.mul(R.d,t))}
+function infer(mx,my,opt={}){const R=ray(mx,my);const A=opt.A;const ex=opt.exclude||new Set();const r0=R3.cv.getBoundingClientRect();const sx=mx-r0.left,sy=my-r0.top;const VP=R3.VP;
+  // 1) принудительная ось (стрелки клавиатуры)
+  if(A&&TOOL.lock!=null){const p=closestOnLine(R,A,AX[TOOL.lock]);if(p)return{p,kind:'axis',ax:TOOL.lock,label:AXN[TOOL.lock]}}
+  // 2) точки объектов: концы, середины, углы
+  let best=null;for(const o of SC.objs){if(ex.has(o.id)||SC.hide[objTag(o)])continue;for(const p of worldSnaps(o)){const s=toScreen(p,VP);if(!s)continue;const d=Math.hypot(s[0]-sx,s[1]-sy);if(d<11&&(!best||d<best.d-0.5||(Math.abs(d-best.d)<0.5&&s[2]<best.z)))best={d,p,z:s[2],o}}}
+  for(const dm of SC.dims)for(const p of [dm.a,dm.b]){const s=toScreen(p,VP);if(s&&Math.hypot(s[0]-sx,s[1]-sy)<9)best={d:0,p,o:null}}
+  if(best)return{p:best.p,kind:'snap',label:'точка '+(best.o?objName(best.o):''),obj:best.o};
+  // 3) направление вдоль оси от начальной точки
+  if(A){const sA=toScreen(A,VP);if(sA){const mv=[sx-sA[0],sy-sA[1]];const ml=Math.hypot(...mv);if(ml>14)for(let i=0;i<3;i++){const sB=toScreen(v3.add(A,v3.mul(AX[i],1000)),VP);if(!sB)continue;const dv=[sB[0]-sA[0],sB[1]-sA[1]];const dl=Math.hypot(...dv);if(dl<1e-3)continue;
+      const cs=Math.abs((mv[0]*dv[0]+mv[1]*dv[1])/(ml*dl));if(cs>Math.cos(6*Math.PI/180)){const p=closestOnLine(R,A,AX[i]);if(p)return{p,kind:'axis',ax:i,label:AXN[i]}}}}}
+  // 4) грань объекта
+  const o=pickAt(mx,my,ex);if(o){const h=rayObj(R,o);if(h)return{p:gridR(h.p),kind:'face',n:h.n,obj:o,label:'на грани: '+objName(o)}}
+  // 5) плоскость пола (или горизонталь через начальную точку)
+  const p=planeHit(R,[0,0,A?A[2]:0],[0,0,1]);if(p)return{p:gridR(p),kind:'ground',label:A?'в плоскости':'на полу'};return null}
+const gridR=p=>UI.snapGrid?p.map(v=>Math.round(v/10)*10):p;
+// ================= ИНСТРУМЕНТЫ =================
+const TOOL={id:'select',A:null,cur:null,preview:null,lock:null,vcb:''};
+const TOOLS={
+  select:{n:'Выбор',k:'Space',h:'Щёлкните по объекту — выбрать (Shift — добавить). Протяните по пустому месту — выбрать рамкой. Колесо — приблизить, правая кнопка — вращать, Shift+правая — двигать вид.'},
+  move:{n:'Переместить',k:'M',h:'Щёлкните точку на объекте, ведите и щёлкните куда поставить. Можно ввести расстояние и Enter. Стрелки ← ↑ → — вдоль осей. Ctrl — копия.'},
+  copy:{n:'Копировать',k:'C',h:'Как «Переместить», но оставляет копию. После копии введите x5 и Enter — сделает 5 копий с тем же шагом.'},
+  rotate:{n:'Повернуть',k:'Q',h:'Поворот выделенного: Q — на 90° вокруг синей оси. Или введите угол и Enter.'},
+  profile:{n:'Профиль',k:'P',h:'Щёлкните начало и конец — встанет профиль. Длину можно ввести с клавиатуры и Enter. Начиная с грани другого профиля, новый профиль встаёт вплотную к ней. R — повернуть профиль вокруг своей оси. Esc — закончить.'},
+  place:{n:'Поставить',k:'',h:'Ведите по модели и щёлкните, куда поставить. R — повернуть на 90°.'},
+  paint:{n:'Покрасить',k:'B',h:'Выберите текстуру слева и щёлкните по объекту. Alt+щелчок — взять текстуру с объекта.'},
+  tape:{n:'Рулетка',k:'T',h:'Щёлкните две точки — увидите расстояние.'},
+  dim:{n:'Размер',k:'D',h:'Щёлкните две точки — на модели останется размер.'},
+  erase:{n:'Ластик',k:'E',h:'Щёлкните по объекту — удалить. Del — удалить выделенное.'},
+  orbit:{n:'Вращать',k:'O',h:'Тяните мышью — вращать вид.'},pan:{n:'Двигать вид',k:'H',h:'Тяните мышью — двигать вид.'}};
+function setTool(id,opt={}){TOOL.id=id;TOOL.A=null;TOOL.preview=null;TOOL.lock=null;TOOL.vcb='';TOOL.roll=0;TOOL.rot=0;Object.assign(TOOL,opt);$('#vcb').value='';
+  document.querySelectorAll('[data-tool]').forEach(b=>b.classList.toggle('on',b.dataset.tool===id));status(TOOLS[id]?TOOLS[id].h:'');updVcbLabel();requestDraw()}
+function updVcbLabel(){$('#vcbl').textContent={move:'Расстояние',copy:'Расстояние',profile:'Длина',rotate:'Угол',tape:'Длина',dim:'Длина'}[TOOL.id]||'Значение'}
+// ориентация профиля: X — вдоль направления; Z — вверх (или по Y для вертикального), плюс поворот вокруг своей оси
+function profBasis(dir,roll){const X=v3.norm(dir);let Y,Z;if(Math.abs(X[2])>0.9){Y=[1,0,0];Z=v3.norm(v3.cross(X,Y))}else{Z=v3.norm(v3.sub([0,0,1],v3.mul(X,X[2])));Y=v3.cross(Z,X)}
+  let R=m3.basis(X,Y,Z);if(roll)R=m3.mul(R,m3.rot([1,0,0],roll));return m3.clean(R)}
+function makeProfile(A,B,n){const c=UI.curProf;const L=v3.dist(A,B);if(L<5)return null;const R=profBasis(v3.sub(B,A),TOOL.roll||0);const o=newObj(c,{[COMPS[c].len]:Math.round(L*10)/10},A.slice(),R);
+  // начали с грани — сдвигаем профиль, чтобы он лёг на грань, а не утонул в ней
+  if(n&&Math.abs(v3.dot(n,v3.norm(v3.sub(B,A))))<0.2){const g=objGeo(o);const M=objW(o);let mn=1e9;for(const x of [g.bb[0],g.bb[3]])for(const y of [g.bb[1],g.bb[4]])for(const z of [g.bb[2],g.bb[5]]){const p=m4.xf(M,[x,y,z]);mn=Math.min(mn,v3.dot(v3.sub(p,A),n))}o.o=v3.add(o.o,v3.mul(n,-mn))}
+  return o}
+function selCenter(list){let b=[1e9,1e9,1e9,-1e9,-1e9,-1e9];for(const o of list){const q=objBox(o);for(let k=0;k<3;k++){b[k]=Math.min(b[k],q[k]);b[k+3]=Math.max(b[k+3],q[k+3])}}return[(b[0]+b[3])/2,(b[1]+b[4])/2,(b[2]+b[5])/2]}
+function rotateSel(axis,deg){const list=selObjs();if(!list.length){status('Сначала выделите объект');return}const c=selCenter(list);const Rr=m3.clean(m3.rot(axis,deg));
+  for(const o of list){o.R=m3.clean(m3.mul(Rr,o.R));o.o=v3.add(c,m3.apply(Rr,v3.sub(o.o,c)))}commit()}
+function delSel(){if(!SC.sel.size)return;SC.objs=SC.objs.filter(o=>!SC.sel.has(o.id));SC.sel.clear();commit()}
+function dupObj(o,d){const n=JSON.parse(JSON.stringify(o));n.id=uid();n.o=v3.add(o.o,d);return n}
+// ---- мышь
+const PTR={btn:-1,x:0,y:0,sx:0,sy:0,drag:false};
+function onDown(e){const cv=R3.cv;cv.setPointerCapture(e.pointerId);PTR.btn=e.button;PTR.x=PTR.sx=e.clientX;PTR.y=PTR.sy=e.clientY;PTR.drag=false;PTR.shift=e.shiftKey;e.preventDefault()}
+function onMove(e){const dx=e.clientX-PTR.x,dy=e.clientY-PTR.y;PTR.x=e.clientX;PTR.y=e.clientY;
+  if(PTR.btn>=0&&Math.hypot(e.clientX-PTR.sx,e.clientY-PTR.sy)>4)PTR.drag=true;
+  const orbit=PTR.btn===1&&!e.shiftKey||PTR.btn===2&&!e.shiftKey||PTR.btn===0&&TOOL.id==='orbit';const pan=(PTR.btn===1||PTR.btn===2)&&e.shiftKey||PTR.btn===0&&TOOL.id==='pan';
+  if(PTR.drag&&orbit){CAM.yaw-=dx*0.006;CAM.pitch=clamp(CAM.pitch+dy*0.006,-1.5,1.5);requestDraw();return}
+  if(PTR.drag&&pan){const {r,u}=camBasis();const k=2*CAM.dist*Math.tan(CAM.fov/2)/R3.cv.clientHeight;CAM.t=v3.add(CAM.t,v3.add(v3.mul(r,-dx*k),v3.mul(u,dy*k)));requestDraw();return}
+  if(PTR.btn===0&&TOOL.id==='select'&&PTR.drag){TOOL.rect=[PTR.sx,PTR.sy,e.clientX,e.clientY];requestDraw();return}
+  hover(e)}
+function hover(e){const t=TOOL.id;if(t==='select'||t==='orbit'||t==='pan'||t==='erase'||t==='paint'){TOOL.cur=null;if(t==='erase'||t==='paint'){const o=pickAt(e.clientX,e.clientY);TOOL.hov=o?o.id:null;requestDraw()}return}
+  const ex=TOOL.preview&&TOOL.preview.ids?new Set(TOOL.preview.ids):new Set();if(TOOL.preview&&TOOL.preview.ghost)ex.add(TOOL.preview.ghost.id);
+  const r=infer(e.clientX,e.clientY,{A:TOOL.A,exclude:ex});TOOL.cur=r;if(!r){requestDraw();return}
+  if((t==='move'||t==='copy')&&TOOL.A){const d=v3.sub(r.p,TOOL.A);TOOL.preview.d=d;status(`${TOOLS[t].n}: ${fmt(v3.len(d))} мм ${r.label?'— '+r.label:''}`)}
+  if(t==='profile'){if(TOOL.A){const o=makeProfile(TOOL.A,r.p,TOOL.An);TOOL.preview=o?{ghost:o}:null;status(`Профиль: длина ${fmt(v3.dist(TOOL.A,r.p))} мм ${r.label?'— '+r.label:''}. Введите длину и Enter.`)}else status('Профиль: щёлкните начало. '+(r.label||''))}
+  if(t==='place'&&TOOL.ghost){const g=TOOL.ghost;g.R=m3.clean(m3.rot([0,0,1],TOOL.rot||0));g.o=r.p.slice();
+    // на грани — ставим вплотную к ней, а не внутрь
+    if(r.kind==='face'&&r.n){const G=objGeo(g);const M=objW(g);let mn=1e9;for(const x of [G.bb[0],G.bb[3]])for(const y of [G.bb[1],G.bb[4]])for(const z of [G.bb[2],G.bb[5]]){const p=m4.xf(M,[x,y,z]);mn=Math.min(mn,v3.dot(v3.sub(p,r.p),r.n))}g.o=v3.add(g.o,v3.mul(r.n,-mn))}
+    TOOL.preview={ghost:g};status('Поставить: '+objName(g)+(r.label?' — '+r.label:'')+'. R — повернуть, щелчок — поставить.')}
+  if((t==='tape'||t==='dim')&&TOOL.A)status(`${TOOLS[t].n}: ${fmt(v3.dist(TOOL.A,r.p))} мм`);
+  requestDraw()}
+function onUp(e){const btn=PTR.btn;PTR.btn=-1;if(btn!==0){return}
+  if(TOOL.id==='select'&&TOOL.rect){const [x0,y0,x1,y1]=TOOL.rect;TOOL.rect=null;const r0=R3.cv.getBoundingClientRect();const a=[Math.min(x0,x1)-r0.left,Math.min(y0,y1)-r0.top,Math.max(x0,x1)-r0.left,Math.max(y0,y1)-r0.top];
+    if(!e.shiftKey)SC.sel.clear();for(const o of SC.objs){if(SC.hide[objTag(o)])continue;const b=objBox(o);const s=toScreen([(b[0]+b[3])/2,(b[1]+b[4])/2,(b[2]+b[5])/2]);if(s&&s[0]>=a[0]&&s[0]<=a[2]&&s[1]>=a[1]&&s[1]<=a[3])SC.sel.add(o.id)}refreshPanels();requestDraw();return}
+  if(PTR.drag&&(TOOL.id==='select'||TOOL.id==='orbit'||TOOL.id==='pan'))return;
+  click(e)}
+function click(e){const t=TOOL.id;
+  if(t==='select'){const o=pickAt(e.clientX,e.clientY);if(!e.shiftKey)SC.sel.clear();if(o){if(e.shiftKey&&SC.sel.has(o.id))SC.sel.delete(o.id);else SC.sel.add(o.id)}refreshPanels();requestDraw();return}
+  if(t==='erase'){const o=pickAt(e.clientX,e.clientY);if(o){SC.objs=SC.objs.filter(x=>x!==o);SC.sel.delete(o.id);commit()}return}
+  if(t==='paint'){const o=pickAt(e.clientX,e.clientY);if(!o)return;if(e.altKey){UI.curMat=o.mat||COMPS[o.c]?.mat;refreshPanels();status('Взята текстура: '+(MATS[UI.curMat]||{}).n);return}
+    const targets=SC.sel.has(o.id)?selObjs():[o];for(const x of targets)x.mat=UI.curMat;commit();return}
+  const r=TOOL.cur;if(!r)return;
+  if(t==='move'||t==='copy'){if(!TOOL.A){if(!SC.sel.size&&r.obj)SC.sel.add(r.obj.id);if(!SC.sel.size){status('Сначала выделите объект или щёлкните по нему');return}
+      TOOL.A=r.p;const ids=[...SC.sel];TOOL.preview={ids,d:[0,0,0],Wf:o=>objW(o,TOOL.preview.d),copy:t==='copy'||e.ctrlKey};refreshPanels();return}
+    finishMove(v3.sub(r.p,TOOL.A));return}
+  if(t==='profile'){if(!TOOL.A){TOOL.A=r.p;TOOL.An=r.kind==='face'?r.n:null;return}const o=makeProfile(TOOL.A,r.p,TOOL.An);if(o){SC.objs.push(o);commit()}TOOL.A=r.p;TOOL.An=null;TOOL.preview=null;return}
+  if(t==='place'&&TOOL.ghost){const g=JSON.parse(JSON.stringify(TOOL.ghost));g.id=uid();SC.objs.push(g);SC.sel=new Set([g.id]);commit();if(!e.shiftKey)setTool('select');return}
+  if(t==='tape'||t==='dim'){if(!TOOL.A){TOOL.A=r.p;return}const d=v3.dist(TOOL.A,r.p);if(t==='dim'){SC.dims.push({a:TOOL.A,b:r.p});commit()}status(`${TOOLS[t].n}: ${fmt(d)} мм`);TOOL.lastTape=[TOOL.A,r.p];TOOL.A=null;requestDraw();return}}
+function finishMove(d,copies){const pv=TOOL.preview;if(!pv)return;const list=SC.objs.filter(o=>pv.ids.includes(o.id));
+  if(pv.copy){const n=[];for(const o of list){const c=dupObj(o,d);SC.objs.push(c);n.push(c.id)}SC.sel=new Set(n);TOOL.lastCopy={src:list.map(o=>o.id),d,made:n}}else for(const o of list)o.o=v3.add(o.o,d);
+  TOOL.A=null;TOOL.preview=null;commit();status(pv.copy?'Скопировано. Введите x5 и Enter — ещё 5 копий с тем же шагом.':'Перемещено.')}
+// ---- ввод чисел (как поле «Измерения» в SketchUp)
+function vcbEnter(){const s=$('#vcb').value.trim();$('#vcb').value='';if(!s)return;const t=TOOL.id;
+  const mArr=s.match(/^[x×*]\s*(\d+)$/i);if(mArr&&TOOL.lastCopy){const k=+mArr[1];const src=SC.objs.filter(o=>TOOL.lastCopy.src.includes(o.id));for(let i=2;i<=k;i++)for(const o of src)SC.objs.push(dupObj(o,v3.mul(TOOL.lastCopy.d,i)));commit();status(`Сделано копий: ${k}`);return}
+  const v=num(s);
+  if((t==='move'||t==='copy')&&TOOL.A&&TOOL.preview){let d=TOOL.preview.d;if(v3.len(d)<1e-6)d=TOOL.lock!=null?AX[TOOL.lock]:[1,0,0];finishMove(v3.mul(v3.norm(d),v));return}
+  if(t==='profile'&&TOOL.A&&TOOL.cur){const dir=v3.norm(v3.sub(TOOL.cur.p,TOOL.A));const B=v3.add(TOOL.A,v3.mul(dir,v));const o=makeProfile(TOOL.A,B,TOOL.An);if(o){SC.objs.push(o);commit()}TOOL.A=B;TOOL.An=null;TOOL.preview=null;return}
+  if(t==='rotate'){rotateSel([0,0,1],v);return}
+  if(t==='tape'&&TOOL.lastTape){const [A,B]=TOOL.lastTape;status(`Рулетка: ${fmt(v3.dist(A,B))} мм`)}}
+function onKey(e){const tag=(e.target.tagName||'').toLowerCase();const inField=tag==='input'||tag==='select'||tag==='textarea';
+  if(e.target.id==='vcb'){if(e.key==='Enter'){vcbEnter();e.target.blur();e.preventDefault()}else if(e.key==='Escape'){e.target.value='';e.target.blur();if(TOOL.A)setTool(TOOL.id);else setTool('select')}return}
+  if(inField)return;const k=e.key;
+  if((e.ctrlKey||e.metaKey)&&k.toLowerCase()==='z'){e.shiftKey?redo():undo();e.preventDefault();return}
+  if((e.ctrlKey||e.metaKey)&&(k.toLowerCase()==='y')){redo();e.preventDefault();return}
+  if((e.ctrlKey||e.metaKey)&&k.toLowerCase()==='a'){SC.objs.forEach(o=>SC.sel.add(o.id));refreshPanels();requestDraw();e.preventDefault();return}
+  if((e.ctrlKey||e.metaKey)&&k.toLowerCase()==='s'){saveFile();e.preventDefault();return}
+  if(/^[0-9.,x×*-]$/i.test(k)&&['move','copy','profile','rotate','tape'].includes(TOOL.id)||(/^[xх]$/i.test(k)&&TOOL.lastCopy)){const f=$('#vcb');f.focus();return}
+  if(k==='Escape'){if(TOOL.id==='select'){SC.sel.clear();refreshPanels()}if(TOOL.A&&TOOL.id!=='select'){setTool(TOOL.id);return}setTool('select');return}
+  if(k==='Delete'||k==='Backspace'){delSel();return}
+  if(k.startsWith('Arrow')&&TOOL.A){const m={ArrowRight:0,ArrowLeft:1,ArrowUp:2,ArrowDown:2}[k];TOOL.lock=TOOL.lock===m?null:m;status(TOOL.lock==null?'Ось снята':'Закреплено '+AXN[m]);e.preventDefault();return}
+  if(k==='r'||k==='R'||k==='к'||k==='К'){if(TOOL.id==='profile'){TOOL.roll=((TOOL.roll||0)+90)%360;status('Профиль повёрнут вокруг оси на '+TOOL.roll+'°');return}if(TOOL.id==='place'){TOOL.rot=((TOOL.rot||0)+90)%360;return}}
+  const map={' ':'select',m:'move',ь:'move',c:'copy',с:'copy',p:'profile',з:'profile',b:'paint',и:'paint',t:'tape',е:'tape',d:'dim',в:'dim',e:'erase',у:'erase',o:'orbit',щ:'orbit',h:'pan',р:'pan'};
+  if(k==='q'||k==='й'){rotateSel([0,0,1],e.shiftKey?-90:90);return}
+  const tl=map[k.toLowerCase()];if(tl){setTool(tl);e.preventDefault()}}
+function onWheel(e){e.preventDefault();const k=e.deltaY>0?1.15:1/1.15;const R=ray(e.clientX,e.clientY);let p=null;const o=pickAt(e.clientX,e.clientY);if(o){const h=rayObj(R,o);if(h)p=h.p}if(!p)p=planeHit(R,[0,0,0],[0,0,1]);
+  if(p&&k<1){CAM.t=v3.lerp(CAM.t,p,1-k)}else if(p&&k>1){CAM.t=v3.lerp(CAM.t,p,-(k-1)*0.3)}CAM.dist=clamp(CAM.dist*k,50,200000);requestDraw()}
+// ---- виды
+function viewFit(list){list=list||SC.objs.filter(o=>!SC.hide[objTag(o)]);let b=[0,0,0,3000,2000,2700];if(list.length){b=[1e9,1e9,1e9,-1e9,-1e9,-1e9];for(const o of list){const q=objBox(o);for(let k=0;k<3;k++){b[k]=Math.min(b[k],q[k]);b[k+3]=Math.max(b[k+3],q[k+3])}}}
+  CAM.t=[(b[0]+b[3])/2,(b[1]+b[4])/2,(b[2]+b[5])/2];const sz=Math.max(b[3]-b[0],b[4]-b[1],b[5]-b[2],500);CAM.dist=sz/Math.tan(CAM.fov/2)*0.75;requestDraw()}
+function view(k){const P={iso:[-55,28],front:[-90,0],back:[90,0],left:[180,0],right:[0,0],top:[-90,89.9]}[k];CAM.yaw=P[0]*Math.PI/180;CAM.pitch=P[1]*Math.PI/180;viewFit()}
+// ================= ОВЕРЛЕЙ: размеры, привязки, рамка =================
+function drawOverlay(){const ov=R3.ov,g=ov.getContext('2d');const dpr=ov.width/ov.clientWidth;g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,ov.width,ov.height);g.font='600 12px system-ui,Segoe UI,Arial';
+  const lbl=(x,y,t,c='#111')=>{const w=g.measureText(t).width+10;g.fillStyle='rgba(255,255,255,.92)';g.fillRect(x-w/2,y-9,w,18);g.strokeStyle=c;g.lineWidth=1;g.strokeRect(x-w/2,y-9,w,18);g.fillStyle=c;g.textAlign='center';g.textBaseline='middle';g.fillText(t,x,y)};
+  // постоянные размеры
+  for(const dm of SC.dims){const a=toScreen(dm.a),b=toScreen(dm.b);if(!a||!b)continue;g.strokeStyle='#0f172a';g.lineWidth=1.2;g.beginPath();g.moveTo(a[0],a[1]);g.lineTo(b[0],b[1]);g.stroke();
+    for(const p of [a,b]){g.beginPath();g.arc(p[0],p[1],3,0,7);g.fillStyle='#0f172a';g.fill()}lbl((a[0]+b[0])/2,(a[1]+b[1])/2-12,fmt(v3.dist(dm.a,dm.b)))}
+  if(TOOL.lastTape&&TOOL.id==='tape'){const [A,B]=TOOL.lastTape;const a=toScreen(A),b=toScreen(B);if(a&&b){g.setLineDash([6,4]);g.strokeStyle='#7c3aed';g.beginPath();g.moveTo(a[0],a[1]);g.lineTo(b[0],b[1]);g.stroke();g.setLineDash([]);lbl((a[0]+b[0])/2,(a[1]+b[1])/2-12,fmt(v3.dist(A,B))+' мм','#7c3aed')}}
+  const r=TOOL.cur;if(r&&!['select','orbit','pan','paint','erase'].includes(TOOL.id)){const s=toScreen(r.p);if(s){
+    if(TOOL.A){const a=toScreen(TOOL.A);if(a){g.strokeStyle=r.kind==='axis'?AXC[r.ax]:'#111';g.lineWidth=r.kind==='axis'?2.5:1.5;g.setLineDash(r.kind==='axis'?[]:[5,4]);g.beginPath();g.moveTo(a[0],a[1]);g.lineTo(s[0],s[1]);g.stroke();g.setLineDash([]);
+      if(['profile','tape','dim','move','copy'].includes(TOOL.id))lbl((a[0]+s[0])/2,(a[1]+s[1])/2-14,fmt(v3.dist(TOOL.A,r.p))+' мм',r.kind==='axis'?AXC[r.ax]:'#111')}}
+    const col={snap:'#16a34a',face:'#2563eb',ground:'#64748b',axis:r.ax!=null?AXC[r.ax]:'#111'}[r.kind];g.lineWidth=2;g.strokeStyle=col;g.fillStyle='#fff';
+    if(r.kind==='snap'){g.beginPath();g.arc(s[0],s[1],6,0,7);g.fill();g.stroke()}else{g.strokeRect(s[0]-4,s[1]-4,8,8)}
+    if(r.label){g.font='500 11px system-ui,Arial';g.textAlign='left';g.fillStyle='rgba(15,23,42,.85)';const w=g.measureText(r.label).width+8;g.fillRect(s[0]+12,s[1]+10,w,16);g.fillStyle='#fff';g.textBaseline='middle';g.fillText(r.label,s[0]+16,s[1]+18)}}}
+  if(TOOL.rect){const [x0,y0,x1,y1]=TOOL.rect;const r0=R3.cv.getBoundingClientRect();g.strokeStyle='#2563eb';g.setLineDash([4,3]);g.fillStyle='rgba(37,99,235,.08)';g.fillRect(x0-r0.left,y0-r0.top,x1-x0,y1-y0);g.strokeRect(x0-r0.left,y0-r0.top,x1-x0,y1-y0);g.setLineDash([])}
+  // подписи осей
+  for(let i=0;i<3;i++){const s=toScreen(AX[i].map(v=>v*600));if(s){g.fillStyle=AXC[i];g.font='700 12px system-ui';g.fillText('XYZ'[i],s[0]+4,s[1]-4)}}}
+
+// ================= ПАНЕЛИ =================
+const TAGS=['Каркас','Крепёж','ГКЛ','Плитка','Трубы','Сантехника','Стены','Импорт','Прочее'];
+function refreshPanels(){leftPanel();rightPanel()}
+function leftPanel(){const el=$('#left');const tab=UI.tab;
+  $('#ltabs').innerHTML=[['comp','Компоненты'],['mat','Текстуры'],['tags','Слои'],['gen','Быстро построить']].map(([k,t])=>`<button data-ltab="${k}" class="${tab===k?'on':''}">${t}</button>`).join('');
+  if(tab==='comp'){for(const c of Object.values(COMPS))matTex(c.mat);const groups={};for(const [k,c] of Object.entries(COMPS))(groups[c.g]=groups[c.g]||[]).push([k,c]);
+    el.innerHTML=Object.entries(groups).map(([g,list])=>`<div class="grp">${g}</div>`+list.map(([k,c])=>`<button class="comp ${c.len&&UI.curProf===k&&TOOL.id==='profile'?'on':''}" data-comp="${k}"><span class="sw" style="background:${swatchCss(c.mat)}"></span><span>${esc(c.n)}${c.len?'<small>рисовать по двум точкам</small>':''}</span></button>`).join('')).join('')+
+    `<div class="note">Профили и трубы рисуются инструментом «Профиль»: щёлкните начало и конец, или введите длину. Остальное — щёлкните и поставьте в модель.</div>`}
+  if(tab==='mat'){el.innerHTML=`<div class="mats">${Object.entries(MATS).map(([k,m])=>`<button class="mat ${UI.curMat===k?'on':''}" data-mat="${k}" title="${esc(m.n)}"><canvas data-prev="${k}" width="56" height="56"></canvas><span>${esc(m.n)}</span></button>`).join('')}</div>
+    <div class="grp">Своя текстура</div><div class="note">Фото плитки, камня, дерева. Укажите реальный размер того, что на фото — так она ляжет в масштабе.</div>
+    <div class="row2"><label>Ширина, мм<input id="tw" value="600"></label><label>Высота, мм<input id="th" value="600"></label></div>
+    <button class="btn" data-act="upl">📷 Загрузить картинку…</button>
+    <div class="grp">Свой цвет</div><div class="row2"><input type="color" id="tcol" value="#c8a27a"><button class="btn" data-act="addcol">Добавить цвет</button></div>`;
+    el.querySelectorAll('canvas[data-prev]').forEach(c=>{const p=matPreview(c.dataset.prev,56);c.getContext('2d').drawImage(p,0,0)})}
+  if(tab==='tags'){const cnt={};for(const o of SC.objs){const t=objTag(o);cnt[t]=(cnt[t]||0)+1}
+    el.innerHTML=TAGS.filter(t=>cnt[t]||t==='Каркас').map(t=>`<label class="tag"><input type="checkbox" data-tag="${t}" ${SC.hide[t]?'':'checked'}> ${t} <small>${cnt[t]||0}</small></label>`).join('')+
+    `<div class="note">Снимите галочку — слой спрячется. Например, спрячьте ГКЛ, чтобы видеть каркас и трубы.</div>`}
+  if(tab==='gen'){el.innerHTML=genHtml()}}
+function swatchCss(m){const M=MATS[m];if(!M)return'#ccc';const a=R3.texAvg[m]||(M.tex?null:M.col);const c=a||M.col||[.8,.8,.8];return`rgb(${c.map(v=>Math.round(v*255)).join(',')})`}
+function rightPanel(){const el=$('#right');const list=selObjs();
+  if(!list.length){el.innerHTML=`<div class="ptitle">Ничего не выделено</div><div class="note">Щёлкните по объекту инструментом «Выбор», чтобы увидеть и поменять размеры, положение и текстуру.</div>${specBrief()}`;return}
+  if(list.length>1){el.innerHTML=`<div class="ptitle">Выделено: ${list.length}</div>${matSel('')}${rotBtns()}<button class="btn" data-act="fit">🔍 Показать</button><button class="btn red" data-act="del">🗑 Удалить</button>${specBrief()}`;return}
+  const o=list[0];const C=COMPS[o.c];const inp=(lab,k,v,cls='')=>`<label>${lab}<input data-${cls||'pp'}="${k}" value="${fmt(v)}"></label>`;
+  el.innerHTML=`<div class="ptitle">${esc(objName(o))}</div>
+    ${C&&Object.keys(C.params).length?`<div class="grp">Размеры, мм</div><div class="row2">${Object.entries(C.params).map(([k,v])=>inp(v[0],k,o.P[k])).join('')}</div>`:''}
+    <div class="grp">Положение (точка вставки), мм</div><div class="row3">${['X','Y','Z'].map((a,i)=>inp(a,i,o.o[i],'po')).join('')}</div>
+    ${rotBtns()}${matSel(o.mat||'')}
+    <label>Слой<select data-otag>${TAGS.map(t=>`<option ${objTag(o)===t?'selected':''}>${t}</option>`).join('')}</select></label>
+    <div class="grp">Копировать в ряд</div><div class="row3"><label>Сколько<input id="arN" value="3"></label><label>Шаг, мм<input id="arS" value="600"></label><label>Ось<select id="arA"><option value="0">X</option><option value="1">Y</option><option value="2">Z</option></select></label></div><button class="btn" data-act="arr">Сделать ряд</button>
+    <div class="row2"><button class="btn" data-act="dup">⧉ Дублировать</button><button class="btn red" data-act="del">🗑 Удалить</button></div>`}
+function rotBtns(){return`<div class="grp">Повернуть на 90°</div><div class="row3"><button class="btn" data-rot="2">⟲ синяя Z</button><button class="btn" data-rot="0">⟲ красная X</button><button class="btn" data-rot="1">⟲ зелёная Y</button></div>`}
+function matSel(cur){return`<label>Текстура<select data-omat><option value="">— как у компонента —</option>${Object.entries(MATS).map(([k,m])=>`<option value="${k}" ${cur===k?'selected':''}>${esc(m.n)}</option>`).join('')}</select></label>`}
+function specBrief(){if(!SC.objs.length)return'';return`<div class="grp">Модель</div><div class="note">Объектов: ${SC.objs.length}</div><button class="btn" data-act="spec">📋 Спецификация и раскрой</button>`}
+// ================= БЫСТРОЕ ПОСТРОЕНИЕ =================
+const GEN={sys:'wb',L:3000,H:2600,step:600,hstep:1200,gap:10,layers:2,cav:60,wall:true,floor:true,conn:true};
+function genHtml(){const f=(k,l)=>`<label>${l}<input data-gen="${k}" value="${GEN[k]}"></label>`;const c=(k,l)=>`<label class="tag"><input type="checkbox" data-genc="${k}" ${GEN[k]?'checked':''}> ${l}</label>`;
+  return`<div class="grp">Каркас стены</div><div class="row2"><button class="btn ${GEN.sys==='wb'?'on':''}" data-gsys="wb">WALLBOX</button><button class="btn ${GEN.sys==='knauf'?'on':''}" data-gsys="knauf">Knauf</button></div>
+  <div class="row2">${f('L','Длина стены, мм')}${f('H','Высота, мм')}${f('step','Шаг стоек, мм')}${f('hstep','Шаг горизонталей')}${f('gap','Зазор сверху, мм')}${f('layers','Слоёв ГКЛ (0–2)')}${f('cav','Отступ от стены, мм')}</div>
+  ${c('conn','Уголки и крепления')}${c('wall','Стена позади (брус)')}${c('floor','Пол')}
+  <button class="btn main" data-act="gen">Построить</button>
+  <div class="note">Всё строится отдельными деталями: любую стойку потом можно сдвинуть, удалить или скопировать. Новая стена ставится справа от того, что уже есть.</div>
+  <div class="grp">Комната</div><div class="row2"><label>Длина<input id="rmL" value="2500"></label><label>Ширина<input id="rmW" value="1800"></label><label>Высота<input id="rmH" value="2600"></label><label>Толщина стен<input id="rmT" value="150"></label></div><button class="btn" data-act="room">Построить комнату</button>`}
+function genFrame(){const G={...GEN};for(const k of ['L','H','step','hstep','gap','layers','cav'])G[k]=num(G[k]);const out=[];const wb=G.sys==='wb';const pw=wb?33:50;
+  let X0=0;if(SC.objs.length){let mx=-1e9;for(const o of SC.objs)mx=Math.max(mx,objBox(o)[3]);X0=Math.round(mx+500)}
+  const P=(c,par,o,R)=>{const ob=newObj(c,par,v3.add(o,[X0,0,0]),R);out.push(ob);return ob};const Rv=profBasis([0,0,1],0),Rh=m3.I();
+  const top=G.H-G.gap;
+  // стойки по шагу + крайние
+  const xs=[pw/2];for(let x=G.step;x<G.L-pw/2-100;x+=G.step)xs.push(x);xs.push(G.L-pw/2);
+  if(wb){P('wb_prof',{L:G.L},[0,16.5,16.5],Rh);P('wb_prof',{L:G.L},[0,16.5,top-16.5],Rh);
+    for(const x of xs)P('wb_prof',{L:top-66},[x,16.5,33],Rv);
+    const hz=[];for(let z=G.hstep;z<top-200;z+=G.hstep)hz.push(z);
+    for(const z of hz)for(let i=0;i<xs.length-1;i++)P('wb_prof',{L:xs[i+1]-xs[i]-33},[xs[i]+16.5,16.5,z],Rh);
+    if(G.conn){const flip=m3.rot([1,0,0],180),mir=m3.rot([0,0,1],180),mf=m3.clean(m3.mul(mir,flip));
+      for(const x of xs){if(x<G.L-pw)P('wb_corner',{},[x+16.5,16.5,16.5],Rh);if(x>pw)P('wb_corner',{},[x-16.5,16.5,16.5],m3.clean(mir));
+        if(x<G.L-pw)P('wb_corner',{},[x+16.5,16.5,top-33+16.5],m3.clean(flip));if(x>pw)P('wb_corner',{},[x-16.5,16.5,top-33+16.5],mf)}
+      for(const z of hz)for(let i=0;i<xs.length-1;i++){P('wb_corner',{},[xs[i]+16.5,16.5,z],m3.clean(flip));P('wb_corner',{},[xs[i+1]-16.5,16.5,z],mf)}
+      const nF=Math.max(2,Math.ceil(G.L/600)+1);for(let k=0;k<nF;k++){const x=50+(G.L-100)*k/(nF-1);P('wb_floor',{},[x,-3,0],m3.clean(m3.rot([0,0,1],90)))}
+      if(G.wall)for(const x of xs)for(let z=400;z<top-200;z+=1200)P('wb_double',{L:Math.max(20,G.cav-18)},[x,33+18,z],Rh)}}
+  else{const W=50;P('kn_pn',{L:G.L,W},[0,W/2,20],Rh);P('kn_pn',{L:G.L,W},[0,W/2,G.H-20],m3.clean(m3.rot([1,0,0],180)));for(const x of xs)P('kn_ps',{L:G.H-10,W},[x,W/2,0],Rv)}
+  // обшивка
+  const D=wb?33:50;const lay=clamp(Math.round(G.layers),0,2);for(let k=0;k<lay;k++){const off=k*600;let x=0;const cuts=[0];for(let c=(off||1200);c<G.L-30;c+=1200)cuts.push(c);cuts.push(G.L);
+    for(let i=0;i<cuts.length-1;i++){const w=cuts[i+1]-cuts[i];let z=0;const a=top-2500>=400?2500:top-400;const rows=top<=2500?[top]:[a,top-a];if(k%2&&top>2500)rows.reverse();for(const h of rows){P('gkl',{W:w,H:h,T:12.5},[cuts[i],-12.5*k,z],Rh);z+=h}}}
+  if(G.wall)P('wall',{W:G.L+300,H:G.H,T:150},[-150,D+G.cav,0],Rh);if(G.floor)P('floor',{W:G.L+300,D:D+G.cav+150+700,T:50},[-150,-700,0],Rh);
+  SC.objs.push(...out);SC.sel=new Set(out.filter(o=>!['wall','floor'].includes(o.c)).map(o=>o.id));commit();viewFit(out)}
+function genRoom(){const L=num($('#rmL').value),W=num($('#rmW').value),H=num($('#rmH').value),T=num($('#rmT').value);const out=[];const R90=m3.clean(m3.rot([0,0,1],90));
+  out.push(newObj('floor',{W:L+2*T,D:W+2*T,T:50},[-T,-T,0]),newObj('wall',{W:L+2*T,H,T},[-T,W,0]),newObj('wall',{W:W,H,T},[0,0,0],R90),newObj('wall',{W:W,H,T},[L+T,0,0],R90));
+  SC.objs.push(...out);commit();viewFit(out)}
+// ================= СПЕЦИФИКАЦИЯ =================
+function specHtml(){const groups=new Map();const lens={};
+  for(const o of SC.objs){if(o.c==='mesh')continue;const C=COMPS[o.c];let key=C.n;const ps=Object.entries(C.params).filter(([k])=>k!==C.len).map(([k,v])=>`${v[0].split(' (')[0].toLowerCase()} ${fmt(o.P[k])}`);
+    if(C.len){key+=' — '+fmt(o.P[C.len])+' мм'+(ps.length?' ('+ps.join(', ')+')':'');(lens[C.n]=lens[C.n]||[]).push(o.P[C.len])}else if(ps.length)key+=' ('+ps.join(', ')+')';
+    if(o.mat&&o.mat!==C.mat)key+=' · '+(MATS[o.mat]||{}).n;groups.set(key,(groups.get(key)||0)+1)}
+  const rows=[...groups.entries()].sort((a,b)=>a[0].localeCompare(b[0],'ru'));
+  const bars=Object.entries(lens).map(([n,arr])=>{const bar=3000;const it=arr.slice().sort((a,b)=>b-a);const bins=[];let joins=0;for(let l of it){while(l>bar){bins.push(bar);l-=bar;joins++}const b=bins.findIndex(u=>u+l+3<=bar);if(b>=0)bins[b]+=l+3;else bins.push(l)}
+    return`<tr><td>${esc(n)}</td><td>${fmt(arr.reduce((a,b)=>a+b,0)/1000)} м</td><td><b>${bins.length}</b> хлыстов по 3 м${joins?`, стыков ${joins}`:''}</td></tr>`}).join('');
+  let gA=0;for(const o of SC.objs)if(o.c==='gkl'||o.c==='cboard')gA+=o.P.W*o.P.H/1e6;let tA=0;for(const o of SC.objs)if(o.c==='tilepanel')tA+=o.P.W*o.P.H/1e6;
+  return`<h2>Спецификация</h2><table><tr><th>Позиция</th><th>Кол-во</th></tr>${rows.map(([k,n])=>`<tr><td>${esc(k)}</td><td><b>${n}</b></td></tr>`).join('')}</table>
+    ${bars?`<h3>Профиль и трубы — сколько покупать</h3><table><tr><th>Что</th><th>Всего</th><th>Хлыстов (с пропилом 3 мм)</th></tr>${bars}</table>`:''}
+    ${gA?`<p>Листы ГКЛ / плиты: ${fmt(gA)} м²</p>`:''}${tA?`<p>Плитка: ${fmt(tA)} м² (+10% запас: ${fmt(tA*1.1)} м²)</p>`:''}`}
+function openModal(h){$('#modal .body').innerHTML=h;$('#modal').classList.add('on')}
+// ================= ФАЙЛЫ =================
+function download(name,data,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500)}
+function saveFile(){download(`каркас-${new Date().toISOString().slice(0,10)}.karkas.json`,JSON.stringify(projectData()),'application/json');status('Проект сохранён в файл. Открыть его потом — «Открыть».')}
+function openFile(f){const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(d.app==='karkas3d')loadProject(d);else throw 0;status('Проект открыт: '+f.name);viewFit()}catch(e){alert('Не получилось открыть: это не файл проекта.')}};r.readAsText(f)}
+// экспорт в COLLADA (.dae) для SketchUp: Файл → Импорт. Цвет каждой текстуры — средний цвет картинки
+function exportDae(){const groups=new Map();
+  for(const o of SC.objs){if(SC.hide[objTag(o)])continue;const g=objGeo(o);const M=objW(o);for(const [m,a] of Object.entries(g.parts)){const mk=m==='main'?(o.mat||COMPS[o.c]?.mat||o.dm||'white'):m;matTex(mk);
+      if(!groups.has(mk))groups.set(mk,[]);const arr=groups.get(mk);for(let i=0;i<a.length;i+=8){const p=m4.xf(M,[a[i],a[i+1],a[i+2]]);arr.push(p[0]/1000,p[1]/1000,p[2]/1000)}}}
+  let effs='',mats='',geos='',nodes='';let gi=0;
+  for(const [mk,pts] of groups){const M=MATS[mk]||MATS.white;const avg=R3.texAvg[mk]||[1,1,1];const c=(M.col||[1,1,1]).map((v,i)=>(v*(M.tex||M.img?avg[i]:1)).toFixed(4));const id='m'+gi;const n=pts.length/3;
+    effs+=`<effect id="${id}-fx"><profile_COMMON><technique sid="c"><lambert><diffuse><color>${c.join(' ')} 1</color></diffuse></lambert></technique></profile_COMMON></effect>`;
+    mats+=`<material id="${id}" name="${esc(M.n)}"><instance_effect url="#${id}-fx"/></material>`;
+    geos+=`<geometry id="g${gi}"><mesh><source id="g${gi}-p"><float_array id="g${gi}-a" count="${n*3}">${pts.map(v=>v.toFixed(5)).join(' ')}</float_array><technique_common><accessor source="#g${gi}-a" count="${n}" stride="3"><param name="X" type="float"/><param name="Y" type="float"/><param name="Z" type="float"/></accessor></technique_common></source><vertices id="g${gi}-v"><input semantic="POSITION" source="#g${gi}-p"/></vertices><triangles material="${id}" count="${n/3}"><input semantic="VERTEX" source="#g${gi}-v" offset="0"/><p>${Array.from({length:n},(_,i)=>i).join(' ')}</p></triangles></mesh></geometry>`;
+    nodes+=`<node id="n${gi}" name="${esc(M.n)}"><instance_geometry url="#g${gi}"><bind_material><technique_common><instance_material symbol="${id}" target="#${id}"/></technique_common></bind_material></instance_geometry></node>`;gi++}
+  download('каркас.dae',`<?xml version="1.0" encoding="utf-8"?><COLLADA xmlns="http://www.collada.org/2005/11/COLLADASchema" version="1.4.1"><asset><unit name="meter" meter="1"/><up_axis>Z_UP</up_axis></asset><library_effects>${effs}</library_effects><library_materials>${mats}</library_materials><library_geometries>${geos}</library_geometries><library_visual_scenes><visual_scene id="s"><node id="karkas" name="Каркас">${nodes}</node></visual_scene></library_visual_scenes><scene><instance_visual_scene url="#s"/></scene></COLLADA>`,'model/vnd.collada+xml');
+  status('Модель .dae сохранена. В SketchUp: Файл → Импорт → выберите файл.')}
+// импорт .dae (из SketchUp: Файл → Экспорт → 3D-модель → COLLADA) — как один объект-«подложка»
+function importDae(text,name){const X=new DOMParser().parseFromString(text,'application/xml');const q=(el,s)=>Array.from(el.getElementsByTagName(s));
+  const unit=+((q(X,'unit')[0]||{getAttribute:()=>1}).getAttribute('meter')||1)*1000;const yUp=/Y_UP/.test((q(X,'up_axis')[0]||{}).textContent||'');
+  const byId={};for(const e of q(X,'*'))if(e.getAttribute('id'))byId[e.getAttribute('id')]=e;
+  const matCol=matId=>{const m=byId[matId];if(!m)return[.8,.8,.8];const ie=q(m,'instance_effect')[0];const fx=ie&&byId[(ie.getAttribute('url')||'').slice(1)];const c=fx&&q(fx,'diffuse')[0]&&q(q(fx,'diffuse')[0],'color')[0];return c?c.textContent.trim().split(/\s+/).slice(0,3).map(Number):[.8,.8,.8]};
+  const parts={};const mulM=(a,b)=>{const o=new Array(16).fill(0);for(let r=0;r<4;r++)for(let c=0;c<4;c++)for(let k=0;k<4;k++)o[r*4+c]+=a[r*4+k]*b[k*4+c];return o};const I=[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1];
+  const xf=(M,p)=>[M[0]*p[0]+M[1]*p[1]+M[2]*p[2]+M[3],M[4]*p[0]+M[5]*p[1]+M[6]*p[2]+M[7],M[8]*p[0]+M[9]*p[1]+M[10]*p[2]+M[11]];
+  const addGeo=(geo,M,bind)=>{const mesh=q(geo,'mesh')[0];if(!mesh)return;const vtx=q(mesh,'vertices')[0];const posIn=vtx&&q(vtx,'input').find(i=>i.getAttribute('semantic')==='POSITION');const src=posIn&&byId[posIn.getAttribute('source').slice(1)];if(!src)return;
+    const fa=q(src,'float_array')[0].textContent.trim().split(/\s+/).map(Number);const acc=q(src,'accessor')[0];const st=+(acc&&acc.getAttribute('stride')||3);
+    for(const prim of [...q(mesh,'triangles'),...q(mesh,'polylist'),...q(mesh,'polygons')]){const ins=q(prim,'input');const off=+(ins.find(i=>i.getAttribute('semantic')==='VERTEX').getAttribute('offset')||0);const n=Math.max(...ins.map(i=>+(i.getAttribute('offset')||0)))+1;
+      const sym=prim.getAttribute('material');const col=matCol(bind[sym]||sym);const key='imp_'+col.map(v=>Math.round(v*255).toString(16).padStart(2,'0')).join('');if(!MATS[key])MATS[key]={n:'Импорт '+key.slice(4),col,custom:true};
+      const arr=parts[key]||(parts[key]=[]);const P=i=>{let p=[fa[i*st],fa[i*st+1],fa[i*st+2]];p=xf(M,p);if(yUp)p=[p[0],-p[2],p[1]];return p.map(v=>v*unit)};
+      const polys=[];if(prim.tagName==='triangles'){const idx=q(prim,'p').map(p=>p.textContent.trim().split(/\s+/).map(Number)).flat();for(let i=0;i+3*n-1<idx.length;i+=3*n)polys.push([idx[i+off],idx[i+n+off],idx[i+2*n+off]])}
+      else if(prim.tagName==='polylist'){const vc=q(prim,'vcount')[0].textContent.trim().split(/\s+/).map(Number);const idx=q(prim,'p')[0].textContent.trim().split(/\s+/).map(Number);let k=0;for(const c of vc){const poly=[];for(let j=0;j<c;j++)poly.push(idx[(k+j)*n+off]);k+=c;polys.push(poly)}}
+      else for(const p of q(prim,'p')){const idx=p.textContent.trim().split(/\s+/).map(Number);const poly=[];for(let j=0;j*n<idx.length;j++)poly.push(idx[j*n+off]);polys.push(poly)}
+      for(const poly of polys)for(let j=1;j<poly.length-1;j++){const a=P(poly[0]),b=P(poly[j]),c=P(poly[j+1]);const nn=v3.norm(v3.cross(v3.sub(b,a),v3.sub(c,a)));if(!isFinite(nn[0]))continue;
+        const ax=Math.abs(nn[0]),ay=Math.abs(nn[1]),az=Math.abs(nn[2]);const f=ax>=ay&&ax>=az?p=>[p[1],p[2]]:ay>=az?p=>[p[0],p[2]]:p=>[p[0],p[1]];for(const p of [a,b,c])arr.push(...p,...nn,...f(p))}}};
+  const walk=(node,M,depth)=>{if(depth>40)return;let L=M;for(const ch of node.children){if(ch.tagName==='matrix'){const m=ch.textContent.trim().split(/\s+/).map(Number);L=mulM(L,m)}
+      if(ch.tagName==='translate'){const t=ch.textContent.trim().split(/\s+/).map(Number);L=mulM(L,[1,0,0,t[0],0,1,0,t[1],0,0,1,t[2],0,0,0,1])}
+      if(ch.tagName==='scale'){const t=ch.textContent.trim().split(/\s+/).map(Number);L=mulM(L,[t[0],0,0,0,0,t[1],0,0,0,0,t[2],0,0,0,0,1])}}
+    for(const ch of node.children){if(ch.tagName==='instance_geometry'){const bind={};for(const im of q(ch,'instance_material'))bind[im.getAttribute('symbol')]=(im.getAttribute('target')||'').slice(1);const g=byId[(ch.getAttribute('url')||'').slice(1)];if(g)addGeo(g,L,bind)}
+      if(ch.tagName==='instance_node'){const n=byId[(ch.getAttribute('url')||'').slice(1)];if(n)walk(n,L,depth+1)}if(ch.tagName==='node')walk(ch,L,depth+1)}};
+  const vs=q(X,'visual_scene')[0];if(!vs)throw new Error('нет сцены');for(const n of Array.from(vs.children))if(n.tagName==='node')walk(n,I,0);
+  const key='mesh_'+uid();SC.meshes[key]={name,parts:Object.fromEntries(Object.entries(parts).map(([k,a])=>[k,new Float32Array(a)]))};
+  const o={id:uid(),c:'mesh',mesh:key,name,P:{},o:[0,0,0],R:m3.I(),mat:null,tag:'Импорт'};SC.objs.push(o);SC.sel=new Set([o.id]);commit();viewFit([o]);status('Импортировано: '+name)}
+function meshGeo(m){let bb=[1e9,1e9,1e9,-1e9,-1e9,-1e9];for(const a of Object.values(m.parts))for(let i=0;i<a.length;i+=8)for(let k=0;k<3;k++){bb[k]=Math.min(bb[k],a[i+k]);bb[k+3]=Math.max(bb[k+3],a[i+k])}
+  const snaps=[];for(const x of [bb[0],bb[3]])for(const y of [bb[1],bb[4]])for(const z of [bb[2],bb[5]])snaps.push([x,y,z]);return{parts:m.parts,edges:new Float32Array(0),snaps,bb}}
+function pngShot(){drawScene();const a=document.createElement('a');a.href=R3.cv.toDataURL('image/png');a.download='каркас.png';a.click()}
+// ================= СОБЫТИЯ ИНТЕРФЕЙСА =================
+function bindUI(){
+  document.addEventListener('click',e=>{const b=e.target.closest('button,[data-ltab]');if(!b)return;const d=b.dataset;
+    if(d.tool){setTool(d.tool);return}if(d.ltab){UI.tab=d.ltab;leftPanel();return}if(d.view){view(d.view);return}
+    if(d.comp){const C=COMPS[d.comp];if(C.len){UI.curProf=d.comp;setTool('profile');leftPanel();status('Рисуем: '+C.n+'. '+TOOLS.profile.h)}else{const g=newObj(d.comp);g.o=[0,0,0];setTool('place',{ghost:g});leftPanel()}return}
+    if(d.mat){UI.curMat=d.mat;const s=selObjs();if(s.length&&TOOL.id==='select'){for(const o of s)o.mat=d.mat;commit()}else setTool('paint');leftPanel();return}
+    if(d.rot){rotateSel(AX[+d.rot],90);return}if(d.gsys){GEN.sys=d.gsys;leftPanel();return}
+    const a=d.act;if(!a)return;
+    if(a==='undo')undo();if(a==='redo')redo();if(a==='del')delSel();if(a==='fit')viewFit(SC.sel.size?selObjs():null);if(a==='allfit')viewFit();
+    if(a==='dup'){const n=selObjs().map(o=>dupObj(o,[100,0,0]));SC.objs.push(...n);SC.sel=new Set(n.map(o=>o.id));commit()}
+    if(a==='arr'){const N=Math.round(num($('#arN').value)),st=num($('#arS').value),ax=+$('#arA').value;const src=selObjs();for(let i=1;i<=N;i++)for(const o of src)SC.objs.push(dupObj(o,v3.mul(AX[ax],st*i)));commit();status(`Добавлено ${N} копий с шагом ${st} мм`)}
+    if(a==='gen')genFrame();if(a==='room')genRoom();if(a==='spec')openModal(specHtml());
+    if(a==='xray'){UI.xray=!UI.xray;b.classList.toggle('on',UI.xray);requestDraw()}if(a==='ortho'){CAM.ortho=!CAM.ortho;b.classList.toggle('on',CAM.ortho);requestDraw()}
+    if(a==='edges'){UI.edges=!UI.edges;b.classList.toggle('on',UI.edges);requestDraw()}if(a==='gridt'){UI.grid=!UI.grid;b.classList.toggle('on',UI.grid);requestDraw()}
+    if(a==='snapg'){UI.snapGrid=!UI.snapGrid;b.classList.toggle('on',UI.snapGrid)}
+    if(a==='new'){if(confirm('Начать новый проект? Несохранённое пропадёт.')){SC.objs=[];SC.dims=[];SC.meshes={};SC.sel.clear();commit();view('iso')}}
+    if(a==='save')saveFile();if(a==='open')$('#fopen').click();if(a==='dae')exportDae();if(a==='idae')$('#fdae').click();if(a==='png')pngShot();
+    if(a==='dimclr'){SC.dims=[];commit()}if(a==='close')$('#modal').classList.remove('on');if(a==='print')window.print();if(a==='help')openModal($('#helptpl').innerHTML);
+    if(a==='upl')$('#fimg').click();
+    if(a==='addcol'){const h=$('#tcol').value;const k='c_'+h.slice(1);MATS[k]={n:'Цвет '+h,col:[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)/255),custom:true};UI.curMat=k;leftPanel();setTool('paint')}});
+  document.addEventListener('change',e=>{const t=e.target,d=t.dataset;
+    if(d.tag){SC.hide[d.tag]=!t.checked;autosave();requestDraw();return}
+    if(d.genc){GEN[d.genc]=t.checked;return}
+    if(d.omat!==undefined){for(const o of selObjs())o.mat=t.value||null;commit();return}
+    if(d.otag!==undefined){for(const o of selObjs())o.tag=t.value;commit();return}
+    if(t.id==='fopen'&&t.files[0]){openFile(t.files[0]);t.value=''}
+    if(t.id==='fdae'&&t.files[0]){const f=t.files[0];const r=new FileReader();r.onload=()=>{try{importDae(r.result,f.name.replace(/\.dae$/i,''))}catch(err){alert('Не получилось прочитать .dae: '+err.message)}};r.readAsText(f);t.value=''}
+    if(t.id==='fimg'&&t.files[0]){const f=t.files[0];const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const c=document.createElement('canvas');const s=Math.min(1024,Math.max(im.width,im.height));c.width=c.height=s;c.getContext('2d').drawImage(im,0,0,s,s);
+        const k='u_'+uid();MATS[k]={n:f.name.replace(/\.[^.]+$/,''),col:[1,1,1],img:c.toDataURL('image/jpeg',0.85),size:[num($('#tw').value)||600,num($('#th').value)||600],custom:true};UI.curMat=k;leftPanel();setTool('paint');autosave();status('Текстура добавлена — щёлкните по объекту, чтобы покрасить')};im.src=r.result};r.readAsDataURL(f);t.value=''}});
+  document.addEventListener('input',e=>{const t=e.target,d=t.dataset;
+    if(d.gen){GEN[d.gen]=t.value;return}
+    const o=selObjs()[0];if(!o)return;
+    if(d.pp){o.P[d.pp]=num(t.value);if(o.P[d.pp]<=0)return;requestDraw();clearTimeout(t._q);t._q=setTimeout(()=>commitQuiet(),500)}
+    if(d.po!==undefined){o.o[+d.po]=num(t.value);requestDraw();clearTimeout(t._q);t._q=setTimeout(()=>commitQuiet(),500)}});
+  const cv=R3.cv;cv.addEventListener('pointerdown',onDown);cv.addEventListener('pointermove',onMove);cv.addEventListener('pointerup',onUp);cv.addEventListener('contextmenu',e=>e.preventDefault());
+  cv.addEventListener('wheel',onWheel,{passive:false});cv.addEventListener('pointerleave',()=>{TOOL.cur=null;requestDraw()});cv.addEventListener('dblclick',e=>{if(TOOL.id==='select'){const o=pickAt(e.clientX,e.clientY);if(o)viewFit([o])}});
+  window.addEventListener('keydown',onKey);window.addEventListener('resize',requestDraw)}
+function commitQuiet(){HIST.u.push(HIST.cur);HIST.r=[];HIST.cur=snapState();autosave();requestDraw()}
+function boot(){if(!glInit($('#cv'),$('#ov'))){document.body.innerHTML='<p style="padding:40px;font:18px sans-serif">Этот браузер не поддерживает 3D (WebGL). Откройте в Chrome, Edge или Firefox.</p>';return}
+  bindUI();try{const d=JSON.parse(localStorage.getItem('karkas3d_v1')||'null');if(d)loadProject(d)}catch(e){}HIST.cur=snapState();
+  if(!SC.objs.length){GEN.sys='wb';genFrame();SC.hide['ГКЛ']=true;HIST.u=[];SC.sel.clear();view('iso')}refreshPanels();setTool('select');requestDraw()}
+
+boot();
+</script></body></html>
