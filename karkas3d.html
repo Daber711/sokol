@@ -215,7 +215,11 @@ const COMPS={
   wb_prof:{n:'Профиль WALLBOX WB90003 33×33',g:'WALLBOX',tag:'Каркас',mat:'alu',len:'L',params:{L:['Длина',1000]},
     build(B,P){B.ext(SECT.wb(),P.L,'main')}},
   wb_corner:{n:'Уголок соединительный WB90102',g:'WALLBOX',tag:'Крепёж',mat:'steel',params:{},
-    build(B){B.box(0,-16.5,16.5,32,16.5,19,'main');B.box(0,-16.5,16.5,2.5,16.5,48,'main');B.push(null,[12,0,19]);B.push(m3.rot([0,1,0],-90));B.cyl(4,0,6,'main',8);B.pop();B.pop()}},
+    // треугольная косынка во внутреннем углу стыка, в плоскости двух профилей (катеты 40, толщина 8)
+    build(B){const L=40,t=4,z0=16.5;const P=[[0,z0],[L,z0],[0,z0+L]];
+      B.tri([0,-t,P[0][1]],[L,-t,P[1][1]],[0,-t,P[2][1]],'main');B.tri([0,t,P[0][1]],[0,t,P[2][1]],[L,t,P[1][1]],'main');
+      for(let i=0;i<3;i++){const p=P[i],q=P[(i+1)%3];B.quad([p[0],-t,p[1]],[q[0],-t,q[1]],[q[0],t,q[1]],[p[0],t,p[1]],'main');B.edge([p[0],-t,p[1]],[q[0],-t,q[1]]);B.edge([p[0],t,p[1]],[q[0],t,q[1]]);B.edge([p[0],-t,p[1]],[p[0],t,p[1]])}
+      for(const [x,z] of [[9,z0+9],[24,z0+6],[6,z0+24]]){B.push(m3.rot([0,0,1],90),[x,0,z]);B.cyl(3,-t-1.5,t+1.5,'zinc',8);B.pop()}}},
   wb_floor:{n:'Крепление одинарное WB90302 (к полу/потолку)',g:'WALLBOX',tag:'Крепёж',mat:'steel',params:{},
     build(B){B.box(-30,-25,0,30,25,4,'main');B.box(-3,-16.5,4,3,16.5,60,'main');B.push(null,[0,-20,2]);B.push(m3.rot([0,1,0],-90));B.cyl(5,-3,6,'main',10);B.pop();B.pop()}},
   wb_double:{n:'Крепление двойное WB90311 (к стене)',g:'WALLBOX',tag:'Крепёж',mat:'steel',params:{L:['Вылет до стены',120]},
