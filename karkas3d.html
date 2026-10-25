@@ -55,7 +55,7 @@ footer{grid-column:1/4;display:flex;gap:10px;align-items:center;padding:6px 10px
 <div id="modal"><div class="win"><div class="body"></div><div class="bar"><button class="btn" data-act="print">🖨 Печать / PDF</button><button class="btn main" data-act="close">Закрыть</button></div></div></div>
 <input type="file" id="fopen" accept=".json,.karkas,application/json" hidden><input type="file" id="fdae" accept=".dae,.obj,.mtl,.glb,.gltf,.bin,.zip,.kmz,.stl,image/*" multiple hidden><input type="file" id="fimg" accept="image/*" hidden>
 <template id="helptpl"><h2>Как работать</h2>
-<p><b>Мышь:</b> колесо — приблизить к курсору; правая кнопка (или колесо) зажать — вращать; <kbd>Shift</kbd> + правая — двигать вид. Двойной щелчок по объекту — показать его крупно.</p>
+<p><b>Клавиатура:</b> стрелки <kbd>←</kbd> <kbd>→</kbd> <kbd>↑</kbd> <kbd>↓</kbd> — двигать вид (влево-вправо, вверх-вниз); <kbd>Ctrl</kbd> + стрелки — идти вперёд/назад и вбок по полу; <kbd>Shift</kbd> + стрелки — поворачивать вид; <kbd>+</kbd> / <kbd>−</kbd> или <kbd>PageUp</kbd> / <kbd>PageDown</kbd> — ближе/дальше. Зажмите — едет быстрее. Пока рисуете профиль, стрелки закрепляют ось.</p><p><b>Мышь:</b> колесо — приблизить к курсору; правая кнопка (или колесо) зажать — вращать; <kbd>Shift</kbd> + правая — двигать вид. Двойной щелчок по объекту — показать его крупно.</p>
 <p><b>Профиль <kbd>P</kbd>:</b> выберите слева профиль, щёлкните начало, ведите мышью вдоль оси (линия станет цветной), наберите длину на клавиатуре — у курсора появится синяя табличка «Длина» — и <kbd>Enter</kbd>. Профиль встанет ровно этой длины, а следующий начнётся с его конца: если повести под углом, он встанет вплотную (стойка — на горизонталь, горизонталь — к боку стойки), без нахлёста. На торце стоящего профиля есть точки по краям: щёлкните на дальнем крае и ведите от него — новый профиль <b>ляжет сверху</b>, заподлицо с краем; щёлкните на ближнем крае и ведите от него — профиль <b>встанет сбоку</b>, верх вровень с торцом. Наведите на бок существующего профиля — точка встанет по центру грани, а возле торца — «вплотную к торцу». Ведёте к другому профилю — профиль остановится у его грани. Стрелки <kbd>→</kbd> <kbd>←</kbd> <kbd>↑</kbd> закрепляют ось. <kbd>R</kbd> — повернуть профиль вокруг своей оси. <kbd>Esc</kbd> — закончить цепочку.</p>
 <p><b>Рулетка <kbd>T</kbd>:</b> щёлкните точку, ведите вдоль профиля, наберите 800 и <kbd>Enter</kbd> — останется фиолетовый пунктир с размером и крестик на конце. Он не пропадает при смене инструмента. Нажмите <kbd>P</kbd>, щёлкните по крестику и ведите вверх — стойка встанет на профиль. Клавиша <kbd>Tab</kbd> переключает: <b>по центру отметки</b> → <b>до отметки</b> (край профиля на отметке, профиль перед ней) → <b>за отметкой</b> (край на отметке, профиль за ней). Выбор запоминается. Рулетка работает и по полу, и от торцов профиля (точки: центр торца, середины рёбер, углы). Убрать одну отметку — инструментом «Выбор» щёлкните по пунктиру и нажмите <kbd>Del</kbd> (или ластиком <kbd>E</kbd> по пунктиру). «✕ Размеры» — убрать все.</p><p><b>До профиля:</b> когда ведёте профиль к другому профилю, он сам останавливается у его грани (подпись «до профиля»).</p><p><b>Уголок WB90102:</b> выберите его слева и ведите мышь к стыку двух профилей — уголок сам притянется во внутренний угол стыка и правильно развернётся. <kbd>Tab</kbd> — другой угол этого же стыка (слева/справа, сверху/снизу). Щелчок — поставить; инструмент остаётся, можно ставить следующий. Где уголок уже стоит, второй не притянется. <kbd>Esc</kbd> — закончить. Для других креплений <kbd>Tab</kbd> поворачивает деталь на грани на 90°.</p><p><b>Привязки:</b> зелёный кружок — точка (конец, угол, середина), синий квадрат — на грани, серый — на полу.</p>
 <p><b>Переместить <kbd>M</kbd> / Копировать <kbd>C</kbd>:</b> выделите, щёлкните точку, ведите, щёлкните. Расстояние можно набрать и <kbd>Enter</kbd>. После копии наберите <kbd>x5</kbd> и <kbd>Enter</kbd> — получится ряд из 5 копий.</p>
@@ -66,7 +66,7 @@ footer{grid-column:1/4;display:flex;gap:10px;align-items:center;padding:6px 10px
 <p><b>Из SketchUp с текстурами:</b> в SketchUp — Файл → Экспорт → 3D-модель → COLLADA (.dae) или Google Earth (.kmz). Рядом с .dae появится папка с картинками. Здесь «⬆ Импорт» → выделите сразу .dae и все картинки из той папки (или выберите один .kmz / .zip). Так же открываются .obj+.mtl+картинки и .glb (текстуры уже внутри).</p><p><b>В SketchUp:</b> «⬇ SketchUp» → в SketchUp: Файл → Импорт.</p>
 <p>Проект сохраняется в браузере сам. Чтобы перенести на другой компьютер — «Сохранить» (файл) и «Открыть».</p></template>
 <script>
-const KVER='2026.10.25-1511';
+const KVER='2026.10.25-1513';
 'use strict';
 // ================= МАТЕМАТИКА =================
 const v3={
@@ -584,11 +584,20 @@ function onKey(e){const tag=(e.target.tagName||'').toLowerCase();const inField=t
   if(k==='Tab'&&TOOL.id==='place'){TOOL.tab=((TOOL.tab||0)+90)%360;e.preventDefault();hover({clientX:PTR.x,clientY:PTR.y});requestDraw();return}
   if(k==='Escape'){if(TOOL.id==='select'){SC.sel.clear();refreshPanels()}if(TOOL.A&&TOOL.id!=='select'){setTool(TOOL.id);return}setTool('select');return}
   if(k==='Delete'||k==='Backspace'){delSel();return}
+  if((k.startsWith('Arrow')&&!TOOL.A)||k==='PageUp'||k==='PageDown'||k==='+'||k==='='||k==='-'||k==='_'){navKey(k,e);e.preventDefault();return}
   if(k.startsWith('Arrow')&&TOOL.A){const m={ArrowRight:0,ArrowLeft:1,ArrowUp:2,ArrowDown:2}[k];TOOL.lock=TOOL.lock===m?null:m;status(TOOL.lock==null?'Ось снята':'Закреплено '+AXN[m]);e.preventDefault();return}
   if(k==='r'||k==='R'||k==='к'||k==='К'){if(TOOL.id==='profile'){TOOL.roll=((TOOL.roll||0)+90)%360;status('Профиль повёрнут вокруг оси на '+TOOL.roll+'°');return}if(TOOL.id==='place'){TOOL.rot=((TOOL.rot||0)+90)%360;return}}
   const map={' ':'select',m:'move',ь:'move',c:'copy',с:'copy',p:'profile',з:'profile',b:'paint',и:'paint',t:'tape',е:'tape',d:'dim',в:'dim',e:'erase',у:'erase',o:'orbit',щ:'orbit',h:'pan',р:'pan'};
   if(k==='q'||k==='й'){rotateSel([0,0,1],e.shiftKey?-90:90);return}
   const tl=map[k.toLowerCase()];if(tl){setTool(tl);e.preventDefault()}}
+// движение вида с клавиатуры: стрелки — сдвиг, Shift+стрелки — поворот, +/− или PageUp/PageDown — ближе/дальше
+function navKey(k,e){const st=e.repeat?1.6:1;
+  if(k==='PageUp'||k==='+'||k==='='){CAM.dist=clamp(CAM.dist/1.12,50,200000);requestDraw();return}
+  if(k==='PageDown'||k==='-'||k==='_'){CAM.dist=clamp(CAM.dist*1.12,50,200000);requestDraw();return}
+  if(e.shiftKey){const a=0.06;if(k==='ArrowLeft')CAM.yaw+=a;if(k==='ArrowRight')CAM.yaw-=a;if(k==='ArrowUp')CAM.pitch=clamp(CAM.pitch+a,-1.5,1.5);if(k==='ArrowDown')CAM.pitch=clamp(CAM.pitch-a,-1.5,1.5);requestDraw();return}
+  const {r,u,f}=camBasis();const d=CAM.dist*0.06*st;
+  if(e.ctrlKey||e.metaKey){const fh=v3.norm([f[0],f[1],0]);if(k==='ArrowUp')CAM.t=v3.add(CAM.t,v3.mul(fh,d));if(k==='ArrowDown')CAM.t=v3.add(CAM.t,v3.mul(fh,-d));if(k==='ArrowLeft')CAM.t=v3.add(CAM.t,v3.mul(r,-d));if(k==='ArrowRight')CAM.t=v3.add(CAM.t,v3.mul(r,d));requestDraw();return}
+  if(k==='ArrowLeft')CAM.t=v3.add(CAM.t,v3.mul(r,-d));if(k==='ArrowRight')CAM.t=v3.add(CAM.t,v3.mul(r,d));if(k==='ArrowUp')CAM.t=v3.add(CAM.t,v3.mul(u,d));if(k==='ArrowDown')CAM.t=v3.add(CAM.t,v3.mul(u,-d));requestDraw()}
 function onWheel(e){e.preventDefault();const k=e.deltaY>0?1.15:1/1.15;const R=ray(e.clientX,e.clientY);let p=null;const o=pickAt(e.clientX,e.clientY);if(o){const h=rayObj(R,o);if(h)p=h.p}if(!p)p=planeHit(R,[0,0,0],[0,0,1]);
   if(p&&k<1){CAM.t=v3.lerp(CAM.t,p,1-k)}else if(p&&k>1){CAM.t=v3.lerp(CAM.t,p,-(k-1)*0.3)}CAM.dist=clamp(CAM.dist*k,50,200000);requestDraw()}
 // ---- виды
