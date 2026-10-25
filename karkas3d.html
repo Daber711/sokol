@@ -45,7 +45,7 @@ footer{grid-column:1/4;display:flex;gap:10px;align-items:center;padding:6px 10px
   <span class="sep"></span><button data-tool="orbit" title="Вращать вид (O)">🔄 <kbd>O</kbd></button><button data-tool="pan" title="Двигать вид (H)">✋ <kbd>H</kbd></button>
   <button data-view="iso">Изо</button><button data-view="front">Спереди</button><button data-view="right">Справа</button><button data-view="top">Сверху</button><button data-act="allfit">⤢ Всё</button>
   <span class="sep"></span><button data-act="xray">👁 Рентген</button><button data-act="ortho">⧈ Ортогон.</button><button data-act="edges" class="on">Рёбра</button><button data-act="gridt" class="on">Сетка</button><button data-act="snapg" title="Округлять точки до 10 мм">#10</button>
-  <span class="sep"></span><button data-act="spec">📋 Спецификация</button><button data-act="dimclr">✕ Размеры</button><button data-act="help">❔</button>
+  <span class="sep"></span><button data-act="spec">📋 Спецификация</button><button data-act="dimclr">✕ Размеры</button><button data-act="help">❔</button><span class="sep"></span><button id="updbtn" data-act="upd" title="Проверить и установить новую версию">🔄</button>
 </header>
 <aside><div id="ltabs"></div><div id="left"></div></aside>
 <div id="stage"><canvas id="cv"></canvas><canvas id="ov"></canvas></div>
@@ -66,6 +66,7 @@ footer{grid-column:1/4;display:flex;gap:10px;align-items:center;padding:6px 10px
 <p><b>Из SketchUp с текстурами:</b> в SketchUp — Файл → Экспорт → 3D-модель → COLLADA (.dae) или Google Earth (.kmz). Рядом с .dae появится папка с картинками. Здесь «⬆ Импорт» → выделите сразу .dae и все картинки из той папки (или выберите один .kmz / .zip). Так же открываются .obj+.mtl+картинки и .glb (текстуры уже внутри).</p><p><b>В SketchUp:</b> «⬇ SketchUp» → в SketchUp: Файл → Импорт.</p>
 <p>Проект сохраняется в браузере сам. Чтобы перенести на другой компьютер — «Сохранить» (файл) и «Открыть».</p></template>
 <script>
+const KVER='2026.10.25-1410';
 'use strict';
 // ================= МАТЕМАТИКА =================
 const v3={
@@ -802,6 +803,27 @@ function commitQuiet(){HIST.u.push(HIST.cur);HIST.r=[];HIST.cur=snapState();auto
 function boot(){if(!glInit($('#cv'),$('#ov'))){document.body.innerHTML='<p style="padding:40px;font:18px sans-serif">Этот браузер не поддерживает 3D (WebGL). Откройте в Chrome, Edge или Firefox.</p>';return}
   bindUI();try{const d=JSON.parse(localStorage.getItem('karkas3d_v1')||'null');if(d)loadProject(d)}catch(e){}HIST.cur=snapState();
   if(!SC.objs.length){GEN.sys='wb';genFrame();SC.hide['ГКЛ']=true;HIST.u=[];SC.sel.clear();view('iso')}refreshPanels();setTool('select');requestDraw()}
+
+// ================= ОБНОВЛЕНИЕ ПРОГРАММЫ =================
+const UPD_URL='https://daber711.github.io/sokol/karkas3d.html';
+const UPD={ver:null};
+const onSite=()=>location.protocol.startsWith('http')&&location.hostname==='daber711.github.io';
+async function updFetch(){const r=await fetch(UPD_URL+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error('http '+r.status);const t=await r.text();const m=t.match(/const KVER='([^']+)'/);if(!m)throw new Error('нет версии');return{ver:m[1],html:t}}
+function updBtn(){const b=$('#updbtn');if(!b)return;if(UPD.ver&&UPD.ver>KVER){b.classList.add('on');b.textContent='🔄 Обновить до '+UPD.ver}else{b.classList.remove('on');b.textContent='🔄 v'+KVER.slice(2)}}
+async function updCheck(manual){try{const {ver,html}=await updFetch();UPD.ver=ver;UPD.html=html;updBtn();
+    if(!manual)return;
+    if(!(ver>KVER)){openModal(`<h2>Обновление</h2><p>У вас последняя версия: <b>${KVER}</b>.</p>`);return}
+    if(onSite()){openModal(`<h2>Есть новая версия ${ver}</h2><p>Сейчас у вас ${KVER}. Ваш проект сохранится — после обновления он откроется сам.</p><button class="btn main" data-act="updgo">🔄 Обновить сейчас</button>`);return}
+    openModal(`<h2>Есть новая версия ${ver}</h2><p>Сейчас у вас ${KVER}. Программа открыта из файла, поэтому обновить её можно так:</p>
+      <p><b>1.</b> Сохраните проект, чтобы его не потерять: <button class="btn" data-act="save" style="display:inline-block;width:auto">💾 Сохранить проект</button></p>
+      <p><b>2.</b> Скачайте новый файл программы и замените им старый: <button class="btn main" data-act="upddl" style="display:inline-block;width:auto">⬇ Скачать «Каркас 3D.html»</button></p>
+      <p><b>3.</b> Откройте новый файл и нажмите «📂 Открыть» — выберите сохранённый проект.</p>
+      <p class="note">Или откройте программу по ссылке — там обновление одной кнопкой: <a href="${UPD_URL}" target="_blank">${UPD_URL}</a></p>`)}
+  catch(e){if(manual)openModal(`<h2>Обновление</h2><p>Не удалось проверить: нет интернета или сайт недоступен.</p><p>Ваша версия: <b>${KVER}</b>.</p>`)}}
+function updGo(){try{localStorage.setItem('karkas3d_v1',JSON.stringify(projectData()))}catch(e){}location.replace(UPD_URL+'?v='+encodeURIComponent(UPD.ver||Date.now()))}
+function updDl(){const b=new Blob([UPD.html],{type:'text/html'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='Каркас 3D.html';document.body.appendChild(a);a.click();a.remove()}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act;if(a==='upd')updCheck(true);if(a==='updgo')updGo();if(a==='upddl')updDl()});
+setTimeout(()=>{updBtn();updCheck(false)},2500);
 
 boot();
 </script></body></html>
