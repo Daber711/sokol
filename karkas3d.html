@@ -57,7 +57,7 @@ footer{grid-column:1/4;display:flex;gap:10px;align-items:center;padding:6px 10px
 <template id="helptpl"><h2>Как работать</h2>
 <p><b>Клавиатура:</b> стрелки <kbd>←</kbd> <kbd>→</kbd> <kbd>↑</kbd> <kbd>↓</kbd> — двигать вид (влево-вправо, вверх-вниз); <kbd>Ctrl</kbd> + стрелки — идти вперёд/назад и вбок по полу; <kbd>Shift</kbd> + стрелки — поворачивать вид; <kbd>+</kbd> / <kbd>−</kbd> или <kbd>PageUp</kbd> / <kbd>PageDown</kbd> — ближе/дальше. Зажмите — едет быстрее. Пока рисуете профиль, стрелки закрепляют ось.</p><p><b>Мышь:</b> колесо — приблизить к курсору; правая кнопка (или колесо) зажать — вращать; <kbd>Shift</kbd> + правая — двигать вид. Двойной щелчок по объекту — показать его крупно.</p>
 <p><b>Профиль <kbd>P</kbd>:</b> выберите слева профиль, щёлкните начало, ведите мышью вдоль оси (линия станет цветной), наберите длину на клавиатуре — у курсора появится синяя табличка «Длина» — и <kbd>Enter</kbd>. Профиль встанет ровно этой длины, а следующий начнётся с его конца: если повести под углом, он встанет вплотную (стойка — на горизонталь, горизонталь — к боку стойки), без нахлёста. На торце стоящего профиля есть точки по краям: щёлкните на дальнем крае и ведите от него — новый профиль <b>ляжет сверху</b>, заподлицо с краем; щёлкните на ближнем крае и ведите от него — профиль <b>встанет сбоку</b>, верх вровень с торцом. Наведите на бок существующего профиля — точка встанет по центру грани, а возле торца — «вплотную к торцу». Ведёте к другому профилю — профиль остановится у его грани. Стрелки <kbd>→</kbd> <kbd>←</kbd> <kbd>↑</kbd> закрепляют ось. <kbd>R</kbd> — повернуть профиль вокруг своей оси. <kbd>Esc</kbd> — закончить цепочку.</p>
-<p><b>Рулетка <kbd>T</kbd>:</b> щёлкните точку, ведите вдоль профиля, наберите 800 и <kbd>Enter</kbd> — останется фиолетовый пунктир с размером и крестик на конце. Он не пропадает при смене инструмента. Нажмите <kbd>P</kbd>, щёлкните по крестику и ведите вверх — стойка встанет на профиль. Клавиша <kbd>Tab</kbd> переключает: <b>по центру отметки</b> → <b>до отметки</b> (край профиля на отметке, профиль перед ней) → <b>за отметкой</b> (край на отметке, профиль за ней). Выбор запоминается. Рулетка работает и по полу, и от торцов профиля (точки: центр торца, середины рёбер, углы). Убрать одну отметку — инструментом «Выбор» щёлкните по пунктиру и нажмите <kbd>Del</kbd> (или ластиком <kbd>E</kbd> по пунктиру). «✕ Размеры» — убрать все.</p><p><b>До профиля:</b> когда ведёте профиль к другому профилю, он сам останавливается у его грани (подпись «до профиля»).</p><p><b>Уголок WB90102:</b> выберите его слева и ведите мышь к стыку двух профилей — уголок сам притянется во внутренний угол стыка и правильно развернётся. <kbd>Tab</kbd> — другой угол этого же стыка (слева/справа, сверху/снизу). Щелчок — поставить; инструмент остаётся, можно ставить следующий. Где уголок уже стоит, второй не притянется. <kbd>Esc</kbd> — закончить. Для других креплений <kbd>Tab</kbd> поворачивает деталь на грани на 90°.</p><p><b>✂ Резать лист:</b> наведите на лист ГКЛ — красная линия покажет разрез и размеры обоих кусков. Линия притягивается к осям и краям профилей за листом, к отметкам рулетки и к середине листа. Щелчок — разрезать, или наберите размер от ближнего края и <kbd>Enter</kbd>. Лист станет двумя кусками, лишний удалите ластиком. <kbd>Tab</kbd> — вертикальный разрез → горизонтальный → вырез прямоугольником (щёлкните два угла, или первый угол и наберите 300x400 и <kbd>Enter</kbd>). Вырезы убираются кнопкой «Убрать все вырезы» справа или Ctrl+Z.</p><p><b>Привязки:</b> зелёный кружок — точка (конец, угол, середина), синий квадрат — на грани, серый — на полу.</p>
+<p><b>Рулетка <kbd>T</kbd>:</b> щёлкните точку, ведите вдоль профиля, наберите 800 и <kbd>Enter</kbd> — останется фиолетовый пунктир с размером и крестик на конце. Он не пропадает при смене инструмента. Нажмите <kbd>P</kbd>, щёлкните по крестику и ведите вверх — стойка встанет на профиль. Клавиша <kbd>Tab</kbd> переключает: <b>по центру отметки</b> → <b>до отметки</b> (край профиля на отметке, профиль перед ней) → <b>за отметкой</b> (край на отметке, профиль за ней). Выбор запоминается. Рулетка работает и по полу, и от торцов профиля (точки: центр торца, середины рёбер, углы). Убрать одну отметку — инструментом «Выбор» щёлкните по пунктиру и нажмите <kbd>Del</kbd> (или ластиком <kbd>E</kbd> по пунктиру). «✕ Размеры» — убрать все.</p><p><b>До профиля:</b> когда ведёте профиль к другому профилю, он сам останавливается у его грани (подпись «до профиля»).</p><p><b>Уголок WB90102:</b> выберите его слева и ведите мышь к стыку двух профилей — уголок сам притянется во внутренний угол стыка и правильно развернётся. <kbd>Tab</kbd> — другой угол этого же стыка (слева/справа, сверху/снизу). Щелчок — поставить; инструмент остаётся, можно ставить следующий. Где уголок уже стоит, второй не притянется. <kbd>Esc</kbd> — закончить. Для других креплений <kbd>Tab</kbd> поворачивает деталь на грани на 90°.</p><p><b>✂ Резать лист:</b> наведите на лист ГКЛ — красная линия покажет разрез и размеры обоих кусков. Линия притягивается к осям и краям профилей за листом, к отметкам рулетки и к середине листа. Щелчок — разрезать, или наберите размер от левого края листа (горизонтальный — от низа) и <kbd>Enter</kbd> — пока набираете, линия показывает, где будет разрез. Лист станет двумя кусками, лишний удалите ластиком. <kbd>Tab</kbd> — вертикальный разрез → горизонтальный → вырез прямоугольником (щёлкните два угла, или первый угол и наберите 300x400 и <kbd>Enter</kbd>). Вырезы убираются кнопкой «Убрать все вырезы» справа или Ctrl+Z.</p><p><b>Привязки:</b> зелёный кружок — точка (конец, угол, середина), синий квадрат — на грани, серый — на полу.</p>
 <p><b>Переместить <kbd>M</kbd> / Копировать <kbd>C</kbd>:</b> выделите, щёлкните точку, ведите, щёлкните. Расстояние можно набрать и <kbd>Enter</kbd>. После копии наберите <kbd>x5</kbd> и <kbd>Enter</kbd> — получится ряд из 5 копий.</p>
 <p><b>Повернуть:</b> <kbd>Q</kbd> — 90° вокруг вертикали, кнопки справа — вокруг любой оси.</p>
 <p><b>Текстуры:</b> вкладка «Текстуры» — выберите и щёлкните по объекту. Можно загрузить свою картинку (фото плитки) и указать её реальный размер.</p>
@@ -66,7 +66,7 @@ footer{grid-column:1/4;display:flex;gap:10px;align-items:center;padding:6px 10px
 <p><b>Из SketchUp с текстурами:</b> в SketchUp — Файл → Экспорт → 3D-модель → COLLADA (.dae) или Google Earth (.kmz). Рядом с .dae появится папка с картинками. Здесь «⬆ Импорт» → выделите сразу .dae и все картинки из той папки (или выберите один .kmz / .zip). Так же открываются .obj+.mtl+картинки и .glb (текстуры уже внутри).</p><p><b>В SketchUp:</b> «⬇ SketchUp» → в SketchUp: Файл → Импорт.</p>
 <p>Проект сохраняется в браузере сам. Чтобы перенести на другой компьютер — «Сохранить» (файл) и «Открыть».</p></template>
 <script>
-const KVER='2026.10.25-1855';
+const KVER='2026.10.25-2335';
 'use strict';
 // ================= МАТЕМАТИКА =================
 const v3={
@@ -435,7 +435,7 @@ const TOOLS={
   paint:{n:'Покрасить',k:'B',h:'Выберите текстуру слева и щёлкните по объекту. Alt+щелчок — взять текстуру с объекта.'},
   tape:{n:'Рулетка',k:'T',h:'Щёлкните две точки — останется пунктир с размером и точка на конце. От этой точки можно сразу ставить профиль (P). «✕ Размеры» — убрать всё.'},
   dim:{n:'Размер',k:'D',h:'Щёлкните две точки — на модели останется размер.'},
-  cut:{n:'Резать лист',k:'',h:'Наведите на лист ГКЛ — красная линия покажет разрез и размеры кусков. Наберите размер от ближнего края и Enter или щёлкните. Tab — вертикальный разрез / горизонтальный / вырез прямоугольником. Линия притягивается к осям и краям профилей за листом.'},
+  cut:{n:'Резать лист',k:'',h:'Наведите на лист ГКЛ — красная линия покажет разрез и размеры кусков. Щёлкните, или наберите размер от левого края (для горизонтального — от низа) и Enter. Tab — вертикальный разрез / горизонтальный / вырез прямоугольником. Линия притягивается к осям и краям профилей за листом.'},
   erase:{n:'Ластик',k:'E',h:'Щёлкните по объекту или по отметке рулетки / размеру — удалить. Del — удалить выделенное.'},
   orbit:{n:'Вращать',k:'O',h:'Тяните мышью — вращать вид.'},pan:{n:'Двигать вид',k:'H',h:'Тяните мышью — двигать вид.'}};
 function setTool(id,opt={}){TOOL.id=id;TOOL.A=null;TOOL.preview=null;TOOL.lock=null;TOOL.vcb='';TOOL.roll=0;TOOL.rot=0;TOOL.tab=0;TOOL.cutA=null;TOOL.cutS=null;TOOL.ch=null;TOOL.pd=null;TOOL.seg=null;TOOL.st=null;TOOL.base=null;TOOL.gdir=null;TOOL.mode='';Object.assign(TOOL,opt);$('#vcb').value='';
@@ -502,6 +502,10 @@ function cornerSnap(sx,sy){const VP=R3.VP;const near=[];for(const c of cornerSpo
 const CUTM={v:'вертикальный разрез',h:'горизонтальный разрез',r:'вырез прямоугольником'};
 function sheetFrame(o){const d=o&&sheetDims(o);if(!d)return null;const M=objW(o);const W=(u,v,w)=>m4.xf(M,d.map(u,v,w)).slice(0,3);const O=W(0,0,0);
   return{o,d,W,F:profFrame(o),Uw:v3.norm(v3.sub(W(1,0,0),O)),Vw:v3.norm(v3.sub(W(0,1,0),O)),Nw:v3.norm(v3.sub(W(0,0,1),O)),O}}
+// откуда считать набранный размер: от левого края (как видно на экране) или от низа
+function cutFrom(S,ax){const v0=ax==='u'?[S.W(0,S.d.V/2,0),S.W(S.d.U,S.d.V/2,0)]:[S.W(S.d.U/2,0,0),S.W(S.d.U/2,S.d.V,0)];const a=toScreen(v0[0]),b=toScreen(v0[1]);if(!a||!b)return 0;
+  if(ax==='u')return a[0]<=b[0]?0:1;const za=v0[0][2],zb=v0[1][2];if(Math.abs(za-zb)>1)return za<=zb?0:1;return a[1]>=b[1]?0:1}
+function cutTyped(S,ax,val){const L=ax==='u'?S.d.U:S.d.V;return cutFrom(S,ax)?L-val:val}
 // места, куда притягивается линия: оси и края профилей за листом, края листа, точки рулетки
 function cutCands(S,axis){const out=[];const along=axis==='u'?S.Vw:S.Uw,acr=axis==='u'?S.Uw:S.Vw;const L=axis==='u'?S.d.U:S.d.V;
   for(const o of SC.objs){if(!isProf(o))continue;const F=profFrame(o);if(Math.abs(v3.dot(F.X,along))<0.95)continue;const cy=(F.bb[1]+F.bb[4])/2,cz=(F.bb[2]+F.bb[5])/2;
@@ -515,21 +519,26 @@ function cutHover(e){const R=ray(e.clientX,e.clientY);const r0=R3.cv.getBounding
   if(!S){TOOL.ch=null;status(TOOLS.cut.h+' Сейчас: '+CUTM[TOOL.cm||'v']+'.');requestDraw();return}
   const p=planeHit(R,S.O,S.Nw);if(!p){TOOL.ch=null;requestDraw();return}const l=toLoc(S.F,p);let [u,v]=S.d.inv(l);const m=TOOL.cm||'v';
   if(!TOOL.cutS){u=Math.max(0,Math.min(S.d.U,u));v=Math.max(0,Math.min(S.d.V,v))}
-  let lab='';const snapAx=(ax,val)=>{let best=null;for(const [x,t] of cutCands(S,ax).concat(m==='r'?[[0,'край листа'],[ax==='u'?S.d.U:S.d.V,'край листа']]:[])){const q=toScreen(ax==='u'?S.W(x,v,0):S.W(u,x,0));const c=toScreen(ax==='u'?S.W(val,v,0):S.W(u,val,0));if(!q||!c)continue;const d=Math.hypot(q[0]-c[0],q[1]-c[1]);if(d<12&&(!best||d<best.d))best={d,x,t}}return best};
+  let lab='';const snapAx=(ax,val)=>{let best=null;for(const [x,t] of cutCands(S,ax).concat(m==='r'?[[0,'край листа'],[ax==='u'?S.d.U:S.d.V,'край листа']]:[])){const q=toScreen(ax==='u'?S.W(x,v,0):S.W(u,x,0));const c=toScreen(ax==='u'?S.W(val,v,0):S.W(u,val,0));if(!q||!c)continue;let d=Math.hypot(q[0]-c[0],q[1]-c[1]);const lim=t==='край листа'?26:12;if(t==='край листа')d-=6;if(d<lim&&(!best||d<best.d))best={d,x,t}}return best};
   if(m==='v'||m==='r'){const b=snapAx('u',u);if(b){u=b.x;lab=b.t}}if(m==='h'||m==='r'){const b=snapAx('v',v);if(b){v=b.x;lab=(lab?lab+', ':'')+b.t}}
   if(UI.snapGrid){if(!lab){u=Math.round(u/10)*10;v=Math.round(v/10)*10}}
   TOOL.ch={S,u,v,lab};const U=S.d.U,V=S.d.V;
-  status(m==='v'?`Разрез: ${fmt(u)} | ${fmt(U-u)} мм${lab?' — '+lab:''}. Щелчок — резать, или наберите размер от ближнего края и Enter. Tab — другой режим.`:
-    m==='h'?`Разрез: снизу ${fmt(v)} | сверху ${fmt(V-v)} мм${lab?' — '+lab:''}. Щелчок — резать, или размер и Enter. Tab — другой режим.`:
+  status(m==='v'?`Разрез: ${fmt(u)} | ${fmt(U-u)} мм${lab?' — '+lab:''}. Щелчок — резать, или наберите размер от ЛЕВОГО края листа и Enter (линия покажет где). Tab — другой режим.`:
+    m==='h'?`Разрез: снизу ${fmt(v)} | сверху ${fmt(V-v)} мм${lab?' — '+lab:''}. Щелчок — резать, или наберите размер от НИЗА листа и Enter. Tab — другой режим.`:
     TOOL.cutA?`Вырез: ${fmt(Math.abs(u-TOOL.cutA[0]))} × ${fmt(Math.abs(v-TOOL.cutA[1]))} мм${lab?' — '+lab:''}. Щелчок — вырезать. Или наберите 300x400 и Enter. Esc — отмена.`:
     `Вырез: щёлкните первый угол (от левого края ${fmt(u)}, от низа ${fmt(v)} мм)${lab?' — '+lab:''}. Tab — другой режим.`);requestDraw()}
 function clipCuts(cuts,ax,a,b){const out=[];for(const c of cuts||[]){const r=c.slice();if(ax==='u'){const x0=Math.max(a,r[0]),x1=Math.min(b,r[0]+r[2]);if(x1-x0<0.1)continue;r[0]=x0-a;r[2]=x1-x0}else{const y0=Math.max(a,r[1]),y1=Math.min(b,r[1]+r[3]);if(y1-y0<0.1)continue;r[1]=y0-a;r[3]=y1-y0}out.push(r)}return out}
 function doSplit(S,ax,pos){const d=S.d,o=S.o;const L=ax==='u'?d.U:d.V;pos=Math.round(pos*10)/10;if(pos<1||pos>L-1){status('Слишком близко к краю — резать нечего.');return}
   const a=JSON.parse(JSON.stringify(o)),b=JSON.parse(JSON.stringify(o));a.id=uid();b.id=uid();const pk=ax==='u'?d.pu:d.pv;a.P[pk]=pos;b.P[pk]=Math.round((L-pos)*10)/10;
   b.o=ax==='u'?S.W(pos,0,0):S.W(0,pos,0);a.P.cuts=clipCuts(o.P.cuts,ax,0,pos);b.P.cuts=clipCuts(o.P.cuts,ax,pos,L);for(const x of [a,b])if(!x.P.cuts.length)delete x.P.cuts;
-  const i=SC.objs.indexOf(o);SC.objs.splice(i,1,a,b);SC.sel.clear();commit();TOOL.ch=null;status(`Разрезано: ${fmt(pos)} и ${fmt(L-pos)} мм. Лишний кусок — ластиком (E) или выделите и Del.`)}
+  const i=SC.objs.indexOf(o);SC.objs.splice(i,1,a,b);SC.sel.clear();commit();TOOL.ch=null;status(`Разрезано: ${fmt(pos)} и ${fmt(L-pos)} мм.${Math.min(pos,L-pos)<30?' Получилась тонкая полоска — удалите её ластиком (E).':' Лишний кусок — ластиком (E) или выделите и Del.'}`)}
 function addCut(S,u0,v0,u1,v1){const U=S.d.U,V=S.d.V;const a=[Math.max(0,Math.min(u0,u1)),Math.max(0,Math.min(v0,v1))];const w=Math.min(U,Math.max(u0,u1))-a[0],h=Math.min(V,Math.max(v0,v1))-a[1];
-  if(w<1||h<1){status('Вырез слишком маленький.');return}const o=S.o;o.P=Object.assign({},o.P,{cuts:(o.P.cuts||[]).concat([[a[0],a[1],w,h].map(x=>Math.round(x*10)/10)])});commit();status(`Вырезано ${fmt(w)} × ${fmt(h)} мм. Отменить — Ctrl+Z.`)}
+  if(w<1||h<1){status('Вырез слишком маленький.');return}
+  // полоска меньше 30 мм у края листа не нужна — вырез доходит до края
+  let x0=a[0],x1=a[0]+w,y0=a[1],y1=a[1]+h;const STRIP=30;let fixed=false;if(x0>0&&x0<STRIP){x0=0;fixed=true}if(x1<U&&U-x1<STRIP){x1=U;fixed=true}if(y0>0&&y0<STRIP){y0=0;fixed=true}if(y1<V&&V-y1<STRIP){y1=V;fixed=true}
+  a[0]=x0;a[1]=y0;const w2=x1-x0,h2=y1-y0;if(fixed)setTimeout(()=>status(`Вырезано ${fmt(w2)} × ${fmt(h2)} мм — тонкую полоску у края убрал. Отменить — Ctrl+Z.`),0);
+  if(w2>=U-0.1&&h2>=V-0.1){status('Вырез на весь лист — проще удалить лист.');return}
+  const o=S.o;o.P=Object.assign({},o.P,{cuts:(o.P.cuts||[]).concat([[a[0],a[1],w2,h2].map(x=>Math.round(x*10)/10)])});commit();if(!fixed)status(`Вырезано ${fmt(w2)} × ${fmt(h2)} мм. Отменить — Ctrl+Z.`)}
 // каркас профиля в мире
 function profFrame(o){const M=objW(o);const g=objGeo(o);const C=m4.xf(M,[0,0,0]).slice(0,3);const ax=v=>v3.sub(m4.xf(M,v).slice(0,3),C);const X0=ax([1,0,0]);const k=v3.len(X0)||1;
   return{o,C,k,X:v3.norm(X0),Y:v3.norm(ax([0,1,0])),Z:v3.norm(ax([0,0,1])),bb:g.bb}}
@@ -625,8 +634,8 @@ function vcbEnter(){const s=$('#vcb').value.trim();$('#vcb').value='';if(!s)retu
   if((t==='move'||t==='copy')&&TOOL.A&&TOOL.preview){let d=TOOL.preview.d;if(v3.len(d)<1e-6)d=TOOL.lock!=null?AX[TOOL.lock]:[1,0,0];finishMove(v3.mul(v3.norm(d),v));return}
   if(t==='profile'&&TOOL.A&&TOOL.cur){const d=profDir(TOOL.cur.p);if(!d||!(v>0))return;const A2=profStart(d);placeProf({A:A2,B:v3.add(A2,v3.mul(d,v)),d,L:v});return}
   if(t==='cut'&&TOOL.ch){const c=TOOL.ch,m=TOOL.cm||'v';const nums=s.split(/[x×*хX\s]+/).map(num).filter(x=>x>0);
-    if(m==='v'&&nums[0]){doSplit(c.S,'u',c.u<=c.S.d.U/2?nums[0]:c.S.d.U-nums[0]);return}
-    if(m==='h'&&nums[0]){doSplit(c.S,'v',c.v<=c.S.d.V/2?nums[0]:c.S.d.V-nums[0]);return}
+    if(m==='v'&&nums[0]){doSplit(c.S,'u',cutTyped(c.S,'u',nums[0]));return}
+    if(m==='h'&&nums[0]){doSplit(c.S,'v',cutTyped(c.S,'v',nums[0]));return}
     if(m==='r'&&TOOL.cutA&&nums.length>=2){const [a0,b0]=TOOL.cutA;const su=c.u>=a0?1:-1,sv=c.v>=b0?1:-1;addCut(TOOL.cutS,a0,b0,a0+su*nums[0],b0+sv*nums[1]);TOOL.cutA=null;TOOL.cutS=null;return}return}
   if(t==='rotate'){rotateSel([0,0,1],v);return}
   if(t==='tape'&&TOOL.A&&TOOL.cur&&v>0){const v0=v3.sub(TOOL.cur.p,TOOL.A);if(v3.len(v0)>1e-6){const d=v3.norm(v0);const B=v3.add(TOOL.A,v3.mul(d,v));SC.dims.push({a:TOOL.A,b:B,g:1});TOOL.lastTape=[TOOL.A,B];TOOL.A=null;commit();status(`Рулетка: отмерено ${fmt(v)} мм — на конце точка, от неё можно ставить профиль.`)}return}
@@ -682,13 +691,13 @@ function drawOverlay(){const ov=R3.ov,g=ov.getContext('2d');const dpr=ov.width/o
     const col={snap:'#16a34a',face:'#2563eb',ground:'#64748b',axis:r.ax!=null?AXC[r.ax]:'#111'}[r.kind];g.lineWidth=2;g.strokeStyle=col;g.fillStyle='#fff';
     if(r.kind==='snap'||r.pt||r.stop){g.beginPath();g.arc(s[0],s[1],6,0,7);g.fill();g.stroke()}else{g.strokeRect(s[0]-4,s[1]-4,8,8)}
     if(r.label){g.font='500 11px system-ui,Arial';g.textAlign='left';g.fillStyle='rgba(15,23,42,.85)';const w=g.measureText(r.label).width+8;g.fillRect(s[0]+12,s[1]+10,w,16);g.fillStyle='#fff';g.textBaseline='middle';g.fillText(r.label,s[0]+16,s[1]+18)}}}
-  if(TOOL.id==='cut'&&TOOL.ch){const {S,u,v}=TOOL.ch;const U=S.d.U,V=S.d.V,T=S.d.T;const m=TOOL.cm||'v';g.strokeStyle='#dc2626';g.lineWidth=2.5;g.setLineDash([8,5]);
+  if(TOOL.id==='cut'&&TOOL.ch){const {S}=TOOL.ch;let {u,v}=TOOL.ch;{const tv=num($('#vcb').value||'');if(document.activeElement===$('#vcb')&&tv>0){if((TOOL.cm||'v')==='v')u=cutTyped(S,'u',tv);if(TOOL.cm==='h')v=cutTyped(S,'v',tv)}}const U=S.d.U,V=S.d.V,T=S.d.T;const m=TOOL.cm||'v';g.strokeStyle='#dc2626';g.lineWidth=2.5;g.setLineDash([8,5]);
     const ln=(p,q)=>{const a=toScreen(p),b=toScreen(q);if(a&&b){g.beginPath();g.moveTo(a[0],a[1]);g.lineTo(b[0],b[1]);g.stroke()}};
     const L=(a,b,c,d)=>{for(const w of [0,T])ln(S.W(a,b,w),S.W(c,d,w))};
     if(m==='v')L(u,0,u,V);if(m==='h')L(0,v,U,v);
     if(m==='r'){if(TOOL.cutA){const [a,b]=TOOL.cutA;L(a,b,u,b);L(u,b,u,v);L(u,v,a,v);L(a,v,a,b)}else{L(u-60,v,u+60,v);L(u,v-60,u,v+60)}}
     g.setLineDash([]);g.font='700 13px system-ui,Arial';const at=(a,b,t)=>{const q=toScreen(S.W(a,b,0));if(q)lbl(q[0],q[1],t,'#dc2626')};
-    if(m==='v'){at(u/2,v,fmt(u));at((u+U)/2,v,fmt(U-u))}if(m==='h'){at(u,v/2,fmt(v));at(u,(v+V)/2,fmt(V-v))}
+    const sz=x=>x<30?'⚠ '+fmt(x)+' — полоска!':fmt(x);if(m==='v'){at(u/2,v,sz(u));at((u+U)/2,v,sz(U-u))}if(m==='h'){at(u,v/2,sz(v));at(u,(v+V)/2,sz(V-v))}
     if(m==='r'&&TOOL.cutA){const [a,b]=TOOL.cutA;at((a+u)/2,(b+v)/2,fmt(Math.abs(u-a))+' × '+fmt(Math.abs(v-b)))}
     g.font='600 12px system-ui,Segoe UI,Arial'}
   if(TOOL.rect){const [x0,y0,x1,y1]=TOOL.rect;const r0=R3.cv.getBoundingClientRect();g.strokeStyle='#2563eb';g.setLineDash([4,3]);g.fillStyle='rgba(37,99,235,.08)';g.fillRect(x0-r0.left,y0-r0.top,x1-x0,y1-y0);g.strokeRect(x0-r0.left,y0-r0.top,x1-x0,y1-y0);g.setLineDash([])}
