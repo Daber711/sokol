@@ -66,7 +66,7 @@ footer{grid-column:1/4;display:flex;gap:10px;align-items:center;padding:6px 10px
 <p><b>Из SketchUp с текстурами:</b> в SketchUp — Файл → Экспорт → 3D-модель → COLLADA (.dae) или Google Earth (.kmz). Рядом с .dae появится папка с картинками. Здесь «⬆ Импорт» → выделите сразу .dae и все картинки из той папки (или выберите один .kmz / .zip). Так же открываются .obj+.mtl+картинки и .glb (текстуры уже внутри).</p><p><b>В SketchUp:</b> «⬇ SketchUp» → в SketchUp: Файл → Импорт.</p>
 <p>Проект сохраняется в браузере сам. Чтобы перенести на другой компьютер — «Сохранить» (файл) и «Открыть».</p></template>
 <script>
-const KVER='2026.10.25-1513';
+const KVER='2026.10.25-1522';
 'use strict';
 // ================= МАТЕМАТИКА =================
 const v3={
@@ -216,11 +216,11 @@ const COMPS={
   wb_prof:{n:'Профиль WALLBOX WB90003 33×33',g:'WALLBOX',tag:'Каркас',mat:'alu',len:'L',params:{L:['Длина',1000]},
     build(B,P){B.ext(SECT.wb(),P.L,'main')}},
   wb_corner:{n:'Уголок соединительный WB90102',g:'WALLBOX',tag:'Крепёж',mat:'steel',params:{},
-    // треугольная косынка во внутреннем углу стыка, в плоскости двух профилей (катеты 40, толщина 8)
-    build(B){const L=40,t=4,z0=16.5;const P=[[0,z0],[L,z0],[0,z0+L]];
+    // треугольная косынка во внутреннем углу стыка, в плоскости двух профилей (катеты 40, толщина почти во всю ширину профиля — 32)
+    build(B){const L=40,t=16,z0=16.5;const P=[[0,z0],[L,z0],[0,z0+L]];
       B.tri([0,-t,P[0][1]],[L,-t,P[1][1]],[0,-t,P[2][1]],'main');B.tri([0,t,P[0][1]],[0,t,P[2][1]],[L,t,P[1][1]],'main');
       for(let i=0;i<3;i++){const p=P[i],q=P[(i+1)%3];B.quad([p[0],-t,p[1]],[q[0],-t,q[1]],[q[0],t,q[1]],[p[0],t,p[1]],'main');B.edge([p[0],-t,p[1]],[q[0],-t,q[1]]);B.edge([p[0],t,p[1]],[q[0],t,q[1]]);B.edge([p[0],-t,p[1]],[p[0],t,p[1]])}
-      for(const [x,z] of [[9,z0+9],[24,z0+6],[6,z0+24]]){B.push(m3.rot([0,0,1],90),[x,0,z]);B.cyl(3,-t-1.5,t+1.5,'zinc',8);B.pop()}}},
+      for(const [x,z] of [[9,z0+9],[24,z0+6],[6,z0+24]]){B.push(m3.rot([0,0,1],90),[x,0,z]);B.cyl(3.2,t-0.5,t+1.5,'zinc',10);B.cyl(3.2,-t-1.5,-t+0.5,'zinc',10);B.pop()}}},
   wb_floor:{n:'Крепление одинарное WB90302 (к полу/потолку)',g:'WALLBOX',tag:'Крепёж',mat:'steel',params:{},
     build(B){B.box(-30,-25,0,30,25,4,'main');B.box(-3,-16.5,4,3,16.5,60,'main');B.push(null,[0,-20,2]);B.push(m3.rot([0,1,0],-90));B.cyl(5,-3,6,'main',10);B.pop();B.pop()}},
   wb_double:{n:'Крепление двойное WB90311 (к стене)',g:'WALLBOX',tag:'Крепёж',mat:'steel',params:{L:['Вылет до стены',120]},
@@ -556,9 +556,11 @@ function click(e){const t=TOOL.id;
       TOOL.A=r.p;const ids=[...SC.sel];TOOL.preview={ids,d:[0,0,0],Wf:o=>objW(o,TOOL.preview.d),copy:t==='copy'||e.ctrlKey};refreshPanels();return}
     finishMove(v3.sub(r.p,TOOL.A));return}
   if(t==='profile'){if(!TOOL.A){TOOL.A=r.p;TOOL.st=r.st||null;TOOL.An=r.kind==='face'&&!r.st?r.n:null;TOOL.pd=null;TOOL.base=r.kind!=='face'?findProfAt(r.p):null;TOOL.gdir=r.gd||null;if(TOOL.gdir)status('Отметка рулетки: Tab — профиль по центру / до отметки / за отметкой. Сейчас: '+GAL[UI.galign||0]);return}const sg=profSeg(r.p);if(!sg)return;placeProf(sg);return}
-  if(t==='place'&&TOOL.ghost){const g=JSON.parse(JSON.stringify(TOOL.ghost));g.id=uid();SC.objs.push(g);SC.sel=new Set([g.id]);commit();TOOL.csKey=null;if(!e.shiftKey&&g.c!=='wb_corner')setTool('select');return}
+  if(t==='place'&&TOOL.ghost){const g=JSON.parse(JSON.stringify(TOOL.ghost));g.id=uid();SC.objs.push(g);showTagOf(g);SC.sel=new Set([g.id]);commit();TOOL.csKey=null;if(!e.shiftKey&&g.c!=='wb_corner')setTool('select');return}
   if(t==='tape'||t==='dim'){if(!TOOL.A){TOOL.A=r.p;return}const d=v3.dist(TOOL.A,r.p);if(d>0.5){SC.dims.push(t==='dim'?{a:TOOL.A,b:r.p}:{a:TOOL.A,b:r.p,g:1});commit()}status(`${TOOLS[t].n}: ${fmt(d)} мм`);TOOL.lastTape=[TOOL.A,r.p];TOOL.A=null;requestDraw();return}}
-function placeProf(sg){const o=makeProfile(sg.A,sg.B,TOOL.An);if(o){SC.objs.push(o);commit()}TOOL.A=sg.B;TOOL.pd=sg.d;TOOL.st=null;TOOL.base=null;TOOL.gdir=null;TOOL.An=null;TOOL.preview=null;TOOL.seg=null;
+// если слой детали выключен — включаем, иначе поставленная деталь «исчезает»
+function showTagOf(o){const t=objTag(o);if(SC.hide[t]){delete SC.hide[t];setTimeout(()=>status('Слой «'+t+'» был выключен — включил, чтобы деталь было видно.'),0)}}
+function placeProf(sg){const o=makeProfile(sg.A,sg.B,TOOL.An);if(o){SC.objs.push(o);showTagOf(o);commit()}TOOL.A=sg.B;TOOL.pd=sg.d;TOOL.st=null;TOOL.base=null;TOOL.gdir=null;TOOL.An=null;TOOL.preview=null;TOOL.seg=null;
   status(`Поставлен профиль ${fmt(sg.L)} мм. Ведите дальше — следующий начнётся отсюда вплотную. Esc — закончить.`);requestDraw()}
 function finishMove(d,copies){const pv=TOOL.preview;if(!pv)return;const list=SC.objs.filter(o=>pv.ids.includes(o.id));
   if(pv.copy){const n=[];for(const o of list){const c=dupObj(o,d);SC.objs.push(c);n.push(c.id)}SC.sel=new Set(n);TOOL.lastCopy={src:list.map(o=>o.id),d,made:n}}else for(const o of list)o.o=v3.add(o.o,d);
@@ -803,10 +805,10 @@ function genFrame(){const G={...GEN};for(const k of ['L','H','step','hstep','gap
   const D=wb?33:50;const lay=clamp(Math.round(G.layers),0,2);for(let k=0;k<lay;k++){const off=k*600;let x=0;const cuts=[0];for(let c=(off||1200);c<G.L-30;c+=1200)cuts.push(c);cuts.push(G.L);
     for(let i=0;i<cuts.length-1;i++){const w=cuts[i+1]-cuts[i];let z=0;const a=top-2500>=400?2500:top-400;const rows=top<=2500?[top]:[a,top-a];if(k%2&&top>2500)rows.reverse();for(const h of rows){P('gkl',{W:w,H:h,T:12.5},[cuts[i],-12.5*k,z],Rh);z+=h}}}
   if(G.wall)P('wall',{W:G.L+300,H:G.H,T:150},[-150,D+G.cav,0],Rh);if(G.floor)P('floor',{W:G.L+300,D:D+G.cav+150+700,T:50},[-150,-700,0],Rh);
-  SC.objs.push(...out);SC.sel=new Set(out.filter(o=>!['wall','floor'].includes(o.c)).map(o=>o.id));commit();viewFit(out)}
+  SC.objs.push(...out);for(const o of out)showTagOf(o);SC.sel=new Set(out.filter(o=>!['wall','floor'].includes(o.c)).map(o=>o.id));commit();viewFit(out)}
 function genRoom(){const L=num($('#rmL').value),W=num($('#rmW').value),H=num($('#rmH').value),T=num($('#rmT').value);const out=[];const R90=m3.clean(m3.rot([0,0,1],90));
   out.push(newObj('floor',{W:L+2*T,D:W+2*T,T:50},[-T,-T,0]),newObj('wall',{W:L+2*T,H,T},[-T,W,0]),newObj('wall',{W:W,H,T},[0,0,0],R90),newObj('wall',{W:W,H,T},[L+T,0,0],R90));
-  SC.objs.push(...out);commit();viewFit(out)}
+  SC.objs.push(...out);for(const o of out)showTagOf(o);commit();viewFit(out)}
 // ================= СПЕЦИФИКАЦИЯ =================
 function specHtml(){const groups=new Map();const lens={};
   for(const o of SC.objs){if(o.c==='mesh')continue;const C=COMPS[o.c];let key=C.n;const ps=Object.entries(C.params).filter(([k])=>k!==C.len).map(([k,v])=>`${v[0].split(' (')[0].toLowerCase()} ${fmt(o.P[k])}`);
