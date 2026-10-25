@@ -57,7 +57,7 @@ footer{grid-column:1/4;display:flex;gap:10px;align-items:center;padding:6px 10px
 <template id="helptpl"><h2>Как работать</h2>
 <p><b>Мышь:</b> колесо — приблизить к курсору; правая кнопка (или колесо) зажать — вращать; <kbd>Shift</kbd> + правая — двигать вид. Двойной щелчок по объекту — показать его крупно.</p>
 <p><b>Профиль <kbd>P</kbd>:</b> выберите слева профиль, щёлкните начало, ведите мышью вдоль оси (линия станет цветной), наберите длину на клавиатуре — у курсора появится синяя табличка «Длина» — и <kbd>Enter</kbd>. Профиль встанет ровно этой длины, а следующий начнётся с его конца: если повести под углом, он встанет вплотную (стойка — на горизонталь, горизонталь — к боку стойки), без нахлёста. На торце стоящего профиля есть точки по краям: щёлкните на дальнем крае и ведите от него — новый профиль <b>ляжет сверху</b>, заподлицо с краем; щёлкните на ближнем крае и ведите от него — профиль <b>встанет сбоку</b>, верх вровень с торцом. Наведите на бок существующего профиля — точка встанет по центру грани, а возле торца — «вплотную к торцу». Ведёте к другому профилю — профиль остановится у его грани. Стрелки <kbd>→</kbd> <kbd>←</kbd> <kbd>↑</kbd> закрепляют ось. <kbd>R</kbd> — повернуть профиль вокруг своей оси. <kbd>Esc</kbd> — закончить цепочку.</p>
-<p><b>Рулетка <kbd>T</kbd>:</b> щёлкните точку, ведите вдоль профиля, наберите 800 и <kbd>Enter</kbd> — останется фиолетовый пунктир с размером и крестик на конце. Он не пропадает при смене инструмента. Нажмите <kbd>P</kbd>, щёлкните по крестику и ведите вверх — стойка встанет на профиль. Клавиша <kbd>Tab</kbd> переключает: <b>по центру отметки</b> → <b>до отметки</b> (край профиля на отметке, профиль перед ней) → <b>за отметкой</b> (край на отметке, профиль за ней). Выбор запоминается. Рулетка работает и по полу, и от торцов профиля (точки: центр торца, середины рёбер, углы). Убрать одну отметку — инструментом «Выбор» щёлкните по пунктиру и нажмите <kbd>Del</kbd> (или ластиком <kbd>E</kbd> по пунктиру). «✕ Размеры» — убрать все.</p><p><b>До профиля:</b> когда ведёте профиль к другому профилю, он сам останавливается у его грани (подпись «до профиля»).</p><p><b>Привязки:</b> зелёный кружок — точка (конец, угол, середина), синий квадрат — на грани, серый — на полу.</p>
+<p><b>Рулетка <kbd>T</kbd>:</b> щёлкните точку, ведите вдоль профиля, наберите 800 и <kbd>Enter</kbd> — останется фиолетовый пунктир с размером и крестик на конце. Он не пропадает при смене инструмента. Нажмите <kbd>P</kbd>, щёлкните по крестику и ведите вверх — стойка встанет на профиль. Клавиша <kbd>Tab</kbd> переключает: <b>по центру отметки</b> → <b>до отметки</b> (край профиля на отметке, профиль перед ней) → <b>за отметкой</b> (край на отметке, профиль за ней). Выбор запоминается. Рулетка работает и по полу, и от торцов профиля (точки: центр торца, середины рёбер, углы). Убрать одну отметку — инструментом «Выбор» щёлкните по пунктиру и нажмите <kbd>Del</kbd> (или ластиком <kbd>E</kbd> по пунктиру). «✕ Размеры» — убрать все.</p><p><b>До профиля:</b> когда ведёте профиль к другому профилю, он сам останавливается у его грани (подпись «до профиля»).</p><p><b>Уголок WB90102:</b> выберите его слева и ведите мышь к стыку двух профилей — уголок сам притянется во внутренний угол стыка и правильно развернётся. <kbd>Tab</kbd> — другой угол этого же стыка (слева/справа, сверху/снизу). Щелчок — поставить; инструмент остаётся, можно ставить следующий. Где уголок уже стоит, второй не притянется. <kbd>Esc</kbd> — закончить. Для других креплений <kbd>Tab</kbd> поворачивает деталь на грани на 90°.</p><p><b>Привязки:</b> зелёный кружок — точка (конец, угол, середина), синий квадрат — на грани, серый — на полу.</p>
 <p><b>Переместить <kbd>M</kbd> / Копировать <kbd>C</kbd>:</b> выделите, щёлкните точку, ведите, щёлкните. Расстояние можно набрать и <kbd>Enter</kbd>. После копии наберите <kbd>x5</kbd> и <kbd>Enter</kbd> — получится ряд из 5 копий.</p>
 <p><b>Повернуть:</b> <kbd>Q</kbd> — 90° вокруг вертикали, кнопки справа — вокруг любой оси.</p>
 <p><b>Текстуры:</b> вкладка «Текстуры» — выберите и щёлкните по объекту. Можно загрузить свою картинку (фото плитки) и указать её реальный размер.</p>
@@ -66,7 +66,7 @@ footer{grid-column:1/4;display:flex;gap:10px;align-items:center;padding:6px 10px
 <p><b>Из SketchUp с текстурами:</b> в SketchUp — Файл → Экспорт → 3D-модель → COLLADA (.dae) или Google Earth (.kmz). Рядом с .dae появится папка с картинками. Здесь «⬆ Импорт» → выделите сразу .dae и все картинки из той папки (или выберите один .kmz / .zip). Так же открываются .obj+.mtl+картинки и .glb (текстуры уже внутри).</p><p><b>В SketchUp:</b> «⬇ SketchUp» → в SketchUp: Файл → Импорт.</p>
 <p>Проект сохраняется в браузере сам. Чтобы перенести на другой компьютер — «Сохранить» (файл) и «Открыть».</p></template>
 <script>
-const KVER='2026.10.25-1458';
+const KVER='2026.10.25-1511';
 'use strict';
 // ================= МАТЕМАТИКА =================
 const v3={
@@ -387,6 +387,7 @@ function infer(mx,my,opt={}){const R=ray(mx,my);const A=opt.A;const ex=opt.exclu
   if(A&&TOOL.lock!=null){const p=closestOnLine(R,A,AX[TOOL.lock]);if(p)return{p,kind:'axis',ax:TOOL.lock,label:AXN[TOOL.lock]}}
   // 1б) инструмент «Профиль»: умные точки на профилях
   for(const dm of SC.dims){if(!dm.g)continue;for(const p of [dm.a,dm.b]){const s=toScreen(p,VP);if(s&&Math.hypot(s[0]-sx,s[1]-sy)<12)return{p,kind:'snap',label:'точка рулетки'+(TOOL.id==='profile'&&!A?' (Tab — по центру / до / за отметкой)':''),gd:v3.norm(p===dm.b?v3.sub(dm.b,dm.a):v3.sub(dm.a,dm.b))}}}
+  if(TOOL.id==='place'&&TOOL.ghost){const o=pickAt(mx,my,ex);if(isProf(o)){const h=rayObj(R,o);if(h)return{p:h.p,kind:'face',n:h.n,obj:o,label:'на профиле: '+objName(o)}}}
   if(['tape','dim','move','copy'].includes(TOOL.id)){const o=pickAt(mx,my,ex);if(isProf(o)){const h=rayObj(R,o);if(h){const r=endSnap(o,h,sx,sy,VP);if(r)return r}}}
   if(TOOL.id==='profile'){const o=pickAt(mx,my,ex);if(o){const h=rayObj(R,o);if(h){
     if(!A&&COMPS[o.c]&&COMPS[o.c].len){const r=profSnap(o,h,sx,sy,VP);if(r)return r}
@@ -418,7 +419,7 @@ const TOOLS={
   dim:{n:'Размер',k:'D',h:'Щёлкните две точки — на модели останется размер.'},
   erase:{n:'Ластик',k:'E',h:'Щёлкните по объекту или по отметке рулетки / размеру — удалить. Del — удалить выделенное.'},
   orbit:{n:'Вращать',k:'O',h:'Тяните мышью — вращать вид.'},pan:{n:'Двигать вид',k:'H',h:'Тяните мышью — двигать вид.'}};
-function setTool(id,opt={}){TOOL.id=id;TOOL.A=null;TOOL.preview=null;TOOL.lock=null;TOOL.vcb='';TOOL.roll=0;TOOL.rot=0;TOOL.pd=null;TOOL.seg=null;TOOL.st=null;TOOL.base=null;TOOL.gdir=null;TOOL.mode='';Object.assign(TOOL,opt);$('#vcb').value='';
+function setTool(id,opt={}){TOOL.id=id;TOOL.A=null;TOOL.preview=null;TOOL.lock=null;TOOL.vcb='';TOOL.roll=0;TOOL.rot=0;TOOL.tab=0;TOOL.pd=null;TOOL.seg=null;TOOL.st=null;TOOL.base=null;TOOL.gdir=null;TOOL.mode='';Object.assign(TOOL,opt);$('#vcb').value='';
   document.querySelectorAll('[data-tool]').forEach(b=>b.classList.toggle('on',b.dataset.tool===id));status(TOOLS[id]?TOOLS[id].h:'');updVcbLabel();requestDraw()}
 function updVcbLabel(){$('#vcbl').textContent={move:'Расстояние',copy:'Расстояние',profile:'Длина',rotate:'Угол',tape:'Длина',dim:'Длина'}[TOOL.id]||'Значение'}
 // ориентация профиля: X — вдоль направления; Z — вверх (или по Y для вертикального), плюс поворот вокруг своей оси
@@ -456,6 +457,28 @@ function endSnap(o,h,sx,sy,VP){const F=profFrame(o);const b=F.bb;const lx=toLoc(
   const c=[[P(cy,cz),'центр торца']];for(const y of [b[1],b[4]])c.push([P(y,cz),'середина ребра торца']);for(const z of [b[2],b[5]])c.push([P(cy,z),'середина ребра торца']);for(const y of [b[1],b[4]])for(const z of [b[2],b[5]])c.push([P(y,z),'угол торца']);
   let best=null;for(const [p,l] of c){const q=toScreen(p,VP);if(!q)continue;const d=Math.hypot(q[0]-sx,q[1]-sy);if(d<16&&(!best||d<best.d))best={d,p,l}}
   return best?{p:best.p,kind:'snap',label:best.l+': '+objName(o),obj:o}:null}
+// уголок WB90102: ставится в угол стыка с соседним профилем, Tab — на другую сторону
+function cornerPlace(g,r){const F=profFrame(r.obj);const n=r.n;const A=F.X;if(Math.abs(v3.dot(n,A))>0.5)return false;
+  let best=null;for(const o2 of SC.objs){if(o2===r.obj||!isProf(o2)||(g&&o2.id===g.id))continue;const F2=profFrame(o2);if(Math.abs(v3.dot(F2.X,n))<0.9)continue;
+    const den=v3.dot(F2.X,n);const sp=v3.dot(v3.sub(r.p,F2.C),n)/den;const L2=F2.bb[3]*F2.k;if(sp<-3||sp>L2+3)continue;const Q=v3.add(F2.C,v3.mul(F2.X,sp));
+    const T=v3.norm(v3.cross(A,n));if(Math.abs(v3.dot(v3.sub(Q,F.C),T))>20)continue;const da=Math.abs(v3.dot(v3.sub(Q,r.p),A));if(da>250)continue;if(!best||da<best.da)best={da,Q,o2}}
+  let O;if(best)O=best.Q;else{const T=v3.norm(v3.cross(A,n));O=v3.sub(r.p,v3.mul(T,v3.dot(v3.sub(r.p,F.C),T)))}
+  const k=Math.round((TOOL.tab||0)/90)%4;let Z=v3.mul(A,k%2?-1:1);
+  if(best&&!(k%2)){const side=v3.dot(v3.sub(r.p,best.Q),A);Z=v3.mul(A,(side>=0?1:-1)*(k>=2?-1:1))}
+  const Y=v3.cross(Z,n);g.R=m3.clean(m3.basis(n,Y,Z));g.o=O;TOOL.cornerInfo=best?'в угол стыка с '+objName(best.o2):'на профиль (соседний профиль не найден)';return true}
+// все места под уголки: внутренние углы стыков профилей
+function cornerSpots(){const key=SC.objs.length+':'+HIST.u.length+':'+HIST.r.length;if(TOOL.csKey===key)return TOOL.cs;const P=SC.objs.filter(isProf).map(profFrame);const out=[];
+  const used=SC.objs.filter(o=>o.c==='wb_corner').map(o=>{const M=objW(o);return m4.xf(M,[13,0,29.5]).slice(0,3)});
+  for(const F of P){const A=F.X,L=F.bb[3]*F.k;const cy=(F.bb[1]+F.bb[4])/2,cz=(F.bb[2]+F.bb[5])/2;
+    for(const [u,e] of [[F.Y,F.bb[4]-cy],[v3.mul(F.Y,-1),cy-F.bb[1]],[F.Z,F.bb[5]-cz],[v3.mul(F.Z,-1),cz-F.bb[2]]]){const n=u;const T=v3.norm(v3.cross(A,n));
+      const fp=v3.add(F.C,v3.mul(v3.add(v3.mul(F.Y,cy),v3.mul(F.Z,cz)),F.k));const face=v3.add(fp,v3.mul(n,e*F.k));
+      for(const F2 of P){if(F2===F||Math.abs(v3.dot(F2.X,n))<0.9)continue;const sp=v3.dot(v3.sub(face,F2.C),n)/v3.dot(F2.X,n);const L2=F2.bb[3]*F2.k;if(sp<-2||sp>L2+2)continue;
+        const Q=v3.add(F2.C,v3.mul(F2.X,sp));const sa=v3.dot(v3.sub(Q,F.C),A);if(sa<-2||sa>L+2)continue;if(Math.abs(v3.dot(v3.sub(Q,face),T))>15)continue;
+        for(const sg of [1,-1]){const Z=v3.mul(A,sg);const hw=16.5;const ea=sa+sg*(hw+40);if(ea<-2||ea>L+2)continue;const R=m3.clean(m3.basis(n,v3.cross(Z,n),Z));
+          const c=v3.add(Q,v3.add(v3.mul(n,13),v3.mul(Z,29.5)));if(out.some(x=>v3.dist(x.c,c)<5)||used.some(u=>v3.dist(u,c)<5))continue;out.push({O:Q,R,c,a:F.o,b:F2.o})}}}}
+  TOOL.csKey=key;TOOL.cs=out;return out}
+function cornerSnap(sx,sy){const VP=R3.VP;const near=[];for(const c of cornerSpots()){const q=toScreen(c.c,VP);if(!q)continue;const d=Math.hypot(q[0]-sx,q[1]-sy);if(d<45)near.push({d,c})}
+  if(!near.length)return null;near.sort((a,b)=>a.d-b.d);const best=near[0].c;const alt=near.filter(x=>v3.dist(x.c.O,best.O)<60);return alt[Math.round((TOOL.tab||0)/90)%alt.length].c}
 // каркас профиля в мире
 function profFrame(o){const M=objW(o);const g=objGeo(o);const C=m4.xf(M,[0,0,0]).slice(0,3);const ax=v=>v3.sub(m4.xf(M,v).slice(0,3),C);const X0=ax([1,0,0]);const k=v3.len(X0)||1;
   return{o,C,k,X:v3.norm(X0),Y:v3.norm(ax([0,1,0])),Z:v3.norm(ax([0,0,1])),bb:g.bb}}
@@ -500,17 +523,22 @@ function onMove(e){const dx=e.clientX-PTR.x,dy=e.clientY-PTR.y;PTR.x=e.clientX;P
   hover(e)}
 function hover(e){const t=TOOL.id;if(t==='select'||t==='orbit'||t==='pan'||t==='erase'||t==='paint'){TOOL.cur=null;if(t==='erase'||t==='paint'){const o=pickAt(e.clientX,e.clientY);TOOL.hov=o?o.id:null;requestDraw()}return}
   const ex=TOOL.preview&&TOOL.preview.ids?new Set(TOOL.preview.ids):new Set();if(TOOL.preview&&TOOL.preview.ghost)ex.add(TOOL.preview.ghost.id);
-  const r=infer(e.clientX,e.clientY,{A:TOOL.A,exclude:ex});TOOL.cur=r;if(!r){requestDraw();return}
+  const r=infer(e.clientX,e.clientY,{A:TOOL.A,exclude:ex});TOOL.cur=r;const isCor=t==='place'&&TOOL.ghost&&TOOL.ghost.c==='wb_corner';if(!r&&!isCor){requestDraw();return}
   if((t==='move'||t==='copy')&&TOOL.A){const d=v3.sub(r.p,TOOL.A);TOOL.preview.d=d;status(`${TOOLS[t].n}: ${fmt(v3.len(d))} мм ${r.label?'— '+r.label:''}`)}
   if(t==='profile'&&TOOL.A&&r.kind==='axis'&&!r.stop){const v=v3.sub(r.p,TOOL.A);const d=AX[r.ax].map(x=>x*Math.sign(v3.dot(v,AX[r.ax])||1));const A2=profStart(d);
     const skip=new Set();if(TOOL.preview&&TOOL.preview.ghost)skip.add(TOOL.preview.ghost.id);const h=rayProf(A2,d,skip);
     if(h){const cur=v3.dot(v3.sub(r.p,A2),d);const P1=v3.add(A2,v3.mul(d,cur)),P2=v3.add(A2,v3.mul(d,h.t));const s1=toScreen(P1),s2=toScreen(P2);
       if(s1&&s2&&Math.hypot(s1[0]-s2[0],s1[1]-s2[1])<28){r.p=v3.add(r.p,v3.mul(d,h.t-cur));r.stop=true;r.label='до профиля: '+objName(h.o)}}}
   if(t==='profile'){if(TOOL.A){const sg=profSeg(r.p);TOOL.seg=sg;const o=sg?makeProfile(sg.A,sg.B,TOOL.An):null;TOOL.preview=o?{ghost:o}:null;status(`Профиль: длина ${sg?fmt(sg.L):0} мм${TOOL.mode?' — '+TOOL.mode.toUpperCase():''} ${r.label?'— '+r.label:''}. Наберите длину на клавиатуре и Enter.`)}else status('Профиль: щёлкните начало. '+(r.label||''))}
-  if(t==='place'&&TOOL.ghost){const g=TOOL.ghost;g.R=m3.clean(m3.rot([0,0,1],TOOL.rot||0));g.o=r.p.slice();
+  if(t==='place'&&TOOL.ghost&&TOOL.ghost.c==='wb_corner'){const r0=R3.cv.getBoundingClientRect();const c=cornerSnap(e.clientX-r0.left,e.clientY-r0.top);
+    if(c){const g=TOOL.ghost;g.o=c.O.slice();g.R=c.R;TOOL.preview={ghost:g};TOOL.cur={p:c.c,kind:'snap',label:'уголок в угол стыка'};status('Уголок WB90102 притянулся к стыку: '+objName(c.a)+' + '+objName(c.b)+'. Tab — другой угол этого стыка, щелчок — поставить.');requestDraw();return}}
+  if(!r){TOOL.preview=null;requestDraw();return}
+  if(isCor&&!(r.kind==='face'&&r.obj&&isProf(r.obj))){TOOL.preview=null;TOOL.cur=null;status('Уголок WB90102: наведите на стык двух профилей — уголок сам притянется в угол. Tab — другой угол, щелчок — поставить, Esc — закончить.');requestDraw();return}
+  if(t==='place'&&TOOL.ghost&&TOOL.ghost.c==='wb_corner'&&r.kind==='face'&&r.obj&&isProf(r.obj)&&cornerPlace(TOOL.ghost,r)){TOOL.preview={ghost:TOOL.ghost};status('Уголок WB90102: '+TOOL.cornerInfo+'. Tab — перевернуть на другую сторону, щелчок — поставить.');requestDraw();return}
+  if(t==='place'&&TOOL.ghost){const g=TOOL.ghost;g.R=m3.clean(m3.rot([0,0,1],TOOL.rot||0));if(TOOL.tab&&r.kind==='face'&&r.n)g.R=m3.clean(m3.mul(m3.rot(r.n,TOOL.tab),g.R));g.o=r.p.slice();
     // на грани — ставим вплотную к ней, а не внутрь
     if(r.kind==='face'&&r.n){const G=objGeo(g);const M=objW(g);let mn=1e9;for(const x of [G.bb[0],G.bb[3]])for(const y of [G.bb[1],G.bb[4]])for(const z of [G.bb[2],G.bb[5]]){const p=m4.xf(M,[x,y,z]);mn=Math.min(mn,v3.dot(v3.sub(p,r.p),r.n))}g.o=v3.add(g.o,v3.mul(r.n,-mn))}
-    TOOL.preview={ghost:g};status('Поставить: '+objName(g)+(r.label?' — '+r.label:'')+'. R — повернуть, щелчок — поставить.')}
+    TOOL.preview={ghost:g};status('Поставить: '+objName(g)+(r.label?' — '+r.label:'')+'. Tab — повернуть на грани, R — повернуть вокруг вертикали, щелчок — поставить.')}
   if((t==='tape'||t==='dim')&&TOOL.A)status(`${TOOLS[t].n}: ${fmt(v3.dist(TOOL.A,r.p))} мм`);
   requestDraw()}
 function onUp(e){const btn=PTR.btn;PTR.btn=-1;if(btn!==0){return}
@@ -528,7 +556,7 @@ function click(e){const t=TOOL.id;
       TOOL.A=r.p;const ids=[...SC.sel];TOOL.preview={ids,d:[0,0,0],Wf:o=>objW(o,TOOL.preview.d),copy:t==='copy'||e.ctrlKey};refreshPanels();return}
     finishMove(v3.sub(r.p,TOOL.A));return}
   if(t==='profile'){if(!TOOL.A){TOOL.A=r.p;TOOL.st=r.st||null;TOOL.An=r.kind==='face'&&!r.st?r.n:null;TOOL.pd=null;TOOL.base=r.kind!=='face'?findProfAt(r.p):null;TOOL.gdir=r.gd||null;if(TOOL.gdir)status('Отметка рулетки: Tab — профиль по центру / до отметки / за отметкой. Сейчас: '+GAL[UI.galign||0]);return}const sg=profSeg(r.p);if(!sg)return;placeProf(sg);return}
-  if(t==='place'&&TOOL.ghost){const g=JSON.parse(JSON.stringify(TOOL.ghost));g.id=uid();SC.objs.push(g);SC.sel=new Set([g.id]);commit();if(!e.shiftKey)setTool('select');return}
+  if(t==='place'&&TOOL.ghost){const g=JSON.parse(JSON.stringify(TOOL.ghost));g.id=uid();SC.objs.push(g);SC.sel=new Set([g.id]);commit();TOOL.csKey=null;if(!e.shiftKey&&g.c!=='wb_corner')setTool('select');return}
   if(t==='tape'||t==='dim'){if(!TOOL.A){TOOL.A=r.p;return}const d=v3.dist(TOOL.A,r.p);if(d>0.5){SC.dims.push(t==='dim'?{a:TOOL.A,b:r.p}:{a:TOOL.A,b:r.p,g:1});commit()}status(`${TOOLS[t].n}: ${fmt(d)} мм`);TOOL.lastTape=[TOOL.A,r.p];TOOL.A=null;requestDraw();return}}
 function placeProf(sg){const o=makeProfile(sg.A,sg.B,TOOL.An);if(o){SC.objs.push(o);commit()}TOOL.A=sg.B;TOOL.pd=sg.d;TOOL.st=null;TOOL.base=null;TOOL.gdir=null;TOOL.An=null;TOOL.preview=null;TOOL.seg=null;
   status(`Поставлен профиль ${fmt(sg.L)} мм. Ведите дальше — следующий начнётся отсюда вплотную. Esc — закончить.`);requestDraw()}
@@ -553,6 +581,7 @@ function onKey(e){const tag=(e.target.tagName||'').toLowerCase();const inField=t
   if((e.ctrlKey||e.metaKey)&&k.toLowerCase()==='s'){saveFile();e.preventDefault();return}
   if(/^[0-9.,x×*-]$/i.test(k)&&['move','copy','profile','rotate','tape'].includes(TOOL.id)||(/^[xх]$/i.test(k)&&TOOL.lastCopy)){const f=$('#vcb');f.focus();return}
   if(k==='Tab'&&TOOL.id==='profile'&&(TOOL.A&&TOOL.gdir||!TOOL.A&&TOOL.cur&&TOOL.cur.gd)){const o=[0,-1,1];UI.galign=o[(o.indexOf(UI.galign||0)+1)%3];status('Профиль: '+GAL[UI.galign]);e.preventDefault();if(TOOL.cur){TOOL.seg=profSeg(TOOL.cur.p);const g=TOOL.seg?makeProfile(TOOL.seg.A,TOOL.seg.B,TOOL.An):null;TOOL.preview=g?{ghost:g}:null}requestDraw();return}
+  if(k==='Tab'&&TOOL.id==='place'){TOOL.tab=((TOOL.tab||0)+90)%360;e.preventDefault();hover({clientX:PTR.x,clientY:PTR.y});requestDraw();return}
   if(k==='Escape'){if(TOOL.id==='select'){SC.sel.clear();refreshPanels()}if(TOOL.A&&TOOL.id!=='select'){setTool(TOOL.id);return}setTool('select');return}
   if(k==='Delete'||k==='Backspace'){delSel();return}
   if(k.startsWith('Arrow')&&TOOL.A){const m={ArrowRight:0,ArrowLeft:1,ArrowUp:2,ArrowDown:2}[k];TOOL.lock=TOOL.lock===m?null:m;status(TOOL.lock==null?'Ось снята':'Закреплено '+AXN[m]);e.preventDefault();return}
