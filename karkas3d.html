@@ -45,7 +45,7 @@ footer{grid-column:1/4;display:flex;gap:10px;align-items:center;padding:6px 10px
   <span class="sep"></span><button data-tool="orbit" title="Вращать вид (O)">🔄 <kbd>O</kbd></button><button data-tool="pan" title="Двигать вид (H)">✋ <kbd>H</kbd></button>
   <button data-view="iso">Изо</button><button data-view="front">Спереди</button><button data-view="right">Справа</button><button data-view="top">Сверху</button><button data-act="allfit">⤢ Всё</button>
   <span class="sep"></span><button data-act="xray">👁 Рентген</button><button data-act="ortho">⧈ Ортогон.</button><button data-act="edges" class="on">Рёбра</button><button data-act="gridt" class="on">Сетка</button><button data-act="snapg" title="Округлять точки до 10 мм">#10</button>
-  <span class="sep"></span><button data-act="spec">📋 Спецификация</button><button data-act="dimclr">✕ Размеры</button><button data-act="help">❔</button><span class="sep"></span><button id="updbtn" data-act="upd" title="Проверить и установить новую версию">🔄</button>
+  <span class="sep"></span><button data-act="spec">📋 Спецификация</button><button data-act="dimclr" title="Убрать все размеры и отметки рулетки. Одну — выделите и Del">✕ Размеры</button><button data-act="help">❔</button><span class="sep"></span><button id="updbtn" data-act="upd" title="Проверить и установить новую версию">🔄</button>
 </header>
 <aside><div id="ltabs"></div><div id="left"></div></aside>
 <div id="stage"><canvas id="cv"></canvas><canvas id="ov"></canvas></div>
@@ -57,7 +57,7 @@ footer{grid-column:1/4;display:flex;gap:10px;align-items:center;padding:6px 10px
 <template id="helptpl"><h2>Как работать</h2>
 <p><b>Мышь:</b> колесо — приблизить к курсору; правая кнопка (или колесо) зажать — вращать; <kbd>Shift</kbd> + правая — двигать вид. Двойной щелчок по объекту — показать его крупно.</p>
 <p><b>Профиль <kbd>P</kbd>:</b> выберите слева профиль, щёлкните начало, ведите мышью вдоль оси (линия станет цветной), наберите длину на клавиатуре — у курсора появится синяя табличка «Длина» — и <kbd>Enter</kbd>. Профиль встанет ровно этой длины, а следующий начнётся с его конца: если повести под углом, он встанет вплотную (стойка — на горизонталь, горизонталь — к боку стойки), без нахлёста. На торце стоящего профиля есть точки по краям: щёлкните на дальнем крае и ведите от него — новый профиль <b>ляжет сверху</b>, заподлицо с краем; щёлкните на ближнем крае и ведите от него — профиль <b>встанет сбоку</b>, верх вровень с торцом. Наведите на бок существующего профиля — точка встанет по центру грани, а возле торца — «вплотную к торцу». Ведёте к другому профилю — профиль остановится у его грани. Стрелки <kbd>→</kbd> <kbd>←</kbd> <kbd>↑</kbd> закрепляют ось. <kbd>R</kbd> — повернуть профиль вокруг своей оси. <kbd>Esc</kbd> — закончить цепочку.</p>
-<p><b>Рулетка <kbd>T</kbd>:</b> щёлкните точку, ведите вдоль профиля, наберите 800 и <kbd>Enter</kbd> — останется фиолетовый пунктир с размером и крестик на конце. Он не пропадает при смене инструмента. Нажмите <kbd>P</kbd>, щёлкните по крестику и ведите вверх — стойка встанет на профиль. Клавиша <kbd>Tab</kbd> переключает: <b>по центру отметки</b> → <b>до отметки</b> (край профиля на отметке, профиль перед ней) → <b>за отметкой</b> (край на отметке, профиль за ней). Выбор запоминается. «✕ Размеры» — убрать все отметки.</p><p><b>До профиля:</b> когда ведёте профиль к другому профилю, он сам останавливается у его грани (подпись «до профиля»).</p><p><b>Привязки:</b> зелёный кружок — точка (конец, угол, середина), синий квадрат — на грани, серый — на полу.</p>
+<p><b>Рулетка <kbd>T</kbd>:</b> щёлкните точку, ведите вдоль профиля, наберите 800 и <kbd>Enter</kbd> — останется фиолетовый пунктир с размером и крестик на конце. Он не пропадает при смене инструмента. Нажмите <kbd>P</kbd>, щёлкните по крестику и ведите вверх — стойка встанет на профиль. Клавиша <kbd>Tab</kbd> переключает: <b>по центру отметки</b> → <b>до отметки</b> (край профиля на отметке, профиль перед ней) → <b>за отметкой</b> (край на отметке, профиль за ней). Выбор запоминается. Рулетка работает и по полу, и от торцов профиля (точки: центр торца, середины рёбер, углы). Убрать одну отметку — инструментом «Выбор» щёлкните по пунктиру и нажмите <kbd>Del</kbd> (или ластиком <kbd>E</kbd> по пунктиру). «✕ Размеры» — убрать все.</p><p><b>До профиля:</b> когда ведёте профиль к другому профилю, он сам останавливается у его грани (подпись «до профиля»).</p><p><b>Привязки:</b> зелёный кружок — точка (конец, угол, середина), синий квадрат — на грани, серый — на полу.</p>
 <p><b>Переместить <kbd>M</kbd> / Копировать <kbd>C</kbd>:</b> выделите, щёлкните точку, ведите, щёлкните. Расстояние можно набрать и <kbd>Enter</kbd>. После копии наберите <kbd>x5</kbd> и <kbd>Enter</kbd> — получится ряд из 5 копий.</p>
 <p><b>Повернуть:</b> <kbd>Q</kbd> — 90° вокруг вертикали, кнопки справа — вокруг любой оси.</p>
 <p><b>Текстуры:</b> вкладка «Текстуры» — выберите и щёлкните по объекту. Можно загрузить свою картинку (фото плитки) и указать её реальный размер.</p>
@@ -66,7 +66,7 @@ footer{grid-column:1/4;display:flex;gap:10px;align-items:center;padding:6px 10px
 <p><b>Из SketchUp с текстурами:</b> в SketchUp — Файл → Экспорт → 3D-модель → COLLADA (.dae) или Google Earth (.kmz). Рядом с .dae появится папка с картинками. Здесь «⬆ Импорт» → выделите сразу .dae и все картинки из той папки (или выберите один .kmz / .zip). Так же открываются .obj+.mtl+картинки и .glb (текстуры уже внутри).</p><p><b>В SketchUp:</b> «⬇ SketchUp» → в SketchUp: Файл → Импорт.</p>
 <p>Проект сохраняется в браузере сам. Чтобы перенести на другой компьютер — «Сохранить» (файл) и «Открыть».</p></template>
 <script>
-const KVER='2026.10.25-1431';
+const KVER='2026.10.25-1458';
 'use strict';
 // ================= МАТЕМАТИКА =================
 const v3={
@@ -387,6 +387,7 @@ function infer(mx,my,opt={}){const R=ray(mx,my);const A=opt.A;const ex=opt.exclu
   if(A&&TOOL.lock!=null){const p=closestOnLine(R,A,AX[TOOL.lock]);if(p)return{p,kind:'axis',ax:TOOL.lock,label:AXN[TOOL.lock]}}
   // 1б) инструмент «Профиль»: умные точки на профилях
   for(const dm of SC.dims){if(!dm.g)continue;for(const p of [dm.a,dm.b]){const s=toScreen(p,VP);if(s&&Math.hypot(s[0]-sx,s[1]-sy)<12)return{p,kind:'snap',label:'точка рулетки'+(TOOL.id==='profile'&&!A?' (Tab — по центру / до / за отметкой)':''),gd:v3.norm(p===dm.b?v3.sub(dm.b,dm.a):v3.sub(dm.a,dm.b))}}}
+  if(['tape','dim','move','copy'].includes(TOOL.id)){const o=pickAt(mx,my,ex);if(isProf(o)){const h=rayObj(R,o);if(h){const r=endSnap(o,h,sx,sy,VP);if(r)return r}}}
   if(TOOL.id==='profile'){const o=pickAt(mx,my,ex);if(o){const h=rayObj(R,o);if(h){
     if(!A&&COMPS[o.c]&&COMPS[o.c].len){const r=profSnap(o,h,sx,sy,VP);if(r)return r}
     if(A){const v=v3.sub(h.p,A);let i=0;for(let k=1;k<3;k++)if(Math.abs(v[k])>Math.abs(v[i]))i=k;const d=AX[i].map(x=>x*Math.sign(v[i]||1));const dn=v3.dot(d,h.n);
@@ -415,7 +416,7 @@ const TOOLS={
   paint:{n:'Покрасить',k:'B',h:'Выберите текстуру слева и щёлкните по объекту. Alt+щелчок — взять текстуру с объекта.'},
   tape:{n:'Рулетка',k:'T',h:'Щёлкните две точки — останется пунктир с размером и точка на конце. От этой точки можно сразу ставить профиль (P). «✕ Размеры» — убрать всё.'},
   dim:{n:'Размер',k:'D',h:'Щёлкните две точки — на модели останется размер.'},
-  erase:{n:'Ластик',k:'E',h:'Щёлкните по объекту — удалить. Del — удалить выделенное.'},
+  erase:{n:'Ластик',k:'E',h:'Щёлкните по объекту или по отметке рулетки / размеру — удалить. Del — удалить выделенное.'},
   orbit:{n:'Вращать',k:'O',h:'Тяните мышью — вращать вид.'},pan:{n:'Двигать вид',k:'H',h:'Тяните мышью — двигать вид.'}};
 function setTool(id,opt={}){TOOL.id=id;TOOL.A=null;TOOL.preview=null;TOOL.lock=null;TOOL.vcb='';TOOL.roll=0;TOOL.rot=0;TOOL.pd=null;TOOL.seg=null;TOOL.st=null;TOOL.base=null;TOOL.gdir=null;TOOL.mode='';Object.assign(TOOL,opt);$('#vcb').value='';
   document.querySelectorAll('[data-tool]').forEach(b=>b.classList.toggle('on',b.dataset.tool===id));status(TOOLS[id]?TOOLS[id].h:'');updVcbLabel();requestDraw()}
@@ -445,6 +446,16 @@ function profSnap(o,h,sx,sy,VP){const c=COMPS[o.c];const M=objW(o);const g=objGe
   if(best)return{p:at(best.t),kind:'face',n,obj:o,label:best.lb+': '+nm,pt:true};
   let t=v3.dot(v3.sub(h.p,P0),X);t=Math.max(0,Math.min(L,t));if(UI.snapGrid)t=Math.round(t/10)*10;
   return{p:at(t),kind:'face',n,obj:o,label:'по центру грани ('+fmt(t)+' от края): '+nm}}
+// отметка/размер под курсором
+function dimAt(mx,my){const r0=R3.cv.getBoundingClientRect();const x=mx-r0.left,y=my-r0.top;let best=null;
+  for(const dm of SC.dims){const a=toScreen(dm.a),b=toScreen(dm.b);if(!a||!b)continue;const vx=b[0]-a[0],vy=b[1]-a[1];const L2=vx*vx+vy*vy||1;let t=((x-a[0])*vx+(y-a[1])*vy)/L2;t=Math.max(0,Math.min(1,t));
+    const d=Math.hypot(a[0]+vx*t-x,a[1]+vy*t-y);const lx=(a[0]+b[0])/2,ly=(a[1]+b[1])/2-12;const dl=Math.abs(x-lx)<40&&Math.abs(y-ly)<10?0:d;const dd=Math.min(d,dl);if(dd<7&&(!best||dd<best.d))best={d:dd,dm}}return best?best.dm:null}
+// точки на торце профиля: центр, середины рёбер, углы
+function endSnap(o,h,sx,sy,VP){const F=profFrame(o);const b=F.bb;const lx=toLoc(F,h.p)[0];const xe=Math.abs(lx-b[3])<Math.abs(lx-b[0])?b[3]:b[0];const cy=(b[1]+b[4])/2,cz=(b[2]+b[5])/2;
+  const P=(y,z)=>v3.add(F.C,v3.mul(v3.add(v3.mul(F.X,xe),v3.add(v3.mul(F.Y,y),v3.mul(F.Z,z))),F.k));
+  const c=[[P(cy,cz),'центр торца']];for(const y of [b[1],b[4]])c.push([P(y,cz),'середина ребра торца']);for(const z of [b[2],b[5]])c.push([P(cy,z),'середина ребра торца']);for(const y of [b[1],b[4]])for(const z of [b[2],b[5]])c.push([P(y,z),'угол торца']);
+  let best=null;for(const [p,l] of c){const q=toScreen(p,VP);if(!q)continue;const d=Math.hypot(q[0]-sx,q[1]-sy);if(d<16&&(!best||d<best.d))best={d,p,l}}
+  return best?{p:best.p,kind:'snap',label:best.l+': '+objName(o),obj:o}:null}
 // каркас профиля в мире
 function profFrame(o){const M=objW(o);const g=objGeo(o);const C=m4.xf(M,[0,0,0]).slice(0,3);const ax=v=>v3.sub(m4.xf(M,v).slice(0,3),C);const X0=ax([1,0,0]);const k=v3.len(X0)||1;
   return{o,C,k,X:v3.norm(X0),Y:v3.norm(ax([0,1,0])),Z:v3.norm(ax([0,0,1])),bb:g.bb}}
@@ -475,7 +486,7 @@ function profSeg(p){const d=profDir(p);if(!d)return null;const A2=profStart(d);c
 function selCenter(list){let b=[1e9,1e9,1e9,-1e9,-1e9,-1e9];for(const o of list){const q=objBox(o);for(let k=0;k<3;k++){b[k]=Math.min(b[k],q[k]);b[k+3]=Math.max(b[k+3],q[k+3])}}return[(b[0]+b[3])/2,(b[1]+b[4])/2,(b[2]+b[5])/2]}
 function rotateSel(axis,deg){const list=selObjs();if(!list.length){status('Сначала выделите объект');return}const c=selCenter(list);const Rr=m3.clean(m3.rot(axis,deg));
   for(const o of list){o.R=m3.clean(m3.mul(Rr,o.R));o.o=v3.add(c,m3.apply(Rr,v3.sub(o.o,c)))}commit()}
-function delSel(){if(!SC.sel.size)return;SC.objs=SC.objs.filter(o=>!SC.sel.has(o.id));SC.sel.clear();commit()}
+function delSel(){if(SC.selDim&&SC.dims.includes(SC.selDim)){SC.dims=SC.dims.filter(x=>x!==SC.selDim);SC.selDim=null;commit();return}if(!SC.sel.size)return;SC.objs=SC.objs.filter(o=>!SC.sel.has(o.id));SC.sel.clear();commit()}
 function dupObj(o,d){const n=JSON.parse(JSON.stringify(o));n.id=uid();n.o=v3.add(o.o,d);return n}
 // ---- мышь
 const PTR={btn:-1,x:0,y:0,sx:0,sy:0,drag:false};
@@ -508,8 +519,8 @@ function onUp(e){const btn=PTR.btn;PTR.btn=-1;if(btn!==0){return}
   if(PTR.drag&&(TOOL.id==='select'||TOOL.id==='orbit'||TOOL.id==='pan'))return;
   click(e)}
 function click(e){const t=TOOL.id;
-  if(t==='select'){const o=pickAt(e.clientX,e.clientY);if(!e.shiftKey)SC.sel.clear();if(o){if(e.shiftKey&&SC.sel.has(o.id))SC.sel.delete(o.id);else SC.sel.add(o.id)}refreshPanels();requestDraw();return}
-  if(t==='erase'){const o=pickAt(e.clientX,e.clientY);if(o){SC.objs=SC.objs.filter(x=>x!==o);SC.sel.delete(o.id);commit()}return}
+  if(t==='select'){const dm=dimAt(e.clientX,e.clientY);if(dm){SC.sel.clear();SC.selDim=dm;refreshPanels();requestDraw();return}SC.selDim=null;const o=pickAt(e.clientX,e.clientY);if(!e.shiftKey)SC.sel.clear();if(o){if(e.shiftKey&&SC.sel.has(o.id))SC.sel.delete(o.id);else SC.sel.add(o.id)}refreshPanels();requestDraw();return}
+  if(t==='erase'){const dm=dimAt(e.clientX,e.clientY);if(dm){SC.dims=SC.dims.filter(x=>x!==dm);commit();return}const o=pickAt(e.clientX,e.clientY);if(o){SC.objs=SC.objs.filter(x=>x!==o);SC.sel.delete(o.id);commit()}return}
   if(t==='paint'){const o=pickAt(e.clientX,e.clientY);if(!o)return;if(e.altKey){UI.curMat=o.mat||COMPS[o.c]?.mat;refreshPanels();status('Взята текстура: '+(MATS[UI.curMat]||{}).n);return}
     const targets=SC.sel.has(o.id)?selObjs():[o];for(const x of targets)x.mat=UI.curMat;commit();return}
   const r=TOOL.cur;if(!r)return;
@@ -559,7 +570,8 @@ function view(k){const P={iso:[-55,28],front:[-90,0],back:[90,0],left:[180,0],ri
 function drawOverlay(){const ov=R3.ov,g=ov.getContext('2d');const dpr=ov.width/ov.clientWidth;g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,ov.width,ov.height);g.font='600 12px system-ui,Segoe UI,Arial';
   const lbl=(x,y,t,c='#111')=>{const w=g.measureText(t).width+10;g.fillStyle='rgba(255,255,255,.92)';g.fillRect(x-w/2,y-9,w,18);g.strokeStyle=c;g.lineWidth=1;g.strokeRect(x-w/2,y-9,w,18);g.fillStyle=c;g.textAlign='center';g.textBaseline='middle';g.fillText(t,x,y)};
   // постоянные размеры
-  for(const dm of SC.dims){const a=toScreen(dm.a),b=toScreen(dm.b);if(!a||!b)continue;if(dm.g){g.strokeStyle='#7c3aed';g.lineWidth=1.5;g.setLineDash([6,4]);g.beginPath();g.moveTo(a[0],a[1]);g.lineTo(b[0],b[1]);g.stroke();g.setLineDash([]);
+  for(const dm of SC.dims){const a=toScreen(dm.a),b=toScreen(dm.b);if(!a||!b)continue;const selD=dm===SC.selDim;if(selD){g.strokeStyle='rgba(249,115,22,.55)';g.lineWidth=9;g.beginPath();g.moveTo(a[0],a[1]);g.lineTo(b[0],b[1]);g.stroke()}
+    if(dm.g){g.strokeStyle='#7c3aed';g.lineWidth=1.5;g.setLineDash([6,4]);g.beginPath();g.moveTo(a[0],a[1]);g.lineTo(b[0],b[1]);g.stroke();g.setLineDash([]);
       for(const p of [a,b]){g.strokeStyle='#7c3aed';g.lineWidth=2;g.beginPath();g.moveTo(p[0]-5,p[1]-5);g.lineTo(p[0]+5,p[1]+5);g.moveTo(p[0]+5,p[1]-5);g.lineTo(p[0]-5,p[1]+5);g.stroke()}lbl((a[0]+b[0])/2,(a[1]+b[1])/2-12,fmt(v3.dist(dm.a,dm.b))+' мм','#7c3aed');continue}
     g.strokeStyle='#0f172a';g.lineWidth=1.2;g.beginPath();g.moveTo(a[0],a[1]);g.lineTo(b[0],b[1]);g.stroke();
     for(const p of [a,b]){g.beginPath();g.arc(p[0],p[1],3,0,7);g.fillStyle='#0f172a';g.fill()}lbl((a[0]+b[0])/2,(a[1]+b[1])/2-12,fmt(v3.dist(dm.a,dm.b)))}
@@ -705,6 +717,10 @@ function leftPanel(){const el=$('#left');const tab=UI.tab;
   if(tab==='gen'){el.innerHTML=genHtml()}}
 function swatchCss(m){const M=MATS[m];if(!M)return'#ccc';const a=R3.texAvg[m]||(M.tex?null:M.col);const c=a||M.col||[.8,.8,.8];return`rgb(${c.map(v=>Math.round(v*255)).join(',')})`}
 function rightPanel(){const el=$('#right');const list=selObjs();
+  if(SC.selDim&&SC.dims.includes(SC.selDim)&&!list.length){const dm=SC.selDim;const ng=SC.dims.filter(d=>d.g).length;
+    el.innerHTML=`<div class="ptitle">${dm.g?'Отметка рулетки':'Размер'}</div><p style="font-size:22px;font-weight:800;margin:6px 0">${fmt(v3.dist(dm.a,dm.b))} мм</p>
+    <button class="btn red" data-act="deldim">🗑 Удалить ${dm.g?'эту отметку':'этот размер'}</button>${ng?`<button class="btn" data-act="delguides">Удалить все отметки рулетки (${ng})</button>`:''}<button class="btn" data-act="dimclr">Удалить все размеры и отметки</button>
+    <div class="note">Или клавиша Del. Ластиком (E) можно удалять, щёлкая по пунктиру.</div>`;return}
   if(!list.length){el.innerHTML=`<div class="ptitle">Ничего не выделено</div><div class="note">Щёлкните по объекту инструментом «Выбор», чтобы увидеть и поменять размеры, положение и текстуру.</div>${specBrief()}`;return}
   if(list.length>1){el.innerHTML=`<div class="ptitle">Выделено: ${list.length}</div>${matSel('')}${rotBtns()}<button class="btn" data-act="fit">🔍 Показать</button><button class="btn red" data-act="del">🗑 Удалить</button>${specBrief()}`;return}
   const o=list[0];const C=COMPS[o.c];const inp=(lab,k,v,cls='')=>`<label>${lab}<input data-${cls||'pp'}="${k}" value="${fmt(v)}"></label>`;
@@ -805,7 +821,7 @@ function bindUI(){
     if(d.mat){UI.curMat=d.mat;const s=selObjs();if(s.length&&TOOL.id==='select'){for(const o of s)o.mat=d.mat;commit()}else setTool('paint');leftPanel();return}
     if(d.rot){rotateSel(AX[+d.rot],90);return}if(d.gsys){GEN.sys=d.gsys;leftPanel();return}
     const a=d.act;if(!a)return;
-    if(a==='undo')undo();if(a==='redo')redo();if(a==='del')delSel();if(a==='fit')viewFit(SC.sel.size?selObjs():null);if(a==='allfit')viewFit();
+    if(a==='undo')undo();if(a==='redo')redo();if(a==='del')delSel();if(a==='deldim'){delSel();refreshPanels()}if(a==='delguides'){SC.dims=SC.dims.filter(d=>!d.g);SC.selDim=null;commit()}if(a==='fit')viewFit(SC.sel.size?selObjs():null);if(a==='allfit')viewFit();
     if(a==='dup'){const n=selObjs().map(o=>dupObj(o,[100,0,0]));SC.objs.push(...n);SC.sel=new Set(n.map(o=>o.id));commit()}
     if(a==='arr'){const N=Math.round(num($('#arN').value)),st=num($('#arS').value),ax=+$('#arA').value;const src=selObjs();for(let i=1;i<=N;i++)for(const o of src)SC.objs.push(dupObj(o,v3.mul(AX[ax],st*i)));commit();status(`Добавлено ${N} копий с шагом ${st} мм`)}
     if(a==='gen')genFrame();if(a==='room')genRoom();if(a==='spec')openModal(specHtml());
@@ -814,7 +830,7 @@ function bindUI(){
     if(a==='snapg'){UI.snapGrid=!UI.snapGrid;b.classList.toggle('on',UI.snapGrid)}
     if(a==='new'){if(confirm('Начать новый проект? Несохранённое пропадёт.')){SC.objs=[];SC.dims=[];SC.meshes={};SC.sel.clear();commit();view('iso')}}
     if(a==='save')saveFile();if(a==='open')$('#fopen').click();if(a==='dae')exportDae();if(a==='idae')$('#fdae').click();if(a==='png')pngShot();
-    if(a==='dimclr'){SC.dims=[];commit()}if(a==='close')$('#modal').classList.remove('on');if(a==='print')window.print();if(a==='help')openModal($('#helptpl').innerHTML);
+    if(a==='dimclr'){SC.dims=[];SC.selDim=null;commit()}if(a==='close')$('#modal').classList.remove('on');if(a==='print')window.print();if(a==='help')openModal($('#helptpl').innerHTML);
     if(a==='upl')$('#fimg').click();
     if(a==='addcol'){const h=$('#tcol').value;const k='c_'+h.slice(1);MATS[k]={n:'Цвет '+h,col:[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)/255),custom:true};UI.curMat=k;leftPanel();setTool('paint')}});
   document.addEventListener('change',e=>{const t=e.target,d=t.dataset;
